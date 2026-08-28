@@ -266,7 +266,7 @@ object SpotCommands {
 		spots.take(20).forEach { spot ->
 			val pin = if (spot.pinned) "PIN" else "—"
 			val extra = spot.grottoChance()?.type?.displayName?.removeSuffix(" Chance") ?: spot.stock?.label ?: "?"
-			info(ctx, "#${spot.id}  ${spot.x} ${spot.y} ${spot.z}  $extra  [$pin]")
+			info(ctx, "#${spot.rankNumber()}  ${spot.x} ${spot.y} ${spot.z}  $extra  [$pin]")
 		}
 		if (spots.size > 20) {
 			info(ctx, "… ${spots.size - 20} more")
@@ -276,12 +276,13 @@ object SpotCommands {
 
 	private fun pinOne(ctx: CommandContext<FabricClientCommandSource>, pin: Boolean): Int {
 		val id = IntegerArgumentType.getInteger(ctx, "id")
-		val spot = SpotPool.byId(id) ?: return err(ctx, "No spot #$id")
+		FilterState.refreshRanks()
+		val spot = SpotPool.byRank(id) ?: SpotPool.byId(id) ?: return err(ctx, "No spot #$id")
 		if (spot.kind != FilterState.kind) {
 			return err(ctx, "#$id is ${spot.kind.label}; switch with /sf kind ${spot.kind.label.lowercase()}")
 		}
 		SpotPool.setPinned(spot, pin)
-		return ok(ctx, if (pin) "Pinned #${spot.id}" else "Unpinned #${spot.id}")
+		return ok(ctx, if (pin) "Pinned #${spot.rankNumber()}" else "Unpinned #${spot.rankNumber()}")
 	}
 
 	private fun pinFiltered(ctx: CommandContext<FabricClientCommandSource>, pin: Boolean): Int {
@@ -318,9 +319,10 @@ object SpotCommands {
 	}
 
 	private fun suggestIds(builder: SuggestionsBuilder, pinned: Boolean): CompletableFuture<Suggestions> {
+		FilterState.refreshRanks()
 		SpotPool.all()
 			.filter { it.kind == FilterState.kind && it.pinned == pinned }
-			.forEach { builder.suggest(it.id.toString()) }
+			.forEach { builder.suggest(it.rankNumber().toString()) }
 		return builder.buildFuture()
 	}
 

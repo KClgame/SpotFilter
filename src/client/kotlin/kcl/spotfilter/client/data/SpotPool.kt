@@ -16,12 +16,20 @@ object SpotPool {
 
 	fun all(): Collection<FishingSpot> = spots.values
 
-	fun pinned(): List<FishingSpot> =
-		FilterState.sortSpots(spots.values.filter { it.pinned && it.kind == FilterState.kind })
+	fun pinned(): List<FishingSpot> {
+		FilterState.refreshRanks()
+		return FilterState.sortSpots(
+			spots.values.filter { it.pinned && it.kind == FilterState.kind },
+			FilterState.kind
+		)
+	}
 
 	fun get(key: SpotKey): FishingSpot? = spots[key]
 
 	fun byId(id: Int): FishingSpot? = spots.values.firstOrNull { it.id == id }
+
+	fun byRank(rank: Int, kind: SpotKind = FilterState.kind): FishingSpot? =
+		spots.values.firstOrNull { it.kind == kind && it.rank == rank }
 
 	fun upsert(incoming: FishingSpot) {
 		val existing = spots[incoming.key]

@@ -307,15 +307,25 @@ object FilterState {
 		}
 	}
 
-	fun filteredSorted(): List<FishingSpot> =
-		sortSpots(SpotPool.all().filter { matches(it) })
+	fun filteredSorted(): List<FishingSpot> {
+		refreshRanks()
+		return sortSpots(SpotPool.all().filter { matches(it) }, kind)
+	}
 
-	fun sortSpots(spots: Collection<FishingSpot>): List<FishingSpot> {
+	fun refreshRanks() {
+		SpotKind.entries.forEach { k ->
+			sortSpots(SpotPool.all().filter { it.kind == k }, k)
+				.forEachIndexed { index, spot -> spot.rank = index + 1 }
+		}
+	}
+
+	fun sortSpots(spots: Collection<FishingSpot>, forKind: SpotKind = kind): List<FishingSpot> {
 		val player = Minecraft.getInstance().player
 		val origin = player?.position() ?: Vec3.ZERO
-		val grotto = kind == SpotKind.GROTTO
+		val profile = if (forKind == SpotKind.GROTTO) grotto else normal
+		val grotto = forKind == SpotKind.GROTTO
 		return spots.sortedWith { a, b ->
-			for (slot in slots) {
+			for (slot in profile.slots) {
 				if (!slot.isActive) continue
 				val cmp = slot.sortKey(a).compareTo(slot.sortKey(b))
 				if (cmp != 0) {

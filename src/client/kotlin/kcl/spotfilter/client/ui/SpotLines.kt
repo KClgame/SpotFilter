@@ -45,8 +45,7 @@ object SpotLines {
 		if (name.isNotEmpty()) {
 			parts += LinePart(text = Component.literal(name).withStyle(Style.EMPTY.withColor(idRgb)))
 		}
-		val number = if (name.isNotEmpty() && spot.groupIndex > 0) spot.groupIndex else spot.id
-		parts += LinePart(text = Component.literal("#$number").withStyle(Style.EMPTY.withColor(idRgb)))
+		parts += LinePart(text = Component.literal("#${spot.rankNumber()}").withStyle(Style.EMPTY.withColor(idRgb)))
 		for (perk in compactPerks(spot)) {
 			val valueColor = perk.valueRgb ?: WHITE
 			parts += LinePart(

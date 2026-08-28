@@ -70,7 +70,8 @@ data class FishingSpot(
 	var autoPinned: Boolean = false,
 	var pinColorOverride: Int? = null,
 	var nickname: String? = null,
-	var groupIndex: Int = 0
+	var groupIndex: Int = 0,
+	var rank: Int = 0
 ) {
 	fun grottoChance(): ParsedPerk? = PerkPriority.grottoChance(perks)
 
@@ -117,18 +118,20 @@ data class FishingSpot(
 
 	fun stabilityDisplayRgb(): Int = stabilityRgb ?: stability?.rgb ?: 0xAAAAAA
 
+	fun rankNumber(): Int = if (rank > 0) rank else id
+
 	fun displayTitle(): String =
-		if (!nickname.isNullOrBlank() && groupIndex > 0) {
-			"$nickname #$groupIndex"
+		if (!nickname.isNullOrBlank()) {
+			"$nickname #${rankNumber()}"
 		} else {
-			"${spotTypeLabel()} spot #${id}"
+			"${spotTypeLabel()} spot #${rankNumber()}"
 		}
 
 	fun guideLabel(): String =
-		if (!nickname.isNullOrBlank() && groupIndex > 0) {
-			"$nickname #$groupIndex"
+		if (!nickname.isNullOrBlank()) {
+			"$nickname #${rankNumber()}"
 		} else {
-			"${spotTypeLabel()} spot #${id}"
+			"${spotTypeLabel()} spot #${rankNumber()}"
 		}
 
 	fun markerRgb(): Int {
