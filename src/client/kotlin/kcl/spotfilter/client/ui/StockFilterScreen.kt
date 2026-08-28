@@ -2,6 +2,7 @@ package kcl.spotfilter.client.ui
 
 import kcl.spotfilter.client.config.SpotFilterConfig
 import kcl.spotfilter.client.filter.AutoPin
+import kcl.spotfilter.client.filter.CompareOp
 import kcl.spotfilter.client.filter.StockFilter
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.components.Button
@@ -26,19 +27,36 @@ class StockFilterScreen(
 			}.bounds(width / 2 - 120, 40, 240, 20).build()
 		)
 		addRenderableWidget(
-			Button.builder(Component.literal("Compare: ${stock.compare.label} (${stock.compare.symbol})")) { button ->
+			Button.builder(Component.literal("Compare: ${stock.compare.label} (${stock.compare.symbol})")) { _ ->
 				stock.cycleCompare()
-				button.setMessage(Component.literal("Compare: ${stock.compare.label} (${stock.compare.symbol})"))
 				persist()
+				rebuildWidgets()
 			}.bounds(width / 2 - 120, 68, 240, 20).build()
 		)
-		addRenderableWidget(
-			Button.builder(Component.literal("Level: ${stock.level.label}")) { button ->
-				stock.cycleLevel()
-				button.setMessage(Component.literal("Level: ${stock.level.label}"))
-				persist()
-			}.bounds(width / 2 - 120, 96, 240, 20).build()
-		)
+		if (stock.compare == CompareOp.BETWEEN) {
+			addRenderableWidget(
+				Button.builder(Component.literal("Lower: ${stock.level.label}")) { button ->
+					stock.cycleLevel()
+					button.setMessage(Component.literal("Lower: ${stock.level.label}"))
+					persist()
+				}.bounds(width / 2 - 120, 96, 116, 20).build()
+			)
+			addRenderableWidget(
+				Button.builder(Component.literal("Upper: ${stock.levelMax.label}")) { button ->
+					stock.cycleLevelMax()
+					button.setMessage(Component.literal("Upper: ${stock.levelMax.label}"))
+					persist()
+				}.bounds(width / 2 + 4, 96, 116, 20).build()
+			)
+		} else {
+			addRenderableWidget(
+				Button.builder(Component.literal("Level: ${stock.level.label}")) { button ->
+					stock.cycleLevel()
+					button.setMessage(Component.literal("Level: ${stock.level.label}"))
+					persist()
+				}.bounds(width / 2 - 120, 96, 240, 20).build()
+			)
+		}
 		addRenderableWidget(
 			Button.builder(Component.literal("Back")) { _ -> onClose() }
 				.bounds(width / 2 - 50, height - 28, 100, 20).build()

@@ -1,6 +1,6 @@
 # SpotFilter
 
-**v1.4.0** · Minecraft **26.2** · Fabric · 纯客户端
+**v1.4.1** · Minecraft **26.2** · Fabric · 纯客户端
 
 MCC Island 钓鱼点扫描、筛选与坐标 HUD。走近带 `Fishing Spot` 标签的 Text Display 即可收录；按词条过滤、钉选坐标、世界透视引导。
 
@@ -25,7 +25,7 @@ MCC Island 钓鱼点扫描、筛选与坐标 HUD。走近带 `Fishing Spot` 标�
 ## 安装
 
 1. 安装 Fabric Loader（26.2）与上述依赖。
-2. 将 `spotfilter-1.4.0.jar` 放入 `.minecraft/mods/`。
+2. 将 `spotfilter-1.4.1.jar` 放入 `.minecraft/mods/`。
 3. 启动游戏。控件里应出现 **SpotFilter** 分类。
 
 构建：
@@ -34,7 +34,7 @@ MCC Island 钓鱼点扫描、筛选与坐标 HUD。走近带 `Fishing Spot` 标�
 ./gradlew build
 ```
 
-产物：`build/libs/spotfilter-1.4.0.jar`
+产物：`build/libs/spotfilter-1.4.1.jar`
 
 ---
 
@@ -90,7 +90,7 @@ MCC Island 钓鱼点扫描、筛选与坐标 HUD。走近带 `Fishing Spot` 标�
 
 ### Stock 筛选
 
-主界面单独一栏 **Stock**，不占用 F1–F3。可开关，并设置 `>` / `<` / `=` 与档位（Plentiful → … → Depleted）。与词条筛选同时生效（必须先过 Stock）。
+主界面单独一栏 **Stock**，不占用 F1–F3。可开关，并设置 `>` / `<` / `=` / `Between`（Lower + Upper 两个档位）。**Depleted 默认不出现在列表里**；只有把 Stock 打开且比较条件包含 Depleted（例如 `= Depleted` 或 Between 覆盖到 Depleted）才会显示。这条优先于 F1–F3。
 
 ### Grotto 与 Stability Cost
 
@@ -121,8 +121,8 @@ Grotto 模式下主界面和 Auto Pin 会出现 **Cost** 筛选（Low / Medium /
 
 1. **Perk** → 搜索页，输入关键字点选词条，或选 **None**。
 2. Hook / Magnet 才有：
-   - **Compare**：`>` / `<` / `=`
-   - **Value**：`+10%` / `+20%` / `+30%`（Wayfinder Data 为 `+10`）
+   - **Compare**：`>` / `<` / `=` / `Between`
+   - **Value**：`+10%` / `+20%` / `+30%`（Wayfinder Data 为 `+10`）。**Between** 时为 Lower / Upper 两个值。
 3. 固定加成（Elusive Chance、Wayfinder Data、Fish / Pearl / Treasure / Spirit Chance）**没有**数值比较，只判断有无该词条。Grotto 用 F1–F3 选 Fish/Pearl/Treasure/Spirit Chance 即可按类型筛选。
 4. **Sort**：High → Low 或 Low → High。
 5. **Clear this filter** 清空本槽。

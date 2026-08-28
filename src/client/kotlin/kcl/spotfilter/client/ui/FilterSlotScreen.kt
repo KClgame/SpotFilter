@@ -1,6 +1,7 @@
 package kcl.spotfilter.client.ui
 
 import kcl.spotfilter.client.config.SpotFilterConfig
+import kcl.spotfilter.client.filter.CompareOp
 import kcl.spotfilter.client.filter.FilterSlot
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.components.Button
@@ -26,19 +27,36 @@ class FilterSlotScreen(
 
 		if (perk != null && perk.hasVariableValue) {
 			addRenderableWidget(
-				Button.builder(Component.literal("Compare: ${slot.compare.label} (${slot.compare.symbol})")) { button ->
+				Button.builder(Component.literal("Compare: ${slot.compare.label} (${slot.compare.symbol})")) { _ ->
 					slot.cycleCompare()
-					button.setMessage(Component.literal("Compare: ${slot.compare.label} (${slot.compare.symbol})"))
 					SpotFilterConfig.save()
+					rebuildWidgets()
 				}.bounds(width / 2 - 120, 68, 240, 20).build()
 			)
-			addRenderableWidget(
-				Button.builder(Component.literal("Value: ${perk.valueLabel(slot.threshold)}")) { button ->
-					slot.cycleThreshold()
-					button.setMessage(Component.literal("Value: ${perk.valueLabel(slot.threshold)}"))
-					SpotFilterConfig.save()
-				}.bounds(width / 2 - 120, 96, 240, 20).build()
-			)
+			if (slot.compare == CompareOp.BETWEEN) {
+				addRenderableWidget(
+					Button.builder(Component.literal("Lower: ${perk.valueLabel(slot.threshold)}")) { button ->
+						slot.cycleThreshold()
+						button.setMessage(Component.literal("Lower: ${perk.valueLabel(slot.threshold)}"))
+						SpotFilterConfig.save()
+					}.bounds(width / 2 - 120, 96, 116, 20).build()
+				)
+				addRenderableWidget(
+					Button.builder(Component.literal("Upper: ${perk.valueLabel(slot.thresholdMax)}")) { button ->
+						slot.cycleThresholdMax()
+						button.setMessage(Component.literal("Upper: ${perk.valueLabel(slot.thresholdMax)}"))
+						SpotFilterConfig.save()
+					}.bounds(width / 2 + 4, 96, 116, 20).build()
+				)
+			} else {
+				addRenderableWidget(
+					Button.builder(Component.literal("Value: ${perk.valueLabel(slot.threshold)}")) { button ->
+						slot.cycleThreshold()
+						button.setMessage(Component.literal("Value: ${perk.valueLabel(slot.threshold)}"))
+						SpotFilterConfig.save()
+					}.bounds(width / 2 - 120, 96, 240, 20).build()
+				)
+			}
 		}
 
 		addRenderableWidget(

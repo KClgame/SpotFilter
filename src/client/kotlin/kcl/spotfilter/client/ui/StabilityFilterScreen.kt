@@ -2,6 +2,7 @@ package kcl.spotfilter.client.ui
 
 import kcl.spotfilter.client.config.SpotFilterConfig
 import kcl.spotfilter.client.filter.AutoPin
+import kcl.spotfilter.client.filter.CompareOp
 import kcl.spotfilter.client.filter.StabilityFilter
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.components.Button
@@ -26,19 +27,36 @@ class StabilityFilterScreen(
 			}.bounds(width / 2 - 120, 40, 240, 20).build()
 		)
 		addRenderableWidget(
-			Button.builder(Component.literal("Compare: ${stability.compare.label} (${stability.compare.symbol})")) { button ->
+			Button.builder(Component.literal("Compare: ${stability.compare.label} (${stability.compare.symbol})")) { _ ->
 				stability.cycleCompare()
-				button.setMessage(Component.literal("Compare: ${stability.compare.label} (${stability.compare.symbol})"))
 				persist()
+				rebuildWidgets()
 			}.bounds(width / 2 - 120, 68, 240, 20).build()
 		)
-		addRenderableWidget(
-			Button.builder(Component.literal("Level: ${stability.level.label}")) { button ->
-				stability.cycleLevel()
-				button.setMessage(Component.literal("Level: ${stability.level.label}"))
-				persist()
-			}.bounds(width / 2 - 120, 96, 240, 20).build()
-		)
+		if (stability.compare == CompareOp.BETWEEN) {
+			addRenderableWidget(
+				Button.builder(Component.literal("Lower: ${stability.level.label}")) { button ->
+					stability.cycleLevel()
+					button.setMessage(Component.literal("Lower: ${stability.level.label}"))
+					persist()
+				}.bounds(width / 2 - 120, 96, 116, 20).build()
+			)
+			addRenderableWidget(
+				Button.builder(Component.literal("Upper: ${stability.levelMax.label}")) { button ->
+					stability.cycleLevelMax()
+					button.setMessage(Component.literal("Upper: ${stability.levelMax.label}"))
+					persist()
+				}.bounds(width / 2 + 4, 96, 116, 20).build()
+			)
+		} else {
+			addRenderableWidget(
+				Button.builder(Component.literal("Level: ${stability.level.label}")) { button ->
+					stability.cycleLevel()
+					button.setMessage(Component.literal("Level: ${stability.level.label}"))
+					persist()
+				}.bounds(width / 2 - 120, 96, 240, 20).build()
+			)
+		}
 		addRenderableWidget(
 			Button.builder(Component.literal("Back")) { _ -> onClose() }
 				.bounds(width / 2 - 50, height - 28, 100, 20).build()

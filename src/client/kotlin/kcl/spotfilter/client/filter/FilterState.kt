@@ -119,6 +119,11 @@ class StockFilter {
 		return compareValues(rank, level.rank, levelMax.rank, compare)
 	}
 
+	fun allowsDepleted(): Boolean {
+		if (!enabled) return false
+		return compareValues(StockLevel.DEPLETED.rank, level.rank, levelMax.rank, compare)
+	}
+
 	fun compactLabel(): String {
 		if (!enabled) return "Stock: Off"
 		return if (compare == CompareOp.BETWEEN) {
@@ -296,6 +301,7 @@ object FilterState {
 
 	fun matches(spot: FishingSpot): Boolean {
 		if (spot.kind != kind) return false
+		if (spot.stock == StockLevel.DEPLETED && !stock.allowsDepleted()) return false
 		if (!stock.matches(spot)) return false
 		if (kind == SpotKind.GROTTO && !stability.matches(spot)) return false
 		val activeSlots = slots.filter { it.isActive }
