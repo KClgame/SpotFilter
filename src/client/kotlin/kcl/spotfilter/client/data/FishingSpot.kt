@@ -17,7 +17,8 @@ enum class StockLevel(val label: String, val rank: Int, val rgb: Int) {
 	VERY_HIGH("Very High", 4, 0x55FFFF),
 	HIGH("High", 3, 0x55FF55),
 	MEDIUM("Medium", 2, 0xFFD83D),
-	LOW("Low", 1, 0xFF8C1A);
+	LOW("Low", 1, 0xFF8C1A),
+	DEPLETED("Depleted", 0, 0x888888);
 
 	companion object {
 		fun fromLabel(raw: String): StockLevel? =

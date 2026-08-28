@@ -27,6 +27,8 @@ object SpotPool {
 			spots[incoming.key] = incoming
 			SpotSounds.playNewSpot()
 		} else {
+			val becameDepleted =
+				incoming.stock == StockLevel.DEPLETED && existing.stock != StockLevel.DEPLETED
 			existing.entityId = incoming.entityId
 			existing.x = incoming.x
 			existing.y = incoming.y
@@ -35,7 +37,9 @@ object SpotPool {
 			existing.stockRgb = incoming.stockRgb
 			existing.perks = incoming.perks
 			existing.lastSeenGameTime = incoming.lastSeenGameTime
-			if (existing.pinned) {
+			if (becameDepleted && existing.pinned) {
+				setPinned(existing, false)
+			} else if (existing.pinned) {
 				PinnedSpotMarker.sync(existing)
 			}
 		}

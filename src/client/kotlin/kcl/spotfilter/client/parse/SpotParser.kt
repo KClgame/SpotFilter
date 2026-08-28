@@ -13,7 +13,7 @@ import java.util.Optional
 
 object SpotParser {
 	private val STOCK = Regex(
-		"""Stock:\s*(Plentiful|Very High|High|Medium|Low)""",
+		"""Stock:\s*(Plentiful|Very High|High|Medium|Low|Depleted)""",
 		RegexOption.IGNORE_CASE
 	)
 	private val HOOK = Regex(
