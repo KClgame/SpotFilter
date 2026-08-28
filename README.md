@@ -1,6 +1,6 @@
 # SpotFilter
 
-**v1.0.4** · Minecraft **26.2** · Fabric · 纯客户端
+**v1.0.5** · Minecraft **26.2** · Fabric · 纯客户端
 
 MCC Island 钓鱼点扫描、筛选与坐标 HUD。走近带 `Fishing Spot` 标签的 Text Display 即可收录；按词条过滤、钉选坐标、世界透视引导。
 
@@ -25,7 +25,7 @@ MCC Island 钓鱼点扫描、筛选与坐标 HUD。走近带 `Fishing Spot` 标�
 ## 安装
 
 1. 安装 Fabric Loader（26.2）与上述依赖。
-2. 将 `spotfilter-1.0.4.jar` 放入 `.minecraft/mods/`。
+2. 将 `spotfilter-1.0.5.jar` 放入 `.minecraft/mods/`。
 3. 启动游戏。控件里应出现 **SpotFilter** 分类。
 
 构建：
@@ -34,7 +34,7 @@ MCC Island 钓鱼点扫描、筛选与坐标 HUD。走近带 `Fishing Spot` 标�
 ./gradlew build
 ```
 
-产物：`build/libs/spotfilter-1.0.4.jar`
+产物：`build/libs/spotfilter-1.0.5.jar`
 
 ---
 

@@ -63,26 +63,35 @@ object SpotHud {
 		pose.popMatrix()
 	}
 
-	private fun lineH(font: Font): Int = font.lineHeight
+	private fun lineH(font: Font): Int = maxOf(font.lineHeight, ICON)
 
-	private fun measure(font: Font, pinned: List<FishingSpot>): Pair<Int, Int> {
+	private fun headerWidth(font: Font, spot: FishingSpot): Int {
+		val textW = font.width(header(spot))
+		return if (spot.primaryPerk() != null) ICON + 4 + textW else textW
+	}
+
+	private fun blockSize(font: Font, pinned: List<FishingSpot>): Pair<Int, Int> {
 		val lh = lineH(font)
 		if (pinned.isEmpty()) {
-			return font.width(EMPTY) + PAD * 2 to (PAD * 2 + lh)
+			return font.width(EMPTY) to lh
 		}
-		var maxW = 0
-		var height = PAD
+		var blockW = 0
+		var blockH = 0
 		for ((i, spot) in pinned.withIndex()) {
-			if (i > 0) height += 2
-			maxW = maxOf(maxW, ICON + 4 + font.width(header(spot)))
-			height += lh
+			if (i > 0) blockH += 2
+			blockW = maxOf(blockW, headerWidth(font, spot))
+			blockH += lh
 			for (perk in spot.perks) {
-				maxW = maxOf(maxW, font.width(perk.coloredLine()))
-				height += lh
+				blockW = maxOf(blockW, font.width(perk.coloredLine()))
+				blockH += lh
 			}
 		}
-		height += PAD
-		return maxW + PAD * 2 to height
+		return blockW to blockH
+	}
+
+	private fun measure(font: Font, pinned: List<FishingSpot>): Pair<Int, Int> {
+		val (blockW, blockH) = blockSize(font, pinned)
+		return blockW + PAD * 2 to blockH + PAD * 2
 	}
 
 	private fun drawContent(graphics: GuiGraphicsExtractor, font: Font, w: Int, h: Int) {
@@ -90,23 +99,24 @@ object SpotHud {
 		graphics.fill(0, 0, w, h, ARGB.color(alpha, 0, 0, 0))
 		val pinned = SpotPool.pinned()
 		val lh = lineH(font)
+		val (blockW, blockH) = blockSize(font, pinned)
+		val originX = (w - blockW) / 2
+		var cursor = (h - blockH) / 2
 		if (pinned.isEmpty()) {
-			drawCentered(graphics, font, EMPTY, PAD, w, GRAY)
+			graphics.text(font, EMPTY, originX, cursor, GRAY, false)
 			return
 		}
-		var cursor = PAD
+
 		for ((i, spot) in pinned.withIndex()) {
 			if (i > 0) cursor += 2
 			val head = header(spot)
-			val groupW = ICON + 4 + font.width(head)
-			val startX = (w - groupW) / 2
 			val primary = spot.primaryPerk()
 			if (primary != null) {
 				val iconY = cursor + (lh - ICON).coerceAtLeast(0) / 2
 				graphics.blit(
 					RenderPipelines.GUI_TEXTURED,
 					primary.type.textureId,
-					startX,
+					originX,
 					iconY,
 					0f,
 					0f,
@@ -115,26 +125,16 @@ object SpotHud {
 					ICON,
 					ICON
 				)
+				graphics.text(font, head, originX + ICON + 4, cursor, WHITE, false)
+			} else {
+				graphics.text(font, head, originX, cursor, WHITE, false)
 			}
-			graphics.text(font, head, startX + ICON + 4, cursor, WHITE, false)
 			cursor += lh
 			for (perk in spot.perks) {
-				drawCentered(graphics, font, perk.coloredLine(), cursor, w, WHITE)
+				graphics.text(font, perk.coloredLine(), originX, cursor, WHITE, false)
 				cursor += lh
 			}
 		}
-	}
-
-	private fun drawCentered(
-		graphics: GuiGraphicsExtractor,
-		font: Font,
-		text: Component,
-		y: Int,
-		boxW: Int,
-		color: Int
-	) {
-		val x = ((boxW - font.width(text)) / 2).coerceAtLeast(0)
-		graphics.text(font, text, x, y, color, false)
 	}
 
 	private fun header(spot: FishingSpot): Component {
