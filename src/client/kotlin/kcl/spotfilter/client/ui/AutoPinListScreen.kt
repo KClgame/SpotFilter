@@ -61,7 +61,7 @@ class AutoPinListScreen(
 		super.extractRenderState(graphics, mouseX, mouseY, delta)
 		graphics.text(
 			font,
-			Component.literal("Auto Pin rules — matching spots are pinned. Empty hex uses default family colors."),
+			Component.literal("Auto Pin (${FilterState.kind.label}) — matching spots are pinned. Nickname is optional."),
 			8,
 			12,
 			0xFFFFFFFF.toInt(),

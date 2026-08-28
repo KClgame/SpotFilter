@@ -2,6 +2,7 @@ package kcl.spotfilter.client.data
 
 import kcl.spotfilter.client.audio.SpotSounds
 import kcl.spotfilter.client.filter.AutoPin
+import kcl.spotfilter.client.filter.FilterState
 import kcl.spotfilter.client.world.PinnedSpotMarker
 import net.minecraft.client.Minecraft
 
@@ -15,7 +16,8 @@ object SpotPool {
 
 	fun all(): Collection<FishingSpot> = spots.values
 
-	fun pinned(): List<FishingSpot> = spots.values.filter { it.pinned }
+	fun pinned(): List<FishingSpot> =
+		spots.values.filter { it.pinned && it.kind == FilterState.kind }
 
 	fun get(key: SpotKey): FishingSpot? = spots[key]
 
@@ -39,6 +41,10 @@ object SpotPool {
 			existing.stockRgb = incoming.stockRgb
 			existing.perks = incoming.perks
 			existing.lastSeenGameTime = incoming.lastSeenGameTime
+			existing.kind = incoming.kind
+			existing.stability = incoming.stability
+			existing.stabilityRgb = incoming.stabilityRgb
+			existing.stabilityRange = incoming.stabilityRange
 			if (becameDepleted && existing.pinned) {
 				existing.autoPinned = false
 				setPinned(existing, false)
@@ -55,10 +61,25 @@ object SpotPool {
 		if (!pinned) {
 			spot.autoPinned = false
 			spot.pinColorOverride = null
+			assignGroup(spot, null)
 			PinnedSpotMarker.remove(spot.id)
 		} else {
 			PinnedSpotMarker.spawnOrUpdate(spot)
 		}
+	}
+
+	fun assignGroup(spot: FishingSpot, nickname: String?) {
+		val nick = nickname?.trim().orEmpty()
+		if (nick.isEmpty()) {
+			spot.nickname = null
+			spot.groupIndex = 0
+			return
+		}
+		if (spot.nickname == nick && spot.groupIndex > 0) return
+		spot.nickname = nick
+		spot.groupIndex = (spots.values
+			.filter { it !== spot && it.nickname == nick }
+			.maxOfOrNull { it.groupIndex } ?: 0) + 1
 	}
 
 	fun remove(key: SpotKey) {

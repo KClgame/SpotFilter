@@ -92,12 +92,33 @@ def perk_components(key: str, value: int | None = None) -> list[str]:
     ]
 
 
-def summon(dx: int, dz: int, stock: str, perks: list[tuple[str, int | None]]) -> str:
+COST_COLOR = {
+    "low": "#65FEFE",
+    "medium": "#55FE56",
+    "high": "#FEFE55",
+}
+
+COST_RANGE = {
+    "low": "(8)-(14)%",
+    "medium": "(15)-(22)%",
+    "high": "(23)-(30)%",
+}
+
+
+def summon(dx: int, dz: int, stock: str, perks: list[tuple[str, int | None]], cost: str | None = None) -> str:
     extras = [
         '{text:"\\n\\nStock: ",bold:false,color:"gray"}',
         f'{{text:"{stock}",bold:false,color:"{STOCK_COLOR[stock]}"}}',
         '{text:"\\n\\n",bold:false}',
     ]
+    if cost is not None:
+        extras.extend(
+            [
+                '{text:"Stability Cost\\n",bold:false,color:"gray"}',
+                f'{{text:"{COST_RANGE[cost]}",bold:false,color:"{COST_COLOR[cost]}"}}',
+                '{text:"\\n\\n",bold:false}',
+            ]
+        )
     for i, perk in enumerate(perks):
         extras.extend(perk_components(perk[0], perk[1]))
         if i != len(perks) - 1:
@@ -179,6 +200,26 @@ def write_pack(root: Path) -> None:
         dz = (i // 10) * 3
         lines.append(summon(dx, dz, stock, perks))
     (func / "spawn.mcfunction").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    grotto_lines = [
+        "kill @e[type=minecraft:text_display,tag=spotfilter_test]",
+        'tellraw @s {"text":"Spawning 9 Grotto test spots (Stability Cost Low/Medium/High)","color":"aqua"}',
+    ]
+    grotto_spots = [
+        ("Plentiful", [("glimmering_hook", 30), ("pearl_magnet", 20)], "low"),
+        ("Very High", [("glimmering_hook", 20), ("pearl_chance", None)], "low"),
+        ("High", [("pearl_magnet", 30)], "low"),
+        ("Plentiful", [("strong_hook", 30), ("xp_magnet", 20)], "medium"),
+        ("Very High", [("wise_hook", 30), ("wayfinder_data", None)], "medium"),
+        ("High", [("greedy_hook", 20), ("treasure_magnet", 10)], "medium"),
+        ("Medium", [("lucky_hook", 10), ("spirit_magnet", 20)], "high"),
+        ("Low", [("treasure_chance", None)], "high"),
+        ("Plentiful", [("elusive_chance", None)], "high"),
+    ]
+    for i, (stock, perks, cost) in enumerate(grotto_spots):
+        dx = (i % 3) * 3
+        dz = (i // 3) * 3
+        grotto_lines.append(summon(dx, dz, stock, perks, cost))
+    (func / "spawn_grotto.mcfunction").write_text("\n".join(grotto_lines) + "\n", encoding="utf-8")
     (func / "clear.mcfunction").write_text(
         "kill @e[type=minecraft:text_display,tag=spotfilter_test]\n"
         'tellraw @s {"text":"Cleared SpotFilter test spots","color":"yellow"}\n',
@@ -189,9 +230,11 @@ def write_pack(root: Path) -> None:
         "\n"
         "In-game (cheats on):\n"
         "  /function spotfilter:spawn\n"
+        "  /function spotfilter:spawn_grotto\n"
         "  /function spotfilter:clear\n"
         "\n"
-        "50 text_display fishing spots in a 10x5 grid, 3 blocks apart, starting at your feet.\n"
+        "spawn: 50 normal fishing spots in a 10x5 grid, 3 blocks apart.\n"
+        "spawn_grotto: 9 Grotto spots with Stability Cost (Low/Medium/High colors).\n"
         "Enable the MCCI resource pack so perk icons render.\n",
         encoding="utf-8",
     )

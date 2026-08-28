@@ -12,6 +12,11 @@ data class SpotKey(
 	val z: Int
 )
 
+enum class SpotKind(val label: String) {
+	NORMAL("Normal"),
+	GROTTO("Grotto")
+}
+
 enum class StockLevel(val label: String, val rank: Int, val rgb: Int) {
 	PLENTIFUL("Plentiful", 5, 0xA770FE),
 	VERY_HIGH("Very High", 4, 0x55FFFF),
@@ -26,6 +31,26 @@ enum class StockLevel(val label: String, val rank: Int, val rgb: Int) {
 	}
 }
 
+enum class StabilityCost(val label: String, val rank: Int, val rgb: Int) {
+	LOW("Low", 2, 0x65FEFE),
+	MEDIUM("Medium", 1, 0x55FE56),
+	HIGH("High", 0, 0xFEFE55);
+
+	companion object {
+		fun fromRgb(rgb: Int): StabilityCost? {
+			val best = entries.minBy { rgbDistance(it.rgb, rgb) }
+			return if (rgbDistance(best.rgb, rgb) <= 48) best else null
+		}
+
+		private fun rgbDistance(a: Int, b: Int): Int {
+			val dr = ((a shr 16) and 0xFF) - ((b shr 16) and 0xFF)
+			val dg = ((a shr 8) and 0xFF) - ((b shr 8) and 0xFF)
+			val db = (a and 0xFF) - (b and 0xFF)
+			return kotlin.math.abs(dr) + kotlin.math.abs(dg) + kotlin.math.abs(db)
+		}
+	}
+}
+
 data class FishingSpot(
 	val key: SpotKey,
 	var id: Int = 0,
@@ -37,9 +62,15 @@ data class FishingSpot(
 	var stockRgb: Int? = null,
 	var perks: List<ParsedPerk>,
 	var lastSeenGameTime: Long,
+	var kind: SpotKind = SpotKind.NORMAL,
+	var stability: StabilityCost? = null,
+	var stabilityRgb: Int? = null,
+	var stabilityRange: String? = null,
 	var pinned: Boolean = false,
 	var autoPinned: Boolean = false,
-	var pinColorOverride: Int? = null
+	var pinColorOverride: Int? = null,
+	var nickname: String? = null,
+	var groupIndex: Int = 0
 ) {
 	fun primaryPerk(): ParsedPerk? = PerkPriority.primary(perks)
 
@@ -51,8 +82,27 @@ data class FishingSpot(
 
 	fun stockDisplayRgb(): Int = stockRgb ?: stock?.rgb ?: 0xAAAAAA
 
-	fun markerRgb(): Int =
-		pinColorOverride
-			?: primaryPerk()?.type?.family?.rgb
-			?: 0xFFFFFF
+	fun stabilityDisplayRgb(): Int = stabilityRgb ?: stability?.rgb ?: 0xAAAAAA
+
+	fun displayTitle(): String =
+		if (!nickname.isNullOrBlank() && groupIndex > 0) {
+			"$nickname #$groupIndex"
+		} else {
+			"#${id}"
+		}
+
+	fun guideLabel(): String =
+		if (!nickname.isNullOrBlank() && groupIndex > 0) {
+			"$nickname #$groupIndex"
+		} else {
+			"fishing spot #${id}"
+		}
+
+	fun markerRgb(): Int {
+		pinColorOverride?.let { return it }
+		if (kind == SpotKind.GROTTO) {
+			(stabilityRgb ?: stability?.rgb)?.let { return it }
+		}
+		return primaryPerk()?.type?.family?.rgb ?: 0xFFFFFF
+	}
 }

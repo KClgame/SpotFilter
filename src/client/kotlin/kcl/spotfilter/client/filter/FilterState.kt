@@ -1,7 +1,9 @@
 package kcl.spotfilter.client.filter
 
 import kcl.spotfilter.client.data.FishingSpot
+import kcl.spotfilter.client.data.SpotKind
 import kcl.spotfilter.client.data.SpotPool
+import kcl.spotfilter.client.data.StabilityCost
 import kcl.spotfilter.client.data.StockLevel
 import kcl.spotfilter.client.parse.PerkType
 import net.minecraft.client.Minecraft
@@ -148,18 +150,64 @@ class StockFilter {
 	}
 }
 
+class StabilityFilter {
+	var enabled: Boolean = false
+	var compare: CompareOp = CompareOp.EQ
+	var level: StabilityCost = StabilityCost.LOW
+	var levelMax: StabilityCost = StabilityCost.HIGH
+
+	fun matches(spot: FishingSpot): Boolean {
+		if (!enabled) return true
+		val rank = spot.stability?.rank ?: return false
+		return compareValues(rank, level.rank, levelMax.rank, compare)
+	}
+
+	fun compactLabel(): String {
+		if (!enabled) return "Cost: Off"
+		return if (compare == CompareOp.BETWEEN) {
+			val high = if (level.rank >= levelMax.rank) level else levelMax
+			val low = if (level.rank >= levelMax.rank) levelMax else level
+			"Cost ${high.label}–${low.label}"
+		} else {
+			"Cost ${compare.symbol} ${level.label}"
+		}
+	}
+
+	fun cycleCompare() {
+		compare = when (compare) {
+			CompareOp.GT -> CompareOp.GTE
+			CompareOp.GTE -> CompareOp.LT
+			CompareOp.LT -> CompareOp.LTE
+			CompareOp.LTE -> CompareOp.EQ
+			CompareOp.EQ -> CompareOp.BETWEEN
+			CompareOp.BETWEEN -> CompareOp.GT
+		}
+	}
+
+	fun cycleLevel() {
+		level = nextStability(level)
+	}
+
+	fun cycleLevelMax() {
+		levelMax = nextStability(levelMax)
+	}
+}
+
 class AutoPinRule {
 	var name: String = "Rule"
 	var enabled: Boolean = true
 	var mode: FilterMode = FilterMode.AND
 	val slots: Array<FilterSlot> = arrayOf(FilterSlot(), FilterSlot(), FilterSlot())
 	val stock: StockFilter = StockFilter()
+	val stability: StabilityFilter = StabilityFilter()
 	var customColorHex: String = ""
+	var nickname: String = ""
 
-	fun matches(spot: FishingSpot): Boolean {
+	fun matches(spot: FishingSpot, useStability: Boolean): Boolean {
 		if (!stock.matches(spot)) return false
+		if (useStability && !stability.matches(spot)) return false
 		val active = slots.filter { it.isActive }
-		if (active.isEmpty()) return stock.enabled
+		if (active.isEmpty()) return stock.enabled || (useStability && stability.enabled)
 		return if (mode == FilterMode.AND) {
 			active.all { it.matches(spot) }
 		} else {
@@ -168,6 +216,14 @@ class AutoPinRule {
 	}
 
 	fun customRgb(): Int? = parseHexColor(customColorHex)
+}
+
+class FilterProfile {
+	var mode: FilterMode = FilterMode.AND
+	val slots: Array<FilterSlot> = arrayOf(FilterSlot(), FilterSlot(), FilterSlot())
+	val stock: StockFilter = StockFilter()
+	val stability: StabilityFilter = StabilityFilter()
+	val autoPinRules: MutableList<AutoPinRule> = ArrayList()
 }
 
 fun compareValues(value: Int, min: Int, max: Int, compare: CompareOp): Boolean {
@@ -194,6 +250,11 @@ fun nextStock(current: StockLevel): StockLevel {
 	return levels[(levels.indexOf(current) + 1) % levels.size]
 }
 
+fun nextStability(current: StabilityCost): StabilityCost {
+	val levels = StabilityCost.entries
+	return levels[(levels.indexOf(current) + 1) % levels.size]
+}
+
 fun parseHexColor(raw: String): Int? {
 	val text = raw.trim().removePrefix("#")
 	if (text.length != 6) return null
@@ -201,23 +262,48 @@ fun parseHexColor(raw: String): Int? {
 }
 
 object FilterState {
-	var mode: FilterMode = FilterMode.AND
-	val slots: Array<FilterSlot> = arrayOf(FilterSlot(), FilterSlot(), FilterSlot())
-	val stock: StockFilter = StockFilter()
-	val autoPinRules: MutableList<AutoPinRule> = ArrayList()
+	var kind: SpotKind = SpotKind.NORMAL
+	val normal = FilterProfile()
+	val grotto = FilterProfile()
+
+	val active: FilterProfile
+		get() = if (kind == SpotKind.GROTTO) grotto else normal
+
+	var mode: FilterMode
+		get() = active.mode
+		set(value) {
+			active.mode = value
+		}
+	val slots: Array<FilterSlot>
+		get() = active.slots
+	val stock: StockFilter
+		get() = active.stock
+	val stability: StabilityFilter
+		get() = active.stability
+	val autoPinRules: MutableList<AutoPinRule>
+		get() = active.autoPinRules
 
 	fun toggleMode() {
 		mode = if (mode == FilterMode.AND) FilterMode.OR else FilterMode.AND
 	}
 
+	fun toggleKind() {
+		kind = if (kind == SpotKind.GROTTO) SpotKind.NORMAL else SpotKind.GROTTO
+	}
+
+	fun profileFor(spot: FishingSpot): FilterProfile =
+		if (spot.kind == SpotKind.GROTTO) grotto else normal
+
 	fun matches(spot: FishingSpot): Boolean {
+		if (spot.kind != kind) return false
 		if (!stock.matches(spot)) return false
-		val active = slots.filter { it.isActive }
-		if (active.isEmpty()) return true
+		if (kind == SpotKind.GROTTO && !stability.matches(spot)) return false
+		val activeSlots = slots.filter { it.isActive }
+		if (activeSlots.isEmpty()) return true
 		return if (mode == FilterMode.AND) {
-			active.all { it.matches(spot) }
+			activeSlots.all { it.matches(spot) }
 		} else {
-			active.any { it.matches(spot) }
+			activeSlots.any { it.matches(spot) }
 		}
 	}
 
@@ -233,6 +319,10 @@ object FilterState {
 					if (cmp != 0) {
 						return@sortedWith if (slot.sortDir == SortDir.DESC) -cmp else cmp
 					}
+				}
+				if (kind == SpotKind.GROTTO) {
+					val costCmp = (b.stability?.rank ?: 0).compareTo(a.stability?.rank ?: 0)
+					if (costCmp != 0) return@sortedWith costCmp
 				}
 				val stockCmp = (b.stock?.rank ?: 0).compareTo(a.stock?.rank ?: 0)
 				if (stockCmp != 0) return@sortedWith stockCmp
@@ -252,10 +342,13 @@ object FilterState {
 
 object AutoPin {
 	fun apply(spot: FishingSpot) {
-		val rule = FilterState.autoPinRules.firstOrNull { it.enabled && it.matches(spot) }
+		val profile = FilterState.profileFor(spot)
+		val grotto = spot.kind == SpotKind.GROTTO
+		val rule = profile.autoPinRules.firstOrNull { it.enabled && it.matches(spot, grotto) }
 		if (rule != null) {
 			spot.pinColorOverride = rule.customRgb()
 			spot.autoPinned = true
+			SpotPool.assignGroup(spot, rule.nickname)
 			if (!spot.pinned) {
 				SpotPool.setPinned(spot, true)
 			} else {

@@ -3,6 +3,7 @@ package kcl.spotfilter.client.ui
 import kcl.spotfilter.SpotFilter
 import kcl.spotfilter.client.config.SpotFilterConfig
 import kcl.spotfilter.client.data.FishingSpot
+import kcl.spotfilter.client.data.SpotKind
 import kcl.spotfilter.client.data.SpotPool
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry
 import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements
@@ -142,6 +143,16 @@ object SpotHud {
 		val stockText = Component.literal(stock?.label ?: "?").withStyle(
 			Style.EMPTY.withColor(spot.stockDisplayRgb())
 		)
-		return Component.literal("#${spot.id}  ${spot.x} ${spot.y} ${spot.z}  ").append(stockText)
+		val text = Component.literal("${spot.displayTitle()}  ${spot.x} ${spot.y} ${spot.z}  ").append(stockText)
+		val range = spot.stabilityRange
+		if (spot.kind == SpotKind.GROTTO && !range.isNullOrBlank()) {
+			text.append(Component.literal("  "))
+			text.append(
+				Component.literal(range).withStyle(
+					Style.EMPTY.withColor(spot.stabilityDisplayRgb())
+				)
+			)
+		}
+		return text
 	}
 }

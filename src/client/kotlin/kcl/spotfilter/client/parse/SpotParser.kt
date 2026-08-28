@@ -2,6 +2,8 @@ package kcl.spotfilter.client.parse
 
 import kcl.spotfilter.client.data.FishingSpot
 import kcl.spotfilter.client.data.SpotKey
+import kcl.spotfilter.client.data.SpotKind
+import kcl.spotfilter.client.data.StabilityCost
 import kcl.spotfilter.client.data.StockLevel
 import net.minecraft.core.BlockPos
 import net.minecraft.network.chat.Component
@@ -29,6 +31,9 @@ object SpotParser {
 	private val PEARL_CHANCE = Regex("""\+?\s*5\s*%\s*Pearl\s+Chance""", RegexOption.IGNORE_CASE)
 	private val TREASURE_CHANCE = Regex("""\+?\s*1\s*%\s*Treasure\s+Chance""", RegexOption.IGNORE_CASE)
 	private val SPIRIT_CHANCE = Regex("""\+?\s*2\s*%\s*Spirit\s+Chance""", RegexOption.IGNORE_CASE)
+	private val STABILITY_LABEL = Regex("""Stability\s+Cost""", RegexOption.IGNORE_CASE)
+	private val STABILITY_RANGE = Regex("""\(\s*\d+\s*\)\s*-\s*\(\s*\d+\s*\)\s*%""")
+	private val STABILITY_RANGE_LOOSE = Regex("""\d+\s*-\s*\d+\s*%""")
 
 	data class StyledSpan(val text: String, val rgb: Int?)
 
@@ -67,6 +72,7 @@ object SpotParser {
 		val pos = entity.blockPosition()
 		val perks = parsePerks(text, styled).take(3)
 		val stock = STOCK.find(text)?.groupValues?.get(1)?.let { StockLevel.fromLabel(it) }
+		val grotto = parseGrotto(text, styled)
 		return FishingSpot(
 			key = SpotKey(level.dimension().identifier(), pos.x, pos.y, pos.z),
 			entityId = entity.id,
@@ -76,8 +82,52 @@ object SpotParser {
 			stock = stock,
 			stockRgb = stock?.let { colorContaining(styled, it.label) },
 			perks = perks,
-			lastSeenGameTime = now
+			lastSeenGameTime = now,
+			kind = if (grotto != null) SpotKind.GROTTO else SpotKind.NORMAL,
+			stability = grotto?.cost,
+			stabilityRgb = grotto?.rgb,
+			stabilityRange = grotto?.range
 		)
+	}
+
+	private data class GrottoParse(
+		val cost: StabilityCost?,
+		val rgb: Int?,
+		val range: String?
+	)
+
+	private fun parseGrotto(text: String, styled: List<StyledSpan>): GrottoParse? {
+		val label = STABILITY_LABEL.find(text) ?: return null
+		val tail = text.substring(label.range.first)
+		val rangeMatch = STABILITY_RANGE.find(tail) ?: STABILITY_RANGE_LOOSE.find(tail)
+		val range = rangeMatch?.value
+		val colorStart: Int
+		val colorEnd: Int
+		if (rangeMatch != null) {
+			colorStart = label.range.first + rangeMatch.range.first
+			colorEnd = label.range.first + rangeMatch.range.last + 1
+		} else {
+			colorStart = label.range.first
+			colorEnd = label.range.last + 1
+		}
+		val rgb = colorOverlapping(styled, colorStart, colorEnd)
+		return GrottoParse(
+			cost = rgb?.let { StabilityCost.fromRgb(it) },
+			rgb = rgb,
+			range = range
+		)
+	}
+
+	fun colorOverlapping(spans: List<StyledSpan>, start: Int, end: Int): Int? {
+		var pos = 0
+		for (span in spans) {
+			val next = pos + span.text.length
+			if (span.rgb != null && start < next && end > pos) {
+				return span.rgb
+			}
+			pos = next
+		}
+		return null
 	}
 
 	fun parsePerks(text: String, styled: List<StyledSpan> = emptyList()): List<ParsedPerk> {

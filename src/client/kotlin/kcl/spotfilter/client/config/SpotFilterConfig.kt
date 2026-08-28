@@ -2,13 +2,17 @@ package kcl.spotfilter.client.config
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import kcl.spotfilter.client.data.SpotKind
+import kcl.spotfilter.client.data.StabilityCost
 import kcl.spotfilter.client.data.StockLevel
 import kcl.spotfilter.client.filter.AutoPinRule
 import kcl.spotfilter.client.filter.CompareOp
 import kcl.spotfilter.client.filter.FilterMode
+import kcl.spotfilter.client.filter.FilterProfile
 import kcl.spotfilter.client.filter.FilterSlot
 import kcl.spotfilter.client.filter.FilterState
 import kcl.spotfilter.client.filter.SortDir
+import kcl.spotfilter.client.filter.StabilityFilter
 import kcl.spotfilter.client.filter.StockFilter
 import kcl.spotfilter.client.parse.PerkType
 import net.fabricmc.loader.api.FabricLoader
@@ -29,6 +33,13 @@ class StockFilterConfig {
 	var levelMax: String = StockLevel.PLENTIFUL.name
 }
 
+class StabilityFilterConfig {
+	var enabled: Boolean = false
+	var compare: String = CompareOp.EQ.name
+	var level: String = StabilityCost.LOW.name
+	var levelMax: String = StabilityCost.HIGH.name
+}
+
 class AutoPinRuleConfig {
 	var name: String = "Rule"
 	var enabled: Boolean = true
@@ -37,7 +48,19 @@ class AutoPinRuleConfig {
 	var slot1: SlotConfig = SlotConfig()
 	var slot2: SlotConfig = SlotConfig()
 	var stock: StockFilterConfig = StockFilterConfig()
+	var stability: StabilityFilterConfig = StabilityFilterConfig()
 	var customColorHex: String = ""
+	var nickname: String = ""
+}
+
+class FilterProfileConfig {
+	var filterMode: String = FilterMode.AND.name
+	var slot0: SlotConfig = SlotConfig()
+	var slot1: SlotConfig = SlotConfig()
+	var slot2: SlotConfig = SlotConfig()
+	var stock: StockFilterConfig = StockFilterConfig()
+	var stability: StabilityFilterConfig = StabilityFilterConfig()
+	var autoPinRules: MutableList<AutoPinRuleConfig> = ArrayList()
 }
 
 class SpotFilterConfig {
@@ -49,6 +72,11 @@ class SpotFilterConfig {
 	var backgroundAlpha: Int = 40
 	var hudVisible: Boolean = true
 	var enabled: Boolean = true
+	var spotKind: String = SpotKind.NORMAL.name
+	var normal: FilterProfileConfig = FilterProfileConfig()
+	var grotto: FilterProfileConfig = FilterProfileConfig()
+
+	// Pre-1.0.6 fields kept so old configs still load.
 	var filterMode: String = FilterMode.AND.name
 	var slot0: SlotConfig = SlotConfig()
 	var slot1: SlotConfig = SlotConfig()
@@ -84,6 +112,7 @@ class SpotFilterConfig {
 				SpotFilterConfig()
 			}
 			loaded.clamp()
+			loaded.migrateLegacy()
 			loaded.applyToState()
 			return loaded
 		}
@@ -96,23 +125,61 @@ class SpotFilterConfig {
 		}
 	}
 
+	private fun migrateLegacy() {
+		val legacyActive = slot0.perk != null || slot1.perk != null || slot2.perk != null ||
+			stock.enabled || autoPinRules.isNotEmpty()
+		val nestedEmpty = normal.slot0.perk == null && normal.slot1.perk == null &&
+			normal.slot2.perk == null && !normal.stock.enabled && normal.autoPinRules.isEmpty()
+		if (legacyActive && nestedEmpty) {
+			normal.filterMode = filterMode
+			normal.slot0 = slot0
+			normal.slot1 = slot1
+			normal.slot2 = slot2
+			normal.stock = stock
+			normal.autoPinRules = autoPinRules
+		}
+	}
+
 	fun applyToState() {
-		FilterState.mode = runCatching { FilterMode.valueOf(filterMode) }.getOrDefault(FilterMode.AND)
-		applySlot(FilterState.slots[0], slot0)
-		applySlot(FilterState.slots[1], slot1)
-		applySlot(FilterState.slots[2], slot2)
-		applyStock(FilterState.stock, stock)
-		FilterState.autoPinRules.clear()
-		autoPinRules.forEach { FilterState.autoPinRules.add(fromConfig(it)) }
+		FilterState.kind = runCatching { SpotKind.valueOf(spotKind) }.getOrDefault(SpotKind.NORMAL)
+		applyProfile(FilterState.normal, normal)
+		applyProfile(FilterState.grotto, grotto)
 	}
 
 	fun syncFromState() {
-		filterMode = FilterState.mode.name
-		slot0 = toSlotConfig(FilterState.slots[0])
-		slot1 = toSlotConfig(FilterState.slots[1])
-		slot2 = toSlotConfig(FilterState.slots[2])
-		stock = toStockConfig(FilterState.stock)
-		autoPinRules = FilterState.autoPinRules.map { toRuleConfig(it) }.toMutableList()
+		spotKind = FilterState.kind.name
+		normal = toProfileConfig(FilterState.normal)
+		grotto = toProfileConfig(FilterState.grotto)
+		filterMode = FilterState.normal.mode.name
+		slot0 = toSlotConfig(FilterState.normal.slots[0])
+		slot1 = toSlotConfig(FilterState.normal.slots[1])
+		slot2 = toSlotConfig(FilterState.normal.slots[2])
+		stock = toStockConfig(FilterState.normal.stock)
+		autoPinRules = FilterState.normal.autoPinRules.map { toRuleConfig(it) }.toMutableList()
+	}
+
+	private fun applyProfile(target: FilterProfile, cfg: FilterProfileConfig?) {
+		if (cfg == null) return
+		target.mode = runCatching { FilterMode.valueOf(cfg.filterMode) }.getOrDefault(FilterMode.AND)
+		applySlot(target.slots[0], cfg.slot0)
+		applySlot(target.slots[1], cfg.slot1)
+		applySlot(target.slots[2], cfg.slot2)
+		applyStock(target.stock, cfg.stock)
+		applyStability(target.stability, cfg.stability)
+		target.autoPinRules.clear()
+		cfg.autoPinRules.forEach { target.autoPinRules.add(fromConfig(it)) }
+	}
+
+	private fun toProfileConfig(profile: FilterProfile): FilterProfileConfig {
+		val cfg = FilterProfileConfig()
+		cfg.filterMode = profile.mode.name
+		cfg.slot0 = toSlotConfig(profile.slots[0])
+		cfg.slot1 = toSlotConfig(profile.slots[1])
+		cfg.slot2 = toSlotConfig(profile.slots[2])
+		cfg.stock = toStockConfig(profile.stock)
+		cfg.stability = toStabilityConfig(profile.stability)
+		cfg.autoPinRules = profile.autoPinRules.map { toRuleConfig(it) }.toMutableList()
+		return cfg
 	}
 
 	private fun applySlot(slot: FilterSlot, cfg: SlotConfig?) {
@@ -133,6 +200,14 @@ class SpotFilterConfig {
 		target.levelMax = runCatching { StockLevel.valueOf(cfg.levelMax) }.getOrDefault(StockLevel.PLENTIFUL)
 	}
 
+	private fun applyStability(target: StabilityFilter, cfg: StabilityFilterConfig?) {
+		if (cfg == null) return
+		target.enabled = cfg.enabled
+		target.compare = runCatching { CompareOp.valueOf(cfg.compare) }.getOrDefault(CompareOp.EQ)
+		target.level = runCatching { StabilityCost.valueOf(cfg.level) }.getOrDefault(StabilityCost.LOW)
+		target.levelMax = runCatching { StabilityCost.valueOf(cfg.levelMax) }.getOrDefault(StabilityCost.HIGH)
+	}
+
 	private fun fromConfig(cfg: AutoPinRuleConfig): AutoPinRule {
 		val rule = AutoPinRule()
 		rule.name = cfg.name
@@ -142,7 +217,9 @@ class SpotFilterConfig {
 		applySlot(rule.slots[1], cfg.slot1)
 		applySlot(rule.slots[2], cfg.slot2)
 		applyStock(rule.stock, cfg.stock)
+		applyStability(rule.stability, cfg.stability)
 		rule.customColorHex = cfg.customColorHex
+		rule.nickname = cfg.nickname
 		return rule
 	}
 
@@ -165,6 +242,15 @@ class SpotFilterConfig {
 		return cfg
 	}
 
+	private fun toStabilityConfig(stability: StabilityFilter): StabilityFilterConfig {
+		val cfg = StabilityFilterConfig()
+		cfg.enabled = stability.enabled
+		cfg.compare = stability.compare.name
+		cfg.level = stability.level.name
+		cfg.levelMax = stability.levelMax.name
+		return cfg
+	}
+
 	private fun toRuleConfig(rule: AutoPinRule): AutoPinRuleConfig {
 		val cfg = AutoPinRuleConfig()
 		cfg.name = rule.name
@@ -174,7 +260,9 @@ class SpotFilterConfig {
 		cfg.slot1 = toSlotConfig(rule.slots[1])
 		cfg.slot2 = toSlotConfig(rule.slots[2])
 		cfg.stock = toStockConfig(rule.stock)
+		cfg.stability = toStabilityConfig(rule.stability)
 		cfg.customColorHex = rule.customColorHex
+		cfg.nickname = rule.nickname
 		return cfg
 	}
 }

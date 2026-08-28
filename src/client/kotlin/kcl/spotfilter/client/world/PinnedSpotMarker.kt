@@ -32,7 +32,7 @@ object PinnedSpotMarker {
 				val dz = z - camera.pos.z
 				val dist = kotlin.math.sqrt(dx * dx + dy * dy + dz * dz)
 				val scale = (dist / 10.0).coerceIn(1.0, 14.0).toFloat() * 0.025f
-				val label = Component.literal("fishing spot #${spot.id}")
+				val label = Component.literal(spot.guideLabel())
 					.withStyle(Style.EMPTY.withColor(TextColor.fromRgb(spot.markerRgb())))
 				pose.pushPose()
 				pose.translate(dx, dy, dz)

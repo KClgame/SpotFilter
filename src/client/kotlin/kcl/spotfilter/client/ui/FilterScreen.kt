@@ -1,8 +1,8 @@
 package kcl.spotfilter.client.ui
 
 import kcl.spotfilter.client.config.SpotFilterConfig
+import kcl.spotfilter.client.data.SpotKind
 import kcl.spotfilter.client.data.SpotPool
-
 import kcl.spotfilter.client.filter.FilterState
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.components.Button
@@ -44,23 +44,30 @@ class FilterScreen : Screen(Component.literal("SpotFilter")) {
 		}
 
 		addRenderableWidget(
+			Button.builder(kindLabel()) { _ ->
+				FilterState.toggleKind()
+				SpotFilterConfig.save()
+				rebuildWidgets()
+			}.bounds(8, 8, 78, 20).build()
+		)
+		addRenderableWidget(
 			Button.builder(modeLabel()) { _ ->
 				FilterState.toggleMode()
 				SpotFilterConfig.save()
 				rebuildWidgets()
-			}.bounds(8, 8, 90, 20).build()
+			}.bounds(90, 8, 78, 20).build()
 		)
 
 		addRenderableWidget(
 			Button.builder(Component.literal("Edit HUD")) { _ ->
 				editingHud = true
 				rebuildWidgets()
-			}.bounds(104, 8, 90, 20).build()
+			}.bounds(172, 8, 78, 20).build()
 		)
 		addRenderableWidget(
 			Button.builder(Component.literal("Clear spots")) { _ ->
 				SpotPool.clearSpots()
-			}.bounds(200, 8, 100, 20).build()
+			}.bounds(254, 8, 88, 20).build()
 		)
 		addRenderableWidget(
 			Button.builder(enableLabel()) { _ ->
@@ -71,7 +78,7 @@ class FilterScreen : Screen(Component.literal("SpotFilter")) {
 				}
 				SpotFilterConfig.save()
 				rebuildWidgets()
-			}.bounds(306, 8, 100, 20).build()
+			}.bounds(346, 8, 88, 20).build()
 		)
 
 		val slotWidth = ((width - 24) / 3).coerceAtLeast(90)
@@ -82,17 +89,40 @@ class FilterScreen : Screen(Component.literal("SpotFilter")) {
 				}.bounds(8 + index * (slotWidth + 4), 32, slotWidth, 20).build()
 			)
 		}
-		addRenderableWidget(
-			Button.builder(Component.literal(FilterState.stock.compactLabel())) { _ ->
-				minecraft.gui.setScreen(StockFilterScreen(this, FilterState.stock))
-			}.bounds(8, 56, (width - 20) / 2, 20).build()
-		)
-		addRenderableWidget(
-			Button.builder(Component.literal("Auto Pin (${FilterState.autoPinRules.count { it.enabled }})")) { _ ->
-				minecraft.gui.setScreen(AutoPinListScreen(this))
-			}.bounds(16 + (width - 20) / 2, 56, (width - 20) / 2, 20).build()
-		)
+		val grotto = FilterState.kind == SpotKind.GROTTO
+		if (grotto) {
+			val third = ((width - 24) / 3).coerceAtLeast(80)
+			addRenderableWidget(
+				Button.builder(Component.literal(FilterState.stock.compactLabel())) { _ ->
+					minecraft.gui.setScreen(StockFilterScreen(this, FilterState.stock))
+				}.bounds(8, 56, third, 20).build()
+			)
+			addRenderableWidget(
+				Button.builder(Component.literal(FilterState.stability.compactLabel())) { _ ->
+					minecraft.gui.setScreen(StabilityFilterScreen(this, FilterState.stability))
+				}.bounds(12 + third, 56, third, 20).build()
+			)
+			addRenderableWidget(
+				Button.builder(Component.literal("Auto Pin (${FilterState.autoPinRules.count { it.enabled }})")) { _ ->
+					minecraft.gui.setScreen(AutoPinListScreen(this))
+				}.bounds(16 + third * 2, 56, third, 20).build()
+			)
+		} else {
+			addRenderableWidget(
+				Button.builder(Component.literal(FilterState.stock.compactLabel())) { _ ->
+					minecraft.gui.setScreen(StockFilterScreen(this, FilterState.stock))
+				}.bounds(8, 56, (width - 20) / 2, 20).build()
+			)
+			addRenderableWidget(
+				Button.builder(Component.literal("Auto Pin (${FilterState.autoPinRules.count { it.enabled }})")) { _ ->
+					minecraft.gui.setScreen(AutoPinListScreen(this))
+				}.bounds(16 + (width - 20) / 2, 56, (width - 20) / 2, 20).build()
+			)
+		}
 	}
+
+	private fun kindLabel(): Component =
+		Component.literal(FilterState.kind.label)
 
 	private fun modeLabel(): Component =
 		Component.literal("Mode: ${FilterState.mode.name}")
@@ -126,7 +156,7 @@ class FilterScreen : Screen(Component.literal("SpotFilter")) {
 		val spots = FilterState.filteredSorted()
 		graphics.text(
 			font,
-			Component.literal("${spots.size} spots  |  click row to pin  |  F1>F2>F3 sort  |  O close"),
+			Component.literal("${spots.size} ${FilterState.kind.label.lowercase()} spots  |  click row to pin  |  F1>F2>F3 sort  |  O close"),
 			8,
 			82,
 			0xFFCCCCCC.toInt(),
@@ -189,13 +219,21 @@ class FilterScreen : Screen(Component.literal("SpotFilter")) {
 				16
 			)
 		}
-		val header = Component.literal("#${spot.id}  ${spot.x} ${spot.y} ${spot.z}  ")
+		val header = Component.literal("${spot.displayTitle()}  ${spot.x} ${spot.y} ${spot.z}  ")
 			.append(
 				Component.literal(spot.stock?.label ?: "?").withStyle(
 					Style.EMPTY.withColor(spot.stockDisplayRgb())
 				)
 			)
-			.append(Component.literal(if (spot.pinned) "  [PINNED]" else "  [pin]").withStyle(Style.EMPTY.withColor(if (spot.pinned) 0x88FF88 else 0x888888)))
+		if (spot.kind == SpotKind.GROTTO && !spot.stabilityRange.isNullOrBlank()) {
+			header.append(Component.literal("  "))
+			header.append(
+				Component.literal(spot.stabilityRange!!).withStyle(
+					Style.EMPTY.withColor(spot.stabilityDisplayRgb())
+				)
+			)
+		}
+		header.append(Component.literal(if (spot.pinned) "  [PINNED]" else "  [pin]").withStyle(Style.EMPTY.withColor(if (spot.pinned) 0x88FF88 else 0x888888)))
 		graphics.text(font, header, x + 26, y + 4, 0xFFFFFFFF.toInt(), false)
 		var perkX = x + 26
 		for (perk in spot.perks) {

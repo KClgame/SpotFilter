@@ -1,6 +1,6 @@
 # SpotFilter
 
-**v1.0.5** · Minecraft **26.2** · Fabric · 纯客户端
+**v1.0.6** · Minecraft **26.2** · Fabric · 纯客户端
 
 MCC Island 钓鱼点扫描、筛选与坐标 HUD。走近带 `Fishing Spot` 标签的 Text Display 即可收录；按词条过滤、钉选坐标、世界透视引导。
 
@@ -25,7 +25,7 @@ MCC Island 钓鱼点扫描、筛选与坐标 HUD。走近带 `Fishing Spot` 标�
 ## 安装
 
 1. 安装 Fabric Loader（26.2）与上述依赖。
-2. 将 `spotfilter-1.0.5.jar` 放入 `.minecraft/mods/`。
+2. 将 `spotfilter-1.0.6.jar` 放入 `.minecraft/mods/`。
 3. 启动游戏。控件里应出现 **SpotFilter** 分类。
 
 构建：
@@ -34,7 +34,7 @@ MCC Island 钓鱼点扫描、筛选与坐标 HUD。走近带 `Fishing Spot` 标�
 ./gradlew build
 ```
 
-产物：`build/libs/spotfilter-1.0.5.jar`
+产物：`build/libs/spotfilter-1.0.6.jar`
 
 ---
 
@@ -57,6 +57,7 @@ MCC Island 钓鱼点扫描、筛选与坐标 HUD。走近带 `Fishing Spot` 标�
 
 顶栏：
 
+- **Normal / Grotto** — 切换点类型。两组点、筛选和 Auto Pin **互不共用**；切走后另一组从列表、HUD、引导中隐藏（钉选状态保留）。
 - **Mode: AND / OR** — 多槽组合。AND 必须同时满足；OR 满足任一即可。空槽忽略。
 - **Edit HUD** — 拖动位置；滚轮放大倍率（0.5×–3.0×）；**Shift+滚轮** 背景透明度。
 - **Clear spots** — 同 **P**。
@@ -66,12 +67,25 @@ MCC Island 钓鱼点扫描、筛选与坐标 HUD。走近带 `Fishing Spot` 标�
 
 主界面单独一栏 **Stock**，不占用 F1–F3。可开关，并设置 `>` / `<` / `=` 与档位（Plentiful → … → Depleted）。与词条筛选同时生效（必须先过 Stock）。
 
+### Grotto 与 Stability Cost
+
+标签含 **Stability Cost** 的点视为 Grotto。读取 Cost 后面整块 `(数字)-(数字)%` 的颜色：
+
+| 档位 | 颜色 | 排序 |
+| --- | --- | --- |
+| Low（最好） | `#65FEFE` | 优先 |
+| Medium | `#55FE56` | |
+| High（最差） | `#FEFE55` | 靠后 |
+
+Grotto 模式下主界面和 Auto Pin 会出现 **Cost** 筛选（Low / Medium / High）。引导标记默认用该 Cost 颜色；自定义 hex 仍可覆盖。
+
 ### Auto Pin
 
-**Auto Pin** 里可建多条规则：各含 F1–F3 词条、独立 Stock、AND/OR。命中的点会自动钉上。
+**Auto Pin** 里可建多条规则：各含 F1–F3 词条、独立 Stock、AND/OR（Grotto 另有 Cost）。命中的点会自动钉上。Normal 与 Grotto 各有一套规则。
 
-- 颜色默认：Strong `#FC5454` · Wise `#2199F0` · Pearl `#8636FF` · Treasure `#FC7D3F` · Spirit `#23C525`（按该点主词条）
+- 颜色默认：Normal 按主词条家族；Grotto 按 Stability Cost
 - 规则里填写 `#RRGGBB` 则该规则钉上的点统一用这个色
+- **Spot nickname**（可选）：命中后引导与 HUD 显示 `名字 #组内编号`（同一 nickname 从 1 递增），而不是全局 `#n`
 - 不再命中规则的自动 Pin 会撤掉；手动 Pin 的点不受影响
 
 ### 三个筛选槽 F1 / F2 / F3
@@ -86,15 +100,15 @@ MCC Island 钓鱼点扫描、筛选与坐标 HUD。走近带 `Fishing Spot` 标�
 4. **Sort**：High → Low 或 Low → High。
 5. **Clear this filter** 清空本槽。
 
-总排序：**F1 > F2 > F3**，再按 Stock、距离、编号。
+总排序：**F1 > F2 > F3**，Grotto 再按 Cost（Low 最好），然后 Stock、距离、编号。
 
 ### 列表与钉选
 
 匹配的点显示编号、坐标、Stock、词条。点击一行 **Pin**：
 
 - 加入屏幕坐标 HUD
-- 在原标签 **下方一格** 生成仅客户端的透视 `text_display`：`fishing spot #n`  
-  颜色取该点主词条在世界标签上的颜色。引导实体带 `spotfilter_marker`，**不会**被扫成新钓鱼点。
+- 在原标签附近绘制仅客户端透视名牌：默认 `fishing spot #n`；Auto Pin 填了 nickname 则为 `名字 #组内编号`  
+  Normal 颜色取主词条；Grotto 取 Stability Cost 颜色（自定义 hex 优先）。
 
 再点一次取消 Pin。
 
@@ -146,10 +160,11 @@ Plentiful · Very High · High · Medium · Low
 ```
 /reload
 /function spotfilter:spawn
+/function spotfilter:spawn_grotto
 /function spotfilter:clear
 ```
 
-在脚下刷 **50** 个测试点（10×5，间隔 3 格），覆盖单加成、双 Hook、同系 Hook+Magnet、三加成。请启用 MCCI 材质包。`clear` 只删 `spotfilter_test`，不影响 Pin 引导。
+`spawn` 在脚下刷 **50** 个普通测试点（10×5，间隔 3 格）。`spawn_grotto` 刷 **9** 个带 Stability Cost 的 Grotto 点（Low / Medium / High 颜色）。请启用 MCCI 材质包。`clear` 只删 `spotfilter_test`，不影响 Pin 引导。
 
 ---
 
