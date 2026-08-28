@@ -45,8 +45,7 @@ object SpotPool {
 			existing.stability = incoming.stability
 			existing.stabilityRgb = incoming.stabilityRgb
 			existing.stabilityRange = incoming.stabilityRange
-			if (becameDepleted && existing.pinned) {
-				existing.autoPinned = false
+			if (becameDepleted && existing.autoPinned) {
 				setPinned(existing, false)
 			}
 			AutoPin.apply(existing)
@@ -122,6 +121,10 @@ object SpotPool {
 			val distSq = dx * dx + dy * dy + dz * dz
 			if (distSq > depleteRangeSq) continue
 			if (!level.isLoaded(net.minecraft.core.BlockPos(spot.x, spot.y, spot.z))) continue
+			if (spot.pinned && !spot.autoPinned) {
+				spot.stock = StockLevel.DEPLETED
+				continue
+			}
 			toRemove.add(spot.key)
 		}
 		toRemove.forEach { remove(it) }

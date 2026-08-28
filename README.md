@@ -1,6 +1,6 @@
 # SpotFilter
 
-**v1.1.0** · Minecraft **26.2** · Fabric · 纯客户端
+**v1.1.1** · Minecraft **26.2** · Fabric · 纯客户端
 
 MCC Island 钓鱼点扫描、筛选与坐标 HUD。走近带 `Fishing Spot` 标签的 Text Display 即可收录；按词条过滤、钉选坐标、世界透视引导。
 
@@ -25,7 +25,7 @@ MCC Island 钓鱼点扫描、筛选与坐标 HUD。走近带 `Fishing Spot` 标�
 ## 安装
 
 1. 安装 Fabric Loader（26.2）与上述依赖。
-2. 将 `spotfilter-1.1.0.jar` 放入 `.minecraft/mods/`。
+2. 将 `spotfilter-1.1.1.jar` 放入 `.minecraft/mods/`。
 3. 启动游戏。控件里应出现 **SpotFilter** 分类。
 
 构建：
@@ -34,7 +34,7 @@ MCC Island 钓鱼点扫描、筛选与坐标 HUD。走近带 `Fishing Spot` 标�
 ./gradlew build
 ```
 
-产物：`build/libs/spotfilter-1.1.0.jar`
+产物：`build/libs/spotfilter-1.1.1.jar`
 
 ---
 
@@ -132,7 +132,7 @@ Grotto 模式下主界面和 Auto Pin 会出现 **Cost** 筛选（Low / Medium /
 匹配的点显示编号、坐标、Stock、词条。点击一行 **Pin**：
 
 - 加入屏幕坐标 HUD
-- 在原标签附近绘制仅客户端透视名牌：默认 `fishing spot #n`；Auto Pin 填了 nickname 则为 `名字 #组内编号`  
+- 在原标签 **下方一格** 生成仅客户端 `text_display`（透视名牌同时绘制，穿树叶）：默认 `fishing spot #n`；Auto Pin 填了 nickname 则为 `名字 #组内编号`  
   Normal 颜色取主词条；Grotto 取最高级加成或 Chance 颜色（自定义 hex 优先）。
 
 再点一次取消 Pin。
@@ -145,7 +145,7 @@ Grotto 模式下主界面和 Auto Pin 会出现 **Cost** 筛选（Low / Medium /
 - 同一取整坐标更新 Stock/词条，不换号、不重复音效。
 - 新编号播放一次经验球音效（Enabled 时）。
 - 词条与 Stock 的 **颜色直接读取标签 Component**，与游戏里看到的一致。
-- 走近（约 48 格且区块已加载）标签消失 → 视为 Depleted，从池和 HUD 删除。走远卸载 **不会** 删。
+- 走近（约 48 格且区块已加载）标签消失，或 Stock 变成 Depleted：自动 Pin 会撤掉。**手动 Pin** 的点会留下（引导还在）。走远卸载 **不会** 删。
 - 本机本地时间整点（1:00、2:00…）自动清空池子，效果同 **P**。
 - 一个点最多解析 3 条加成。仅 Strong Hook 与 Wise Hook 可同时出现；Magnet 互斥；Chance / Data 互斥。
 - 主 Icon：Chance/Data > Hook/Magnet，再比数值；Strong 与 Wise 同为 +30% 时优先 Strong。

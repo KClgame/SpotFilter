@@ -342,6 +342,12 @@ object FilterState {
 
 object AutoPin {
 	fun apply(spot: FishingSpot) {
+		if (spot.stock == StockLevel.DEPLETED) {
+			if (spot.autoPinned) {
+				SpotPool.setPinned(spot, false)
+			}
+			return
+		}
 		val profile = FilterState.profileFor(spot)
 		val grotto = spot.kind == SpotKind.GROTTO
 		val rule = profile.autoPinRules.firstOrNull { it.enabled && it.matches(spot, grotto) }
