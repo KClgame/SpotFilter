@@ -23,14 +23,14 @@ class PerkPickerScreen(
 	private var scroll = 0
 	private lateinit var searchBox: EditBox
 
-	private val listTop get() = 56
-	private val listBottom get() = height - 36
+	private val listTop get() = UiLayout.PAD + UiLayout.ROW * 2
+	private val listBottom get() = height - UiLayout.PAD - UiLayout.ROW
 	private val rowHeight = 22
 
 	override fun isPauseScreen(): Boolean = false
 
 	override fun init() {
-		searchBox = EditBox(font, 8, 28, width - 16, 20, Component.literal("Search"))
+		searchBox = EditBox(font, UiLayout.PAD, UiLayout.PAD + UiLayout.ROW, width - UiLayout.PAD * 2, UiLayout.BTN, Component.literal("Search"))
 		searchBox.setMaxLength(40)
 		searchBox.setHint(Component.literal("Search perks..."))
 		searchBox.value = search
@@ -41,7 +41,7 @@ class PerkPickerScreen(
 		addRenderableWidget(searchBox)
 		addRenderableWidget(
 			Button.builder(Component.literal("Back")) { _ -> onClose() }
-				.bounds(width / 2 - 50, height - 28, 100, 20).build()
+				.bounds(UiLayout.centerX(width, 100), height - UiLayout.PAD - UiLayout.BTN, 100, UiLayout.BTN).build()
 		)
 		setInitialFocus(searchBox)
 	}
@@ -56,7 +56,7 @@ class PerkPickerScreen(
 
 	override fun extractRenderState(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, delta: Float) {
 		super.extractRenderState(graphics, mouseX, mouseY, delta)
-		graphics.text(font, Component.literal("Choose a perk"), 8, 10, 0xFFFFFFFF.toInt(), false)
+		drawCentered(graphics, Component.literal("Choose a perk"), UiLayout.PAD + 4, 0xFFFFFFFF.toInt())
 
 		val items = visiblePerks()
 		val visibleRows = ((listBottom - listTop) / rowHeight).coerceAtLeast(1)
@@ -67,7 +67,7 @@ class PerkPickerScreen(
 		var y = listTop
 		for (i in scroll until end) {
 			val perk = items[i]
-			val hovered = mouseX in 8 until (width - 8) && mouseY in y until (y + rowHeight - 2)
+			val hovered = mouseX in UiLayout.PAD until (width - UiLayout.PAD) && mouseY in y until (y + rowHeight - 2)
 			val selected = slot.perk == perk
 			val bg = when {
 				selected && hovered -> 0x8866AA66.toInt()
@@ -75,12 +75,12 @@ class PerkPickerScreen(
 				hovered -> 0x55FFFFFF.toInt()
 				else -> 0x33000000
 			}
-			graphics.fill(8, y, width - 8, y + rowHeight - 2, bg)
+			graphics.fill(UiLayout.PAD, y, width - UiLayout.PAD, y + rowHeight - 2, bg)
 			if (perk != null) {
 				graphics.blit(
 					RenderPipelines.GUI_TEXTURED,
 					perk.textureId,
-					12,
+					UiLayout.PAD + 4,
 					y + 2,
 					0f,
 					0f,
@@ -92,13 +92,13 @@ class PerkPickerScreen(
 				graphics.text(
 					font,
 					Component.literal(perk.displayName).withStyle(perk.family.nameStyle()),
-					34,
+					UiLayout.PAD + 26,
 					y + 5,
 					0xFFFFFFFF.toInt(),
 					false
 				)
 			} else {
-				graphics.text(font, Component.literal("None").withStyle(Style.EMPTY.withColor(0xAAAAAA)), 12, y + 5, 0xFFAAAAAA.toInt(), false)
+				graphics.text(font, Component.literal("None").withStyle(Style.EMPTY.withColor(0xAAAAAA)), UiLayout.PAD + 4, y + 5, 0xFFAAAAAA.toInt(), false)
 			}
 			y += rowHeight
 		}

@@ -17,20 +17,23 @@ class AutoPinListScreen(
 	override fun isPauseScreen(): Boolean = false
 
 	override fun init() {
-		var y = 36
+		var y = UiLayout.PAD + UiLayout.ROW
 		FilterState.autoPinRules.forEachIndexed { index, rule ->
+			val (onX, onW) = UiLayout.split(width, 8, 0)
 			addRenderableWidget(
 				Button.builder(Component.literal(if (rule.enabled) "On" else "Off")) { _ ->
 					rule.enabled = !rule.enabled
 					SpotFilterConfig.save()
 					AutoPin.applyAll()
 					rebuildWidgets()
-				}.bounds(8, y, 40, 20).build()
+				}.bounds(onX, y, onW, UiLayout.BTN).build()
 			)
+			val nameX = UiLayout.split(width, 8, 1).first
+			val del = UiLayout.split(width, 8, 7)
 			addRenderableWidget(
 				Button.builder(Component.literal(rule.name)) { _ ->
 					minecraft.gui.setScreen(AutoPinRuleScreen(this, rule))
-				}.bounds(52, y, width - 160, 20).build()
+				}.bounds(nameX, y, del.first - nameX - UiLayout.GAP, UiLayout.BTN).build()
 			)
 			addRenderableWidget(
 				Button.builder(Component.literal("Del")) { _ ->
@@ -38,10 +41,13 @@ class AutoPinListScreen(
 					SpotFilterConfig.save()
 					AutoPin.applyAll()
 					rebuildWidgets()
-				}.bounds(width - 100, y, 92, 20).build()
+				}.bounds(del.first, y, del.second, UiLayout.BTN).build()
 			)
-			y += 24
+			y += UiLayout.ROW
 		}
+		val bottomY = height - UiLayout.PAD - UiLayout.BTN
+		val (addX, addW) = UiLayout.split(width, 2, 0)
+		val (backX, backW) = UiLayout.split(width, 2, 1)
 		addRenderableWidget(
 			Button.builder(Component.literal("Add rule")) { _ ->
 				val rule = AutoPinRule()
@@ -49,23 +55,21 @@ class AutoPinListScreen(
 				FilterState.autoPinRules.add(rule)
 				SpotFilterConfig.save()
 				minecraft.gui.setScreen(AutoPinRuleScreen(this, rule))
-			}.bounds(8, y.coerceAtMost(height - 56), 120, 20).build()
+			}.bounds(addX, bottomY, addW, UiLayout.BTN).build()
 		)
 		addRenderableWidget(
 			Button.builder(Component.literal("Back")) { _ -> onClose() }
-				.bounds(width / 2 - 50, height - 28, 100, 20).build()
+				.bounds(backX, bottomY, backW, UiLayout.BTN).build()
 		)
 	}
 
 	override fun extractRenderState(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, delta: Float) {
 		super.extractRenderState(graphics, mouseX, mouseY, delta)
-		graphics.text(
-			font,
-			Component.literal("Auto Pin rules — matching spots are pinned. Empty hex uses default family colors."),
-			8,
-			12,
-			0xFFFFFFFF.toInt(),
-			false
+		drawCentered(
+			graphics,
+			Component.literal("Auto Pin rules — matching spots are pinned"),
+			UiLayout.PAD + 4,
+			0xFFFFFFFF.toInt()
 		)
 	}
 

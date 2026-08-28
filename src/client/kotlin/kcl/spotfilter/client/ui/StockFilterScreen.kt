@@ -2,6 +2,7 @@ package kcl.spotfilter.client.ui
 
 import kcl.spotfilter.client.config.SpotFilterConfig
 import kcl.spotfilter.client.filter.AutoPin
+import kcl.spotfilter.client.filter.CompareOp
 import kcl.spotfilter.client.filter.StockFilter
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.components.Button
@@ -18,43 +19,62 @@ class StockFilterScreen(
 	override fun isPauseScreen(): Boolean = false
 
 	override fun init() {
-		addRenderableWidget(
-			Button.builder(Component.literal(if (stock.enabled) "Stock filter: On" else "Stock filter: Off")) { button ->
-				stock.enabled = !stock.enabled
-				button.setMessage(Component.literal(if (stock.enabled) "Stock filter: On" else "Stock filter: Off"))
+		val col = 240
+		val x = UiLayout.centerX(width, col)
+		val extra = if (stock.compare == CompareOp.BETWEEN) 1 else 0
+		val packH = UiLayout.ROW * (5 + extra)
+		var y = UiLayout.packTop(height, packH) + UiLayout.ROW
+
+		fun add(label: Component, w: Int = col, ox: Int = 0, action: (Button) -> Unit) {
+			addRenderableWidget(Button.builder(label, action).bounds(x + ox, y, w, UiLayout.BTN).build())
+		}
+
+		add(Component.literal(if (stock.enabled) "Stock filter: On" else "Stock filter: Off")) { button ->
+			stock.enabled = !stock.enabled
+			button.setMessage(Component.literal(if (stock.enabled) "Stock filter: On" else "Stock filter: Off"))
+			persist()
+		}
+		y += UiLayout.ROW
+		add(Component.literal("Compare: ${stock.compare.label} (${stock.compare.symbol})")) { _ ->
+			stock.cycleCompare()
+			persist()
+			rebuildWidgets()
+		}
+		y += UiLayout.ROW
+		if (stock.compare == CompareOp.BETWEEN) {
+			val half = (col - UiLayout.GAP) / 2
+			add(Component.literal("From: ${stock.level.label}"), half, 0) { button ->
+				stock.cycleLevel()
+				button.setMessage(Component.literal("From: ${stock.level.label}"))
 				persist()
-			}.bounds(width / 2 - 120, 40, 240, 20).build()
-		)
-		addRenderableWidget(
-			Button.builder(Component.literal("Compare: ${stock.compare.label} (${stock.compare.symbol})")) { button ->
-				stock.cycleCompare()
-				button.setMessage(Component.literal("Compare: ${stock.compare.label} (${stock.compare.symbol})"))
+			}
+			add(Component.literal("To: ${stock.levelMax.label}"), col - half - UiLayout.GAP, half + UiLayout.GAP) { button ->
+				stock.cycleLevelMax()
+				button.setMessage(Component.literal("To: ${stock.levelMax.label}"))
 				persist()
-			}.bounds(width / 2 - 120, 68, 240, 20).build()
-		)
-		addRenderableWidget(
-			Button.builder(Component.literal("Level: ${stock.level.label}")) { button ->
+			}
+		} else {
+			add(Component.literal("Level: ${stock.level.label}")) { button ->
 				stock.cycleLevel()
 				button.setMessage(Component.literal("Level: ${stock.level.label}"))
 				persist()
-			}.bounds(width / 2 - 120, 96, 240, 20).build()
-		)
-		addRenderableWidget(
-			Button.builder(Component.literal("Back")) { _ -> onClose() }
-				.bounds(width / 2 - 50, height - 28, 100, 20).build()
-		)
+			}
+		}
+		y += UiLayout.ROW
+		add(Component.literal("Back")) { _ -> onClose() }
 	}
 
 	override fun extractRenderState(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, delta: Float) {
 		super.extractRenderState(graphics, mouseX, mouseY, delta)
-		graphics.text(font, Component.literal("Stock filter"), width / 2 - 40, 16, 0xFFFFFFFF.toInt(), false)
-		graphics.text(
-			font,
+		val extra = if (stock.compare == CompareOp.BETWEEN) 1 else 0
+		val packH = UiLayout.ROW * (5 + extra)
+		val y = UiLayout.packTop(height, packH)
+		drawCentered(graphics, Component.literal("Stock filter"), y + 4, 0xFFFFFFFF.toInt())
+		drawCentered(
+			graphics,
 			Component.literal("Plentiful > Very High > High > Medium > Low > Depleted"),
-			width / 2 - 140,
-			130,
-			0xFFAAAAAA.toInt(),
-			false
+			y + packH - 2,
+			0xFFAAAAAA.toInt()
 		)
 	}
 
