@@ -29,7 +29,6 @@ object SpotHud {
 	private const val WHITE = 0xFFFFFFFF.toInt()
 	private const val GRAY = 0xFFAAAAAA.toInt()
 	private const val PAD = 6
-	private const val LINE = 12
 	private const val ICON = 10
 	private val EMPTY = Component.literal("(No current fishing spot)").withStyle(Style.EMPTY.withColor(0xAAAAAA))
 
@@ -64,20 +63,23 @@ object SpotHud {
 		pose.popMatrix()
 	}
 
+	private fun lineH(font: Font): Int = font.lineHeight
+
 	private fun measure(font: Font, pinned: List<FishingSpot>): Pair<Int, Int> {
+		val lh = lineH(font)
 		if (pinned.isEmpty()) {
-			return font.width(EMPTY) + PAD * 2 to (PAD * 2 + LINE)
+			return font.width(EMPTY) + PAD * 2 to (PAD * 2 + lh)
 		}
 		var maxW = 0
 		var height = PAD
-		for (spot in pinned) {
+		for ((i, spot) in pinned.withIndex()) {
+			if (i > 0) height += 2
 			maxW = maxOf(maxW, ICON + 4 + font.width(header(spot)))
-			height += LINE
+			height += lh
 			for (perk in spot.perks) {
-				maxW = maxOf(maxW, ICON + 4 + font.width(perk.coloredLine()))
-				height += LINE
+				maxW = maxOf(maxW, font.width(perk.coloredLine()))
+				height += lh
 			}
-			height += 2
 		}
 		height += PAD
 		return maxW + PAD * 2 to height
@@ -87,19 +89,25 @@ object SpotHud {
 		val alpha = (SpotFilterConfig.instance.backgroundAlpha / 100.0 * 180).toInt().coerceIn(0, 180)
 		graphics.fill(0, 0, w, h, ARGB.color(alpha, 0, 0, 0))
 		val pinned = SpotPool.pinned()
+		val lh = lineH(font)
 		if (pinned.isEmpty()) {
-			graphics.text(font, EMPTY, PAD, PAD, GRAY, false)
+			drawCentered(graphics, font, EMPTY, PAD, w, GRAY)
 			return
 		}
 		var cursor = PAD
-		for (spot in pinned) {
+		for ((i, spot) in pinned.withIndex()) {
+			if (i > 0) cursor += 2
+			val head = header(spot)
+			val groupW = ICON + 4 + font.width(head)
+			val startX = (w - groupW) / 2
 			val primary = spot.primaryPerk()
 			if (primary != null) {
+				val iconY = cursor + (lh - ICON).coerceAtLeast(0) / 2
 				graphics.blit(
 					RenderPipelines.GUI_TEXTURED,
 					primary.type.textureId,
-					PAD,
-					cursor,
+					startX,
+					iconY,
 					0f,
 					0f,
 					ICON,
@@ -108,14 +116,25 @@ object SpotHud {
 					ICON
 				)
 			}
-			graphics.text(font, header(spot), PAD + ICON + 4, cursor, WHITE, false)
-			cursor += LINE
+			graphics.text(font, head, startX + ICON + 4, cursor, WHITE, false)
+			cursor += lh
 			for (perk in spot.perks) {
-				graphics.text(font, perk.coloredLine(), PAD + ICON + 4, cursor, WHITE, false)
-				cursor += LINE
+				drawCentered(graphics, font, perk.coloredLine(), cursor, w, WHITE)
+				cursor += lh
 			}
-			cursor += 2
 		}
+	}
+
+	private fun drawCentered(
+		graphics: GuiGraphicsExtractor,
+		font: Font,
+		text: Component,
+		y: Int,
+		boxW: Int,
+		color: Int
+	) {
+		val x = ((boxW - font.width(text)) / 2).coerceAtLeast(0)
+		graphics.text(font, text, x, y, color, false)
 	}
 
 	private fun header(spot: FishingSpot): Component {

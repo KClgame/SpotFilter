@@ -21,8 +21,8 @@ class FilterScreen : Screen(Component.literal("SpotFilter")) {
 	private var dragOffX = 0
 	private var dragOffY = 0
 
-	private val listTop get() = 96
-	private val listBottom get() = height - UiLayout.PAD
+	private val listTop get() = 112
+	private val listBottom get() = height - 36
 	private val rowHeight = 44
 
 	override fun isPauseScreen(): Boolean = false
@@ -43,43 +43,55 @@ class FilterScreen : Screen(Component.literal("SpotFilter")) {
 			return
 		}
 
-		fun row(count: Int, index: Int, y: Int, label: Component, onClick: (Button) -> Unit) {
-			val (x, w) = UiLayout.split(width, count, index)
-			addRenderableWidget(Button.builder(label, onClick).bounds(x, y, w, UiLayout.BTN).build())
-		}
-		row(4, 0, UiLayout.PAD, modeLabel()) { _ ->
-			FilterState.toggleMode()
-			SpotFilterConfig.save()
-			rebuildWidgets()
-		}
-		row(4, 1, UiLayout.PAD, Component.literal("Edit HUD")) { _ ->
-			editingHud = true
-			rebuildWidgets()
-		}
-		row(4, 2, UiLayout.PAD, Component.literal("Clear spots")) { _ ->
-			SpotPool.clearSpots()
-		}
-		row(4, 3, UiLayout.PAD, enableLabel()) { _ ->
-			val cfg = SpotFilterConfig.instance
-			cfg.enabled = !cfg.enabled
-			if (!cfg.enabled) {
-				kcl.spotfilter.client.world.PinnedSpotMarker.removeAll()
-			}
-			SpotFilterConfig.save()
-			rebuildWidgets()
-		}
+		addRenderableWidget(
+			Button.builder(modeLabel()) { _ ->
+				FilterState.toggleMode()
+				SpotFilterConfig.save()
+				rebuildWidgets()
+			}.bounds(8, 8, 90, 20).build()
+		)
 
+		addRenderableWidget(
+			Button.builder(Component.literal("Edit HUD")) { _ ->
+				editingHud = true
+				rebuildWidgets()
+			}.bounds(104, 8, 90, 20).build()
+		)
+		addRenderableWidget(
+			Button.builder(Component.literal("Clear spots")) { _ ->
+				SpotPool.clearSpots()
+			}.bounds(200, 8, 100, 20).build()
+		)
+		addRenderableWidget(
+			Button.builder(enableLabel()) { _ ->
+				val cfg = SpotFilterConfig.instance
+				cfg.enabled = !cfg.enabled
+				if (!cfg.enabled) {
+					kcl.spotfilter.client.world.PinnedSpotMarker.removeAll()
+				}
+				SpotFilterConfig.save()
+				rebuildWidgets()
+			}.bounds(306, 8, 100, 20).build()
+		)
+
+		val slotWidth = ((width - 24) / 3).coerceAtLeast(90)
 		repeat(3) { index ->
-			row(3, index, UiLayout.PAD + UiLayout.ROW, slotLabel(index)) { _ ->
-				minecraft.gui.setScreen(FilterSlotScreen(this, FilterState.slots[index], "Filter F${index + 1}"))
-			}
+			addRenderableWidget(
+				Button.builder(slotLabel(index)) { _ ->
+					minecraft.gui.setScreen(FilterSlotScreen(this, FilterState.slots[index], "Filter F${index + 1}"))
+				}.bounds(8 + index * (slotWidth + 4), 32, slotWidth, 20).build()
+			)
 		}
-		row(2, 0, UiLayout.PAD + UiLayout.ROW * 2, Component.literal(FilterState.stock.compactLabel())) { _ ->
-			minecraft.gui.setScreen(StockFilterScreen(this, FilterState.stock))
-		}
-		row(2, 1, UiLayout.PAD + UiLayout.ROW * 2, Component.literal("Auto Pin (${FilterState.autoPinRules.count { it.enabled }})")) { _ ->
-			minecraft.gui.setScreen(AutoPinListScreen(this))
-		}
+		addRenderableWidget(
+			Button.builder(Component.literal(FilterState.stock.compactLabel())) { _ ->
+				minecraft.gui.setScreen(StockFilterScreen(this, FilterState.stock))
+			}.bounds(8, 56, (width - 20) / 2, 20).build()
+		)
+		addRenderableWidget(
+			Button.builder(Component.literal("Auto Pin (${FilterState.autoPinRules.count { it.enabled }})")) { _ ->
+				minecraft.gui.setScreen(AutoPinListScreen(this))
+			}.bounds(16 + (width - 20) / 2, 56, (width - 20) / 2, 20).build()
+		)
 	}
 
 	private fun modeLabel(): Component =
@@ -102,8 +114,8 @@ class FilterScreen : Screen(Component.literal("SpotFilter")) {
 				Component.literal(
 					"Edit HUD: drag to move  |  scroll scale x${"%.1f".format(SpotFilterConfig.instance.hudScale)}  |  shift+scroll opacity ${SpotFilterConfig.instance.backgroundAlpha}%"
 				),
-				UiLayout.PAD,
-				UiLayout.PAD,
+				8,
+				8,
 				0xFFFFFFFF.toInt(),
 				false
 			)
@@ -112,11 +124,13 @@ class FilterScreen : Screen(Component.literal("SpotFilter")) {
 		}
 
 		val spots = FilterState.filteredSorted()
-		drawCentered(
-			graphics,
+		graphics.text(
+			font,
 			Component.literal("${spots.size} spots  |  click row to pin  |  F1>F2>F3 sort  |  O close"),
-			UiLayout.PAD + UiLayout.ROW * 3,
-			0xFFCCCCCC.toInt()
+			8,
+			82,
+			0xFFCCCCCC.toInt(),
+			false
 		)
 
 		val visibleRows = ((listBottom - listTop) / rowHeight).coerceAtLeast(1)
@@ -128,7 +142,7 @@ class FilterScreen : Screen(Component.literal("SpotFilter")) {
 		var y = listTop
 		for (i in start until end) {
 			val spot = spots[i]
-			drawRow(graphics, spot, UiLayout.PAD, y, width - UiLayout.PAD * 2, mouseX, mouseY)
+			drawRow(graphics, spot, 8, y, width - 16, mouseX, mouseY)
 			y += rowHeight
 		}
 	}

@@ -14,8 +14,11 @@ enum class FilterMode {
 
 enum class CompareOp(val symbol: String, val label: String) {
 	GT(">", "Greater than"),
+	GTE(">=", "At least"),
 	LT("<", "Less than"),
-	EQ("=", "Equal to")
+	LTE("<=", "At most"),
+	EQ("=", "Equal to"),
+	BETWEEN("..", "Between")
 }
 
 enum class SortDir(val label: String) {
@@ -27,6 +30,7 @@ class FilterSlot {
 	var perk: PerkType? = null
 	var compare: CompareOp = CompareOp.GT
 	var threshold: Int = 10
+	var thresholdMax: Int = 30
 	var sortDir: SortDir = SortDir.DESC
 
 	val isActive: Boolean
@@ -39,7 +43,7 @@ class FilterSlot {
 		}
 		val value = spot.perkValue(type)
 		if (value < 0) return false
-		return compareValues(value, threshold, compare)
+		return compareValues(value, threshold, thresholdMax, compare)
 	}
 
 	fun sortKey(spot: FishingSpot): Int {
@@ -50,7 +54,12 @@ class FilterSlot {
 	fun compactLabel(): String {
 		val type = perk ?: return "None"
 		return if (type.hasVariableValue) {
-			"${type.displayName} ${compare.symbol} ${type.valueLabel(threshold).removePrefix("+")}  ${sortDir.label}"
+			val range = if (compare == CompareOp.BETWEEN) {
+				"${type.valueLabel(minOf(threshold, thresholdMax))}–${type.valueLabel(maxOf(threshold, thresholdMax))}"
+			} else {
+				"${compare.symbol} ${type.valueLabel(threshold)}"
+			}
+			"${type.displayName} $range  ${sortDir.label}"
 		} else {
 			"${type.displayName}  ${sortDir.label}"
 		}
@@ -58,18 +67,21 @@ class FilterSlot {
 
 	fun cycleCompare() {
 		compare = when (compare) {
-			CompareOp.GT -> CompareOp.LT
-			CompareOp.LT -> CompareOp.EQ
-			CompareOp.EQ -> CompareOp.GT
+			CompareOp.GT -> CompareOp.GTE
+			CompareOp.GTE -> CompareOp.LT
+			CompareOp.LT -> CompareOp.LTE
+			CompareOp.LTE -> CompareOp.EQ
+			CompareOp.EQ -> CompareOp.BETWEEN
+			CompareOp.BETWEEN -> CompareOp.GT
 		}
 	}
 
 	fun cycleThreshold() {
-		threshold = when (threshold) {
-			10 -> 20
-			20 -> 30
-			else -> 10
-		}
+		threshold = nextPerkValue(threshold)
+	}
+
+	fun cycleThresholdMax() {
+		thresholdMax = nextPerkValue(thresholdMax)
 	}
 
 	fun cycleSort() {
@@ -80,6 +92,7 @@ class FilterSlot {
 		perk = null
 		compare = CompareOp.GT
 		threshold = 10
+		thresholdMax = 30
 		sortDir = SortDir.DESC
 	}
 
@@ -87,6 +100,7 @@ class FilterSlot {
 		perk = other.perk
 		compare = other.compare
 		threshold = other.threshold
+		thresholdMax = other.thresholdMax
 		sortDir = other.sortDir
 	}
 }
@@ -95,28 +109,42 @@ class StockFilter {
 	var enabled: Boolean = false
 	var compare: CompareOp = CompareOp.GT
 	var level: StockLevel = StockLevel.HIGH
+	var levelMax: StockLevel = StockLevel.PLENTIFUL
 
 	fun matches(spot: FishingSpot): Boolean {
 		if (!enabled) return true
 		val rank = spot.stock?.rank ?: -1
-		return compareValues(rank, level.rank, compare)
+		return compareValues(rank, level.rank, levelMax.rank, compare)
 	}
 
-	fun compactLabel(): String =
-		if (!enabled) "Stock: Off"
-		else "Stock ${compare.symbol} ${level.label}"
+	fun compactLabel(): String {
+		if (!enabled) return "Stock: Off"
+		return if (compare == CompareOp.BETWEEN) {
+			val high = if (level.rank >= levelMax.rank) level else levelMax
+			val low = if (level.rank >= levelMax.rank) levelMax else level
+			"Stock ${high.label}–${low.label}"
+		} else {
+			"Stock ${compare.symbol} ${level.label}"
+		}
+	}
 
 	fun cycleCompare() {
 		compare = when (compare) {
-			CompareOp.GT -> CompareOp.LT
-			CompareOp.LT -> CompareOp.EQ
-			CompareOp.EQ -> CompareOp.GT
+			CompareOp.GT -> CompareOp.GTE
+			CompareOp.GTE -> CompareOp.LT
+			CompareOp.LT -> CompareOp.LTE
+			CompareOp.LTE -> CompareOp.EQ
+			CompareOp.EQ -> CompareOp.BETWEEN
+			CompareOp.BETWEEN -> CompareOp.GT
 		}
 	}
 
 	fun cycleLevel() {
-		val levels = StockLevel.entries
-		level = levels[(levels.indexOf(level) + 1) % levels.size]
+		level = nextStock(level)
+	}
+
+	fun cycleLevelMax() {
+		levelMax = nextStock(levelMax)
 	}
 }
 
@@ -142,12 +170,29 @@ class AutoPinRule {
 	fun customRgb(): Int? = parseHexColor(customColorHex)
 }
 
-fun compareValues(value: Int, threshold: Int, compare: CompareOp): Boolean =
-	when (compare) {
-		CompareOp.GT -> value > threshold
-		CompareOp.LT -> value < threshold
-		CompareOp.EQ -> value == threshold
+fun compareValues(value: Int, min: Int, max: Int, compare: CompareOp): Boolean {
+	val lo = minOf(min, max)
+	val hi = maxOf(min, max)
+	return when (compare) {
+		CompareOp.GT -> value > min
+		CompareOp.GTE -> value >= min
+		CompareOp.LT -> value < min
+		CompareOp.LTE -> value <= min
+		CompareOp.EQ -> value == min
+		CompareOp.BETWEEN -> value in lo..hi
 	}
+}
+
+fun nextPerkValue(current: Int): Int = when (current) {
+	10 -> 20
+	20 -> 30
+	else -> 10
+}
+
+fun nextStock(current: StockLevel): StockLevel {
+	val levels = StockLevel.entries
+	return levels[(levels.indexOf(current) + 1) % levels.size]
+}
 
 fun parseHexColor(raw: String): Int? {
 	val text = raw.trim().removePrefix("#")

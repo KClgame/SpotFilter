@@ -1,113 +1,76 @@
 package kcl.spotfilter.client.world
 
-import com.mojang.math.Transformation
 import kcl.spotfilter.client.config.SpotFilterConfig
 import kcl.spotfilter.client.data.FishingSpot
 import kcl.spotfilter.client.data.SpotPool
-import kcl.spotfilter.client.scan.TextDisplays
+import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents
 import net.minecraft.client.Minecraft
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.Style
 import net.minecraft.network.chat.TextColor
 import net.minecraft.world.entity.Display
-import net.minecraft.world.entity.EntitySpawnReason
-import net.minecraft.world.entity.EntitySpawnRequest
-import net.minecraft.world.entity.EntityTypes
-import org.joml.Quaternionf
-import org.joml.Vector3f
+import net.minecraft.world.phys.Vec3
 
 object PinnedSpotMarker {
 	const val TAG = "spotfilter_marker"
 
-	private val markers = HashMap<Int, Display.TextDisplay>()
-	private var nextClientId = -1_000_000
-
-	fun isOurs(entity: Display.TextDisplay): Boolean {
-		if (entity.entityTags().contains(TAG)) return true
-		if (markers.values.any { it === entity }) return true
-		return false
+	fun register() {
+		LevelRenderEvents.COLLECT_SUBMITS.register { context ->
+			if (!SpotFilterConfig.instance.enabled) return@register
+			val client = Minecraft.getInstance()
+			if (client.level == null || client.player == null) return@register
+			val camera = context.levelState().cameraRenderState
+			val collector = context.submitNodeCollector()
+			val pose = context.poseStack()
+			for (spot in SpotPool.pinned()) {
+				if (spot.key.dimension != client.level!!.dimension().identifier()) continue
+				val x = spot.x + 0.5
+				val y = spot.y + 0.35
+				val z = spot.z + 0.5
+				val dx = x - camera.pos.x
+				val dy = y - camera.pos.y
+				val dz = z - camera.pos.z
+				val dist = kotlin.math.sqrt(dx * dx + dy * dy + dz * dz)
+				val scale = (dist / 10.0).coerceIn(1.0, 14.0).toFloat() * 0.025f
+				val label = Component.literal("fishing spot #${spot.id}")
+					.withStyle(Style.EMPTY.withColor(TextColor.fromRgb(spot.markerRgb())))
+				pose.pushPose()
+				pose.translate(dx, dy, dz)
+				pose.scale(scale, scale, scale)
+				collector.submitNameTag(
+					pose,
+					Vec3.ZERO,
+					0,
+					label,
+					true,
+					0xF000F0,
+					camera
+				)
+				pose.popPose()
+			}
+		}
 	}
 
-	fun spawnOrUpdate(spot: FishingSpot) {
-		if (!SpotFilterConfig.instance.enabled) return
-		val client = Minecraft.getInstance()
-		val level = client.level ?: return
-		if (level.dimension().identifier() != spot.key.dimension) return
+	fun isOurs(entity: Display.TextDisplay): Boolean =
+		entity.entityTags().contains(TAG)
 
-		val existing = markers[spot.id]
-		if (existing != null && existing.isAlive && existing.level() === level) {
-			apply(existing, spot)
-			return
-		}
-		remove(spot.id)
-		val entity = EntityTypes.TEXT_DISPLAY.create(
-			level,
-			EntitySpawnRequest(EntitySpawnReason.LOAD, true)
-		) ?: return
-		entity.setId(nextClientId--)
-		entity.addTag(TAG)
-		entity.setPos(spot.x + 0.5, spot.y - 1.0, spot.z + 0.5)
-		entity.setNoGravity(true)
-		entity.setBillboardConstraints(Display.BillboardConstraints.CENTER)
-		entity.setViewRange(8.0f)
-		apply(entity, spot)
-		level.addEntity(entity)
-		markers[spot.id] = entity
+	fun spawnOrUpdate(spot: FishingSpot) {
+		// Drawn in COLLECT_SUBMITS; no world entity (see-through nametags ignore leaves).
 	}
 
 	fun sync(spot: FishingSpot) {
-		if (spot.pinned) spawnOrUpdate(spot) else remove(spot.id)
+		// no-op
 	}
 
 	fun remove(id: Int) {
-		markers.remove(id)?.discard()
+		// no-op
 	}
 
 	fun removeAll() {
-		markers.values.forEach { it.discard() }
-		markers.clear()
+		// no-op
 	}
 
 	fun tick() {
-		if (!SpotFilterConfig.instance.enabled) {
-			removeAll()
-			return
-		}
-		val client = Minecraft.getInstance()
-		val level = client.level
-		if (level == null) {
-			removeAll()
-			return
-		}
-		val pinned = SpotPool.pinned()
-		val keep = pinned.map { it.id }.toHashSet()
-		val stale = markers.keys.filter { it !in keep }
-		stale.forEach { remove(it) }
-		for (spot in pinned) {
-			if (spot.key.dimension != level.dimension().identifier()) {
-				remove(spot.id)
-				continue
-			}
-			spawnOrUpdate(spot)
-		}
-	}
-
-	private fun apply(entity: Display.TextDisplay, spot: FishingSpot) {
-		entity.setPos(spot.x + 0.5, spot.y - 1.0, spot.z + 0.5)
-		val label = Component.literal("fishing spot #${spot.id}")
-			.withStyle(Style.EMPTY.withColor(TextColor.fromRgb(spot.markerRgb())))
-		TextDisplays.writeText(entity, label)
-		TextDisplays.setSeeThrough(entity)
-		val player = Minecraft.getInstance().player
-		val dist = if (player == null) 16.0 else player.distanceTo(entity).toDouble()
-		val scale = (dist / 10.0).coerceIn(1.0, 14.0).toFloat()
-		entity.setTransformation(
-			Transformation(
-				Vector3f(),
-				Quaternionf(),
-				Vector3f(scale, scale, scale),
-				Quaternionf()
-			)
-		)
+		// no-op
 	}
 }

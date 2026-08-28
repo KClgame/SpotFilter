@@ -35,6 +35,7 @@ object SpotFilterClient : ClientModInitializer {
 			KeyMapping("key.spotfilter.toggle_hud", GLFW.GLFW_KEY_L, category)
 		)
 		SpotHud.register()
+		kcl.spotfilter.client.world.PinnedSpotMarker.register()
 
 		ClientTickEvents.END_CLIENT_TICK.register { client ->
 			while (openFilter.consumeClick()) {

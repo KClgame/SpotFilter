@@ -18,6 +18,7 @@ class SlotConfig {
 	var perk: String? = null
 	var compare: String = CompareOp.GT.name
 	var threshold: Int = 10
+	var thresholdMax: Int = 30
 	var sortDir: String = SortDir.DESC.name
 }
 
@@ -25,6 +26,7 @@ class StockFilterConfig {
 	var enabled: Boolean = false
 	var compare: String = CompareOp.GT.name
 	var level: String = StockLevel.HIGH.name
+	var levelMax: String = StockLevel.PLENTIFUL.name
 }
 
 class AutoPinRuleConfig {
@@ -119,6 +121,7 @@ class SpotFilterConfig {
 		slot.perk = cfg.perk?.let { runCatching { PerkType.valueOf(it) }.getOrNull() }
 		slot.compare = runCatching { CompareOp.valueOf(cfg.compare) }.getOrDefault(CompareOp.GT)
 		slot.threshold = cfg.threshold
+		slot.thresholdMax = cfg.thresholdMax
 		slot.sortDir = runCatching { SortDir.valueOf(cfg.sortDir) }.getOrDefault(SortDir.DESC)
 	}
 
@@ -127,6 +130,7 @@ class SpotFilterConfig {
 		target.enabled = cfg.enabled
 		target.compare = runCatching { CompareOp.valueOf(cfg.compare) }.getOrDefault(CompareOp.GT)
 		target.level = runCatching { StockLevel.valueOf(cfg.level) }.getOrDefault(StockLevel.HIGH)
+		target.levelMax = runCatching { StockLevel.valueOf(cfg.levelMax) }.getOrDefault(StockLevel.PLENTIFUL)
 	}
 
 	private fun fromConfig(cfg: AutoPinRuleConfig): AutoPinRule {
@@ -147,6 +151,7 @@ class SpotFilterConfig {
 		cfg.perk = slot.perk?.name
 		cfg.compare = slot.compare.name
 		cfg.threshold = slot.threshold
+		cfg.thresholdMax = slot.thresholdMax
 		cfg.sortDir = slot.sortDir.name
 		return cfg
 	}
@@ -156,6 +161,7 @@ class SpotFilterConfig {
 		cfg.enabled = stock.enabled
 		cfg.compare = stock.compare.name
 		cfg.level = stock.level.name
+		cfg.levelMax = stock.levelMax.name
 		return cfg
 	}
 

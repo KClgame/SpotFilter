@@ -23,22 +23,18 @@ class AutoPinRuleScreen(
 	override fun isPauseScreen(): Boolean = false
 
 	override fun init() {
-		var y = UiLayout.PAD + UiLayout.ROW
-		nameBox = EditBox(font, UiLayout.PAD, y, width - UiLayout.PAD * 2, UiLayout.BTN, Component.literal("Name"))
+		nameBox = EditBox(font, 8, 32, width - 16, 20, Component.literal("Name"))
 		nameBox.setMaxLength(32)
 		nameBox.value = rule.name
 		nameBox.setResponder { rule.name = it }
 		addRenderableWidget(nameBox)
 
-		y += UiLayout.ROW
-		val (modeX, modeW) = UiLayout.split(width, 2, 0)
-		val (enX, enW) = UiLayout.split(width, 2, 1)
 		addRenderableWidget(
 			Button.builder(Component.literal("Mode: ${rule.mode.name}")) { button ->
 				rule.mode = if (rule.mode == FilterMode.AND) FilterMode.OR else FilterMode.AND
 				button.setMessage(Component.literal("Mode: ${rule.mode.name}"))
 				SpotFilterConfig.save()
-			}.bounds(modeX, y, modeW, UiLayout.BTN).build()
+			}.bounds(8, 58, 110, 20).build()
 		)
 		addRenderableWidget(
 			Button.builder(Component.literal(if (rule.enabled) "Enabled" else "Disabled")) { button ->
@@ -46,30 +42,25 @@ class AutoPinRuleScreen(
 				button.setMessage(Component.literal(if (rule.enabled) "Enabled" else "Disabled"))
 				SpotFilterConfig.save()
 				AutoPin.applyAll()
-			}.bounds(enX, y, enW, UiLayout.BTN).build()
+			}.bounds(124, 58, 100, 20).build()
 		)
 
-		y += UiLayout.ROW
+		val slotWidth = ((width - 24) / 3).coerceAtLeast(90)
 		repeat(3) { index ->
-			val (x, w) = UiLayout.split(width, 3, index)
 			addRenderableWidget(
 				Button.builder(Component.literal("F${index + 1}: ${rule.slots[index].compactLabel()}")) { _ ->
 					minecraft.gui.setScreen(FilterSlotScreen(this, rule.slots[index], "Auto Pin F${index + 1}"))
-				}.bounds(x, y, w, UiLayout.BTN).build()
+				}.bounds(8 + index * (slotWidth + 4), 84, slotWidth, 20).build()
 			)
 		}
 
-		y += UiLayout.ROW
 		addRenderableWidget(
 			Button.builder(Component.literal(rule.stock.compactLabel())) { _ ->
 				minecraft.gui.setScreen(StockFilterScreen(this, rule.stock, applyAutoPin = true))
-			}.bounds(UiLayout.PAD, y, width - UiLayout.PAD * 2, UiLayout.BTN).build()
+			}.bounds(8, 110, width - 16, 20).build()
 		)
 
-		y += UiLayout.ROW * 2
-		val swatch = 20
-		val colorW = ((width - UiLayout.PAD * 2 - UiLayout.GAP * 2 - swatch) * 2) / 5
-		colorBox = EditBox(font, UiLayout.PAD, y, colorW, UiLayout.BTN, Component.literal("Color"))
+		colorBox = EditBox(font, 8, 148, 160, 20, Component.literal("Color"))
 		colorBox.setMaxLength(7)
 		colorBox.setHint(Component.literal("#RRGGBB"))
 		colorBox.value = rule.customColorHex
@@ -85,35 +76,22 @@ class AutoPinRuleScreen(
 				colorBox.value = ""
 				SpotFilterConfig.save()
 				AutoPin.applyAll()
-			}.bounds(
-				UiLayout.PAD + colorW + UiLayout.GAP,
-				y,
-				width - UiLayout.PAD * 2 - colorW - UiLayout.GAP * 2 - swatch,
-				UiLayout.BTN
-			).build()
+			}.bounds(174, 148, 140, 20).build()
 		)
 
 		addRenderableWidget(
 			Button.builder(Component.literal("Back")) { _ -> onClose() }
-				.bounds(UiLayout.PAD, height - UiLayout.PAD - UiLayout.BTN, width - UiLayout.PAD * 2, UiLayout.BTN)
-				.build()
+				.bounds(width / 2 - 50, height - 28, 100, 20).build()
 		)
 	}
 
 	override fun extractRenderState(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, delta: Float) {
 		super.extractRenderState(graphics, mouseX, mouseY, delta)
-		drawCentered(graphics, Component.literal("Auto Pin rule"), UiLayout.PAD + 4, 0xFFFFFFFF.toInt())
-		drawCentered(
-			graphics,
-			Component.literal("Pin color hex (empty = family defaults)"),
-			UiLayout.PAD + UiLayout.ROW * 6 + 4,
-			0xFFAAAAAA.toInt()
-		)
+		graphics.text(font, Component.literal("Auto Pin rule"), 8, 10, 0xFFFFFFFF.toInt(), false)
+		graphics.text(font, Component.literal("Pin color hex (empty = Strong/Wise/Pearl/Treasure/Spirit defaults)"), 8, 136, 0xFFAAAAAA.toInt(), false)
 		val rgb = parseHexColor(rule.customColorHex)
 		if (rgb != null) {
-			val x = width - UiLayout.PAD - 20
-			val y = UiLayout.PAD + UiLayout.ROW * 7
-			graphics.fill(x, y, x + 20, y + 20, 0xFF000000.toInt() or rgb)
+			graphics.fill(320, 148, 340, 168, 0xFF000000.toInt() or rgb)
 		}
 	}
 
