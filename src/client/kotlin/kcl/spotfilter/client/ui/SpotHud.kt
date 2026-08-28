@@ -10,7 +10,6 @@ import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.Font
 import net.minecraft.client.gui.GuiGraphicsExtractor
-import net.minecraft.client.renderer.RenderPipelines
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.Style
 import net.minecraft.util.ARGB
@@ -128,18 +127,7 @@ object SpotHud {
 			val primary = spot.primaryPerk()
 			if (primary != null) {
 				val iconY = cursor + (lh - ICON).coerceAtLeast(0) / 2
-				graphics.blit(
-					RenderPipelines.GUI_TEXTURED,
-					primary.type.textureId,
-					originX,
-					iconY,
-					0f,
-					0f,
-					ICON,
-					ICON,
-					ICON,
-					ICON
-				)
+				SpotLines.blitIcon(graphics, primary.type.textureId, originX, iconY, ICON)
 				graphics.text(font, head, originX + ICON + 4, cursor, WHITE, false)
 			} else {
 				graphics.text(font, head, originX, cursor, WHITE, false)
@@ -148,18 +136,7 @@ object SpotHud {
 			for (perk in spot.perks) {
 				val perkX = originX + PERK_INDENT
 				val iconY = cursor + (lh - ICON).coerceAtLeast(0) / 2
-				graphics.blit(
-					RenderPipelines.GUI_TEXTURED,
-					perk.type.textureId,
-					perkX,
-					iconY,
-					0f,
-					0f,
-					ICON,
-					ICON,
-					ICON,
-					ICON
-				)
+				SpotLines.blitIcon(graphics, perk.type.textureId, perkX, iconY, ICON)
 				graphics.text(font, perk.coloredLine(), perkX + ICON + 4, cursor, WHITE, false)
 				cursor += lh
 			}

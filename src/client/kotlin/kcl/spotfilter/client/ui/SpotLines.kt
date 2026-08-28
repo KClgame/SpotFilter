@@ -86,6 +86,29 @@ object SpotLines {
 		return w
 	}
 
+	fun blitIcon(
+		graphics: GuiGraphicsExtractor,
+		icon: Identifier,
+		x: Int,
+		y: Int,
+		size: Int = COMPACT_ICON
+	) {
+		graphics.blit(
+			RenderPipelines.GUI_TEXTURED,
+			icon,
+			x,
+			y,
+			0f,
+			0f,
+			size,
+			size,
+			TEX,
+			TEX,
+			TEX,
+			TEX
+		)
+	}
+
 	fun draw(
 		graphics: GuiGraphicsExtractor,
 		font: Font,
@@ -98,18 +121,7 @@ object SpotLines {
 		for (part in parts) {
 			if (part.icon != null) {
 				val iconY = y + (lh - COMPACT_ICON).coerceAtLeast(0) / 2
-				graphics.blit(
-					RenderPipelines.GUI_TEXTURED,
-					part.icon,
-					cursor,
-					iconY,
-					0f,
-					0f,
-					COMPACT_ICON,
-					COMPACT_ICON,
-					TEX,
-					TEX
-				)
+				blitIcon(graphics, part.icon, cursor, iconY, COMPACT_ICON)
 				cursor += COMPACT_ICON
 			}
 			if (part.text != null) {
