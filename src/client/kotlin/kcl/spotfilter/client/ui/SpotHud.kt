@@ -31,6 +31,7 @@ object SpotHud {
 	private const val GRAY = 0xFFAAAAAA.toInt()
 	private const val PAD = 6
 	private const val ICON = SpotLines.ICON
+	private const val PERK_INDENT = ICON + 4
 	private val EMPTY = Component.literal("(No current fishing spot)").withStyle(Style.EMPTY.withColor(0xAAAAAA))
 
 	fun register() {
@@ -90,7 +91,7 @@ object SpotHud {
 				blockW = maxOf(blockW, headerWidth(font, spot))
 				blockH += lh
 				for (perk in spot.perks) {
-					blockW = maxOf(blockW, font.width(perk.coloredLine()))
+					blockW = maxOf(blockW, PERK_INDENT + ICON + 4 + font.width(perk.coloredLine()))
 					blockH += lh
 				}
 			}
@@ -145,7 +146,21 @@ object SpotHud {
 			}
 			cursor += lh
 			for (perk in spot.perks) {
-				graphics.text(font, perk.coloredLine(), originX, cursor, WHITE, false)
+				val perkX = originX + PERK_INDENT
+				val iconY = cursor + (lh - ICON).coerceAtLeast(0) / 2
+				graphics.blit(
+					RenderPipelines.GUI_TEXTURED,
+					perk.type.textureId,
+					perkX,
+					iconY,
+					0f,
+					0f,
+					ICON,
+					ICON,
+					ICON,
+					ICON
+				)
+				graphics.text(font, perk.coloredLine(), perkX + ICON + 4, cursor, WHITE, false)
 				cursor += lh
 			}
 		}

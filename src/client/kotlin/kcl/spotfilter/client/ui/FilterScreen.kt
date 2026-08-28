@@ -267,8 +267,21 @@ class FilterScreen : Screen(Component.literal("SpotFilter")) {
 		}
 		header.append(Component.literal(if (spot.pinned) "  [PINNED]" else "  [pin]").withStyle(Style.EMPTY.withColor(if (spot.pinned) 0x88FF88 else 0x888888)))
 		graphics.text(font, header, x + 26, y + 4, 0xFFFFFFFF.toInt(), false)
-		var perkX = x + 26
+		var perkX = x + 26 + 8
 		for (perk in spot.perks) {
+			graphics.blit(
+				RenderPipelines.GUI_TEXTURED,
+				perk.type.textureId,
+				perkX,
+				y + 18,
+				0f,
+				0f,
+				10,
+				10,
+				10,
+				10
+			)
+			perkX += 14
 			graphics.text(font, perk.coloredLine(), perkX, y + 18, 0xFFFFFFFF.toInt(), false)
 			perkX += font.width(perk.coloredLine()) + 10
 		}
