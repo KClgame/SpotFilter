@@ -1,0 +1,7 @@
+{
+  "pack": {
+    "description": "SpotFilter test: 50 fishing spots",
+    "min_format": [107, 1],
+    "max_format": 107
+  }
+}

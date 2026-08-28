@@ -1,0 +1,45 @@
+{
+	"schemaVersion": 1,
+	"id": "spotfilter",
+	"version": "${version}",
+	"name": "SpotFilter",
+	"description": "Client-side MCC Island fishing spot scanner, filter, and HUD.",
+	"authors": [
+		"KClgame"
+	],
+	"contact": {
+		"homepage": "https://github.com/KClgame/SpotFilter",
+		"sources": "https://github.com/KClgame/SpotFilter"
+	},
+	"license": "CC0-1.0",
+	"icon": "assets/spotfilter/icon.png",
+	"environment": "client",
+	"entrypoints": {
+		"main": [
+			{
+				"value": "kcl.spotfilter.SpotFilter",
+				"adapter": "kotlin"
+			}
+		],
+		"client": [
+			{
+				"value": "kcl.spotfilter.client.SpotFilterClient",
+				"adapter": "kotlin"
+			}
+		]
+	},
+	"mixins": [
+		"spotfilter.mixins.json",
+		{
+			"config": "spotfilter.client.mixins.json",
+			"environment": "client"
+		}
+	],
+	"depends": {
+		"fabricloader": ">=0.19.3",
+		"minecraft": "~26.2",
+		"java": ">=25",
+		"fabric-api": "*",
+		"fabric-language-kotlin": "*"
+	}
+}
