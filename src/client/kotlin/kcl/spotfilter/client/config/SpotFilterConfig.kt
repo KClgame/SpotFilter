@@ -115,6 +115,7 @@ class SpotFilterConfig {
 		fun load(): SpotFilterConfig {
 			val loaded = readFile()
 			loaded.applyToState()
+			loadRules()
 			return loaded
 		}
 
@@ -122,6 +123,7 @@ class SpotFilterConfig {
 			val loaded = readFile()
 			instance.copyFrom(loaded)
 			instance.applyToState()
+			loadRules()
 		}
 
 		fun save() {
@@ -129,6 +131,17 @@ class SpotFilterConfig {
 			instance.clamp()
 			Files.createDirectories(path.parent)
 			Files.newBufferedWriter(path).use { gson.toJson(instance, it) }
+			RulesFile.saveFromState()
+		}
+
+		private fun loadRules() {
+			if (RulesFile.exists()) {
+				RulesFile.applyToState(RulesFile.load())
+			} else if (FilterState.normal.autoPinRules.isNotEmpty() || FilterState.grotto.autoPinRules.isNotEmpty()) {
+				RulesFile.saveFromState()
+			} else {
+				RulesFile.writeTemplateIfMissing()
+			}
 		}
 
 		private fun readFile(): SpotFilterConfig {

@@ -52,6 +52,13 @@ class AutoPinListScreen(
 			}.bounds(8, y.coerceAtMost(height - 56), 120, 20).build()
 		)
 		addRenderableWidget(
+			Button.builder(Component.literal("Reload rules.txt")) { _ ->
+				SpotFilterConfig.reload()
+				AutoPin.applyAll()
+				rebuildWidgets()
+			}.bounds(136, y.coerceAtMost(height - 56), 140, 20).build()
+		)
+		addRenderableWidget(
 			Button.builder(Component.literal("Back")) { _ -> onClose() }
 				.bounds(width / 2 - 50, height - 28, 100, 20).build()
 		)
@@ -61,7 +68,7 @@ class AutoPinListScreen(
 		super.extractRenderState(graphics, mouseX, mouseY, delta)
 		graphics.text(
 			font,
-			Component.literal("Auto Pin (${FilterState.kind.label}) — matching spots are pinned. Nickname is optional."),
+			Component.literal("Auto Pin (${FilterState.kind.label}) — config/spotfilter/rules.txt  |  Nickname is optional."),
 			8,
 			12,
 			0xFFFFFFFF.toInt(),

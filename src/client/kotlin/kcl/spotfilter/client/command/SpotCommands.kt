@@ -6,6 +6,7 @@ import com.mojang.brigadier.arguments.StringArgumentType
 import com.mojang.brigadier.context.CommandContext
 import com.mojang.brigadier.suggestion.Suggestions
 import com.mojang.brigadier.suggestion.SuggestionsBuilder
+import kcl.spotfilter.client.config.RulesFile
 import kcl.spotfilter.client.config.SpotFilterConfig
 import kcl.spotfilter.client.data.SpotKind
 import kcl.spotfilter.client.data.SpotPool
@@ -128,6 +129,11 @@ object SpotCommands {
 				)
 				.then(literal("reload").executes { reload(it) })
 				.then(literal("save").executes { save(it) })
+				.then(
+					literal("rules")
+						.executes { rulesStatus(it) }
+						.then(literal("reload").executes { reload(it) })
+				)
 
 			dispatcher.register(root)
 			dispatcher.register(literal("spotfilter").redirect(dispatcher.root.getChild("sf")))
@@ -146,7 +152,8 @@ object SpotCommands {
 			"/sf list [pinned]",
 			"/sf pin <id|all> | /sf unpin <id|all>",
 			"/sf autopin apply",
-			"/sf reload | /sf save"
+			"/sf reload | /sf save — also reads config/spotfilter/rules.txt",
+			"/sf rules — Auto Pin rules file status"
 		)
 		info(ctx, "SpotFilter commands")
 		lines.forEach { info(ctx, it) }
@@ -304,7 +311,18 @@ object SpotCommands {
 
 	private fun reload(ctx: CommandContext<FabricClientCommandSource>): Int {
 		SpotFilterConfig.reload()
-		return ok(ctx, "Reloaded config/spotfilter.json")
+		AutoPin.applyAll()
+		val errors = RulesFile.lastErrors
+		ok(ctx, "Reloaded spotfilter.json and ${RulesFile.path.fileName} (${FilterState.normal.autoPinRules.size} normal / ${FilterState.grotto.autoPinRules.size} grotto rules)")
+		errors.forEach { err(ctx, it) }
+		return if (errors.isEmpty()) 1 else 0
+	}
+
+	private fun rulesStatus(ctx: CommandContext<FabricClientCommandSource>): Int {
+		ok(ctx, "rules: ${RulesFile.path}")
+		ok(ctx, "normal ${FilterState.normal.autoPinRules.size}  grotto ${FilterState.grotto.autoPinRules.size}")
+		RulesFile.lastErrors.forEach { err(ctx, it) }
+		return 1
 	}
 
 	private fun save(ctx: CommandContext<FabricClientCommandSource>): Int {
