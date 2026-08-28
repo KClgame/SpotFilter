@@ -39,12 +39,8 @@ object SpotLines {
 	fun compactParts(spot: FishingSpot): List<LinePart> {
 		val parts = ArrayList<LinePart>(10)
 		val idRgb = if (spot.kind == SpotKind.GROTTO) spot.stabilityDisplayRgb() else WHITE
-		val name = spot.nickname?.trim().orEmpty().ifEmpty {
-			if (spot.kind == SpotKind.GROTTO) "${spot.spotTypeLabel()} spot" else ""
-		}
-		if (name.isNotEmpty()) {
-			parts += LinePart(text = Component.literal(name).withStyle(Style.EMPTY.withColor(idRgb)))
-		}
+		val name = spot.groupLabel()
+		parts += LinePart(text = Component.literal(name).withStyle(Style.EMPTY.withColor(idRgb)))
 		parts += LinePart(text = Component.literal("#${spot.rankNumber()}").withStyle(Style.EMPTY.withColor(idRgb)))
 		for (perk in compactPerks(spot)) {
 			val valueColor = perk.valueRgb ?: WHITE

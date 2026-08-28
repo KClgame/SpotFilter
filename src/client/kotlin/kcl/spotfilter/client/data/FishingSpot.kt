@@ -78,30 +78,49 @@ data class FishingSpot(
 	fun primaryPerk(): ParsedPerk? =
 		if (kind == SpotKind.GROTTO) PerkPriority.grottoDisplay(perks) else PerkPriority.primary(perks)
 
-	fun spotTypeLabel(): String {
-		if (kind != SpotKind.GROTTO) return "fishing"
-		return when (grottoChance()?.type) {
-			PerkType.FISH_CHANCE -> "fish"
-			PerkType.PEARL_CHANCE -> "pearl"
-			PerkType.TREASURE_CHANCE -> "treasure"
-			PerkType.SPIRIT_CHANCE -> "spirit"
-			else -> "fishing"
+	fun familyGroup(): Int {
+		if (kind == SpotKind.GROTTO) {
+			return when (grottoChance()?.type) {
+				PerkType.FISH_CHANCE -> 0
+				PerkType.PEARL_CHANCE -> 1
+				PerkType.TREASURE_CHANCE -> 2
+				PerkType.SPIRIT_CHANCE -> 3
+				else -> 4
+			}
 		}
+		val candidates = perks.mapNotNull { perk ->
+			val index = perk.type.groupingIndex ?: return@mapNotNull null
+			perk to index
+		}
+		if (candidates.isEmpty()) return 4
+		return candidates.maxWith(
+			compareBy<Pair<ParsedPerk, Int>> { it.first.value }
+				.thenBy { if (it.first.type.kind == kcl.spotfilter.client.parse.PerkKind.MAGNET) 1 else 0 }
+				.thenBy { -it.second }
+		).second
 	}
 
-	fun grottoFamilyOrder(): Int = when (grottoChance()?.type) {
-		PerkType.FISH_CHANCE -> 0
-		PerkType.PEARL_CHANCE -> 1
-		PerkType.TREASURE_CHANCE -> 2
-		PerkType.SPIRIT_CHANCE -> 3
-		else -> 4
+	fun spotTypeLabel(): String = when (familyGroup()) {
+		0 -> "fish"
+		1 -> "pearl"
+		2 -> "treasure"
+		3 -> "spirit"
+		else -> "fishing"
 	}
+
+	fun customName(): String? = nickname?.trim()?.takeIf { it.isNotEmpty() }
+
+	fun groupLabel(): String = customName() ?: "${spotTypeLabel()} spot"
+
+	fun groupBucket(): Int = if (customName() != null) 0 else 1 + familyGroup()
+
+	fun grottoFamilyOrder(): Int = familyGroup()
 
 	fun grottoBonusScore(): Int {
-		val family = grottoChance()?.type?.family
+		val group = familyGroup()
 		val bonuses = perks.filter { !it.type.isGrottoChance && !it.type.skipsSpotColor }
 		val maxVal = bonuses.maxOfOrNull { it.value } ?: 0
-		val familyBonuses = bonuses.filter { it.type.family == family }
+		val familyBonuses = bonuses.filter { it.type.groupingIndex == group }
 		val familyMax = familyBonuses.maxOfOrNull { it.value } ?: 0
 		val magnet = if (familyBonuses.any { it.type.kind == kcl.spotfilter.client.parse.PerkKind.MAGNET }) 2 else 0
 		val hook = if (familyBonuses.any { it.type.kind == kcl.spotfilter.client.parse.PerkKind.HOOK }) 1 else 0
@@ -120,19 +139,9 @@ data class FishingSpot(
 
 	fun rankNumber(): Int = if (rank > 0) rank else id
 
-	fun displayTitle(): String =
-		if (!nickname.isNullOrBlank()) {
-			"$nickname #${rankNumber()}"
-		} else {
-			"${spotTypeLabel()} spot #${rankNumber()}"
-		}
+	fun displayTitle(): String = "${groupLabel()} #${rankNumber()}"
 
-	fun guideLabel(): String =
-		if (!nickname.isNullOrBlank()) {
-			"$nickname #${rankNumber()}"
-		} else {
-			"${spotTypeLabel()} spot #${rankNumber()}"
-		}
+	fun guideLabel(): String = "${groupLabel()} #${rankNumber()}"
 
 	fun markerRgb(): Int {
 		pinColorOverride?.let { return it }

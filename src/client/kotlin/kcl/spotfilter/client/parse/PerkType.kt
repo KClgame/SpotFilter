@@ -56,6 +56,16 @@ enum class PerkType(
 	val skipsSpotColor: Boolean
 		get() = this == XP_MAGNET || this == WAYFINDER_DATA
 
+	/** fish=0, pearl=1, treasure=2, spirit=3; null = does not group a spot. */
+	val groupingIndex: Int?
+		get() = when (this) {
+			STRONG_HOOK, WISE_HOOK, FISH_MAGNET, FISH_CHANCE, ELUSIVE_CHANCE -> 0
+			GLIMMERING_HOOK, PEARL_MAGNET, PEARL_CHANCE -> 1
+			GREEDY_HOOK, TREASURE_MAGNET, TREASURE_CHANCE -> 2
+			LUCKY_HOOK, SPIRIT_MAGNET, SPIRIT_CHANCE -> 3
+			else -> null
+		}
+
 	val textureId: Identifier =
 		Identifier.fromNamespaceAndPath(SpotFilter.MOD_ID, "textures/gui/perk/${name.lowercase()}.png")
 

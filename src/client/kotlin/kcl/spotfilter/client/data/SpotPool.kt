@@ -28,8 +28,11 @@ object SpotPool {
 
 	fun byId(id: Int): FishingSpot? = spots.values.firstOrNull { it.id == id }
 
-	fun byRank(rank: Int, kind: SpotKind = FilterState.kind): FishingSpot? =
-		spots.values.firstOrNull { it.kind == kind && it.rank == rank }
+	fun byRank(rank: Int, kind: SpotKind = FilterState.kind): FishingSpot? {
+		FilterState.refreshRanks()
+		return FilterState.sortSpots(spots.values.filter { it.kind == kind }, kind)
+			.firstOrNull { it.rank == rank }
+	}
 
 	fun upsert(incoming: FishingSpot) {
 		val existing = spots[incoming.key]

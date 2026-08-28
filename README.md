@@ -1,6 +1,6 @@
 # SpotFilter
 
-**v1.3.1** · Minecraft **26.2** · Fabric · 纯客户端
+**v1.4.0** · Minecraft **26.2** · Fabric · 纯客户端
 
 MCC Island 钓鱼点扫描、筛选与坐标 HUD。走近带 `Fishing Spot` 标签的 Text Display 即可收录；按词条过滤、钉选坐标、世界透视引导。
 
@@ -25,7 +25,7 @@ MCC Island 钓鱼点扫描、筛选与坐标 HUD。走近带 `Fishing Spot` 标�
 ## 安装
 
 1. 安装 Fabric Loader（26.2）与上述依赖。
-2. 将 `spotfilter-1.3.1.jar` 放入 `.minecraft/mods/`。
+2. 将 `spotfilter-1.4.0.jar` 放入 `.minecraft/mods/`。
 3. 启动游戏。控件里应出现 **SpotFilter** 分类。
 
 构建：
@@ -34,7 +34,7 @@ MCC Island 钓鱼点扫描、筛选与坐标 HUD。走近带 `Fishing Spot` 标�
 ./gradlew build
 ```
 
-产物：`build/libs/spotfilter-1.3.1.jar`
+产物：`build/libs/spotfilter-1.4.0.jar`
 
 ---
 
@@ -127,7 +127,12 @@ Grotto 模式下主界面和 Auto Pin 会出现 **Cost** 筛选（Low / Medium /
 4. **Sort**：High → Low 或 Low → High。
 5. **Clear this filter** 清空本槽。
 
-总排序：有 F1–F3 时先按槽。默认 **不按发现顺序**。Grotto：Stability Cost（Low 最好）→ Fish / Pearl / Treasure / Spirit → 组内按加成（同系 Magnet/Hook 数值高者优先）→ Stock → 距离 → 坐标。Normal：Stock → 距离 → 坐标。排完后从 **#1** 起编号（HUD、列表、引导都用这个号）。
+列表与编号按 **组** 排，每组从 **#1** 起：
+
+1. Auto Pin **nickname** 自定义组（规则从上到下）
+2. `fish spot` → `pearl spot` → `treasure spot` → `spirit spot`
+
+Grotto 用 Chance 归组。Normal 用加成：Strong/Wise Hook、Fish Magnet → fish；Glimmering Hook / Pearl Magnet → pearl；Greedy / Treasure Magnet → treasure；Lucky / Spirit Magnet → spirit。**XP Magnet、Wayfinder Data 不分组**。组内再按 Cost（Grotto）、加成数值、Stock、距离。HUD / 引导写 `组名 #组内编号`。
 
 ### 列表与钉选
 

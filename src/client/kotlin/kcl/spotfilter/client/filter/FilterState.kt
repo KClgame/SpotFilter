@@ -314,8 +314,14 @@ object FilterState {
 
 	fun refreshRanks() {
 		SpotKind.entries.forEach { k ->
-			sortSpots(SpotPool.all().filter { it.kind == k }, k)
-				.forEachIndexed { index, spot -> spot.rank = index + 1 }
+			val ordered = sortSpots(SpotPool.all().filter { it.kind == k }, k)
+			val counts = HashMap<String, Int>()
+			for (spot in ordered) {
+				val key = spot.groupLabel().lowercase()
+				val next = (counts[key] ?: 0) + 1
+				counts[key] = next
+				spot.rank = next
+			}
 		}
 	}
 
@@ -325,6 +331,12 @@ object FilterState {
 		val profile = if (forKind == SpotKind.GROTTO) grotto else normal
 		val grotto = forKind == SpotKind.GROTTO
 		return spots.sortedWith { a, b ->
+			val bucketCmp = a.groupBucket().compareTo(b.groupBucket())
+			if (bucketCmp != 0) return@sortedWith bucketCmp
+			if (a.groupBucket() == 0) {
+				val customCmp = customGroupOrder(a.groupLabel(), profile).compareTo(customGroupOrder(b.groupLabel(), profile))
+				if (customCmp != 0) return@sortedWith customCmp
+			}
 			for (slot in profile.slots) {
 				if (!slot.isActive) continue
 				val cmp = slot.sortKey(a).compareTo(slot.sortKey(b))
@@ -335,8 +347,9 @@ object FilterState {
 			if (grotto) {
 				val costCmp = (b.stability?.rank ?: 0).compareTo(a.stability?.rank ?: 0)
 				if (costCmp != 0) return@sortedWith costCmp
-				val familyCmp = a.grottoFamilyOrder().compareTo(b.grottoFamilyOrder())
-				if (familyCmp != 0) return@sortedWith familyCmp
+				val bonusCmp = b.grottoBonusScore().compareTo(a.grottoBonusScore())
+				if (bonusCmp != 0) return@sortedWith bonusCmp
+			} else {
 				val bonusCmp = b.grottoBonusScore().compareTo(a.grottoBonusScore())
 				if (bonusCmp != 0) return@sortedWith bonusCmp
 			}
@@ -348,6 +361,11 @@ object FilterState {
 			if (xCmp != 0) return@sortedWith xCmp
 			a.z.compareTo(b.z)
 		}
+	}
+
+	private fun customGroupOrder(name: String, profile: FilterProfile): Int {
+		val index = profile.autoPinRules.indexOfFirst { it.nickname.trim().equals(name, ignoreCase = true) }
+		return if (index >= 0) index else 1_000 + name.lowercase().hashCode().and(0x7fffffff) % 1_000
 	}
 
 	private fun distSq(spot: FishingSpot, origin: Vec3): Double {
