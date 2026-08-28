@@ -79,11 +79,11 @@ class FilterSlot {
 	}
 
 	fun cycleThreshold() {
-		threshold = nextPerkValue(threshold)
+		threshold = nextPerkValue(threshold, perk)
 	}
 
 	fun cycleThresholdMax() {
-		thresholdMax = nextPerkValue(thresholdMax)
+		thresholdMax = nextPerkValue(thresholdMax, perk)
 	}
 
 	fun cycleSort() {
@@ -244,10 +244,13 @@ fun compareValues(value: Int, min: Int, max: Int, compare: CompareOp): Boolean {
 	}
 }
 
-fun nextPerkValue(current: Int): Int = when (current) {
-	10 -> 20
-	20 -> 30
-	else -> 10
+fun perkValueOptions(type: PerkType?): List<Int> =
+	if (type == PerkType.FISH_MAGNET) listOf(10, 20, 30, 200) else listOf(10, 20, 30)
+
+fun nextPerkValue(current: Int, type: PerkType? = null): Int {
+	val options = perkValueOptions(type)
+	val index = options.indexOf(current)
+	return options[(index + 1).mod(options.size)]
 }
 
 fun nextStock(current: StockLevel): StockLevel {

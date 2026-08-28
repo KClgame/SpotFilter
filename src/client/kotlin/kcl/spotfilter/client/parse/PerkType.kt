@@ -66,8 +66,11 @@ enum class PerkType(
 			else -> null
 		}
 
-	val textureId: Identifier =
-		Identifier.fromNamespaceAndPath(SpotFilter.MOD_ID, "textures/gui/perk/${name.lowercase()}.png")
+	val textureId: Identifier
+		get() = Identifier.fromNamespaceAndPath(
+			SpotFilter.MOD_ID,
+			"textures/gui/perk/${if (this == FISH_CHANCE) "wayfinder_data" else name.lowercase()}.png"
+		)
 
 	val hasVariableValue: Boolean
 		get() = kind == PerkKind.HOOK || kind == PerkKind.MAGNET

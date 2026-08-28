@@ -1,6 +1,6 @@
 # SpotFilter
 
-**v1.4.4** · Minecraft **26.2** · Fabric · 纯客户端
+**v1.4.5** · Minecraft **26.2** · Fabric · 纯客户端
 
 MCC Island 钓鱼点扫描、筛选与坐标 HUD。走近带 `Fishing Spot` 标签的 Text Display 即可收录；按词条过滤、钉选坐标、世界透视引导。
 
@@ -25,7 +25,7 @@ MCC Island 钓鱼点扫描、筛选与坐标 HUD。走近带 `Fishing Spot` 标�
 ## 安装
 
 1. 安装 Fabric Loader（26.2）与上述依赖。
-2. 将 `spotfilter-1.4.4.jar` 放入 `.minecraft/mods/`。
+2. 将 `spotfilter-1.4.5.jar` 放入 `.minecraft/mods/`。
 3. 启动游戏。控件里应出现 **SpotFilter** 分类。
 
 构建：
@@ -34,7 +34,7 @@ MCC Island 钓鱼点扫描、筛选与坐标 HUD。走近带 `Fishing Spot` 标�
 ./gradlew build
 ```
 
-产物：`build/libs/spotfilter-1.4.4.jar`
+产物：`build/libs/spotfilter-1.4.5.jar`
 
 ---
 
@@ -139,7 +139,7 @@ Grotto 用 Chance 归组。Normal 用加成：Strong/Wise Hook、Fish Magnet →
 匹配的点显示编号、坐标、Stock、词条。点击一行 **Pin**：
 
 - 加入屏幕坐标 HUD
-- 在原标签 **下方一格** 生成仅客户端 `text_display`（透视名牌同时绘制，穿树叶）。靠近为正常大小（比旧初始略小），走远会放大。文案：`fish/pearl/treasure/spirit spot #n 12m`（有 nickname 则为 `名字 #组内编号 12m`）  
+- 在原标签 **下方一格** 绘制仅客户端透视名牌（走名牌管线，树叶切面挡不住）。靠近为正常大小，走远会放大。文案：`fish/pearl/treasure/spirit spot #n 12m`（有 nickname 则为 `名字 #组内编号 12m`）  
   Grotto 点色默认用 Chance 色（XP Magnet / Wayfinder Data 不参与染色）；自定义 hex 仍优先。
 
 再点一次取消 Pin。
@@ -162,7 +162,7 @@ Grotto 用 Chance 归组。Normal 用加成：Strong/Wise Hook、Fish Magnet →
 **Hook** `+10% / +20% / +30%`  
 Strong · Wise · Glimmering · Greedy · Lucky
 
-**Magnet** `+10% / +20% / +30%`  
+**Magnet** `+10% / +20% / +30%`（Fish Magnet 另有 Grotto 特殊 `+200%`）  
 XP · Fish · Pearl · Treasure · Spirit
 
 **固定**  

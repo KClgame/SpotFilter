@@ -23,7 +23,11 @@ object SpotParser {
 		RegexOption.IGNORE_CASE
 	)
 	private val MAGNET = Regex(
-		"""\+?\s*(10|20|30)\s*%\s*(XP|Fish|Pearl|Treasure|Spirit)\s+Magnet""",
+		"""\+?\s*(10|20|30|200)\s*%\s*(XP|Fish|Pearl|Treasure|Spirit)\s+Magnet""",
+		RegexOption.IGNORE_CASE
+	)
+	private val FISH_MAGNET_ANY = Regex(
+		"""\+?\s*(\d+)\s*%\s*Fish\s+Magnet""",
 		RegexOption.IGNORE_CASE
 	)
 	private val ELUSIVE = Regex("""\+?\s*5\s*%\s*Elusive\s+Chance""", RegexOption.IGNORE_CASE)
@@ -166,6 +170,17 @@ object SpotParser {
 				else -> return@forEach
 			}
 			found.add(colored(type, value, styled))
+		}
+		FISH_MAGNET_ANY.findAll(text).forEach { match ->
+			val value = match.groupValues[1].toInt()
+			if (found.none { it.type == PerkType.FISH_MAGNET }) {
+				found.add(colored(PerkType.FISH_MAGNET, value, styled))
+			} else {
+				val idx = found.indexOfFirst { it.type == PerkType.FISH_MAGNET }
+				if (idx >= 0 && value > found[idx].value) {
+					found[idx] = colored(PerkType.FISH_MAGNET, value, styled)
+				}
+			}
 		}
 		if (ELUSIVE.containsMatchIn(text)) found.add(colored(PerkType.ELUSIVE_CHANCE, 5, styled))
 		if (WAYFINDER.containsMatchIn(text)) found.add(colored(PerkType.WAYFINDER_DATA, 10, styled))
