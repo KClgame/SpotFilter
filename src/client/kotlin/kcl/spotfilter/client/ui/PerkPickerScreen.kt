@@ -1,7 +1,7 @@
 package kcl.spotfilter.client.ui
 
 import kcl.spotfilter.client.config.SpotFilterConfig
-import kcl.spotfilter.client.filter.FilterState
+import kcl.spotfilter.client.filter.FilterSlot
 import kcl.spotfilter.client.parse.PerkType
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.components.Button
@@ -15,8 +15,9 @@ import net.minecraft.network.chat.Style
 import org.lwjgl.glfw.GLFW
 
 class PerkPickerScreen(
-	private val parent: FilterSlotScreen,
-	private val index: Int
+	private val slot: FilterSlot,
+	private val heading: String,
+	private val returnTo: Screen
 ) : Screen(Component.literal("Select perk")) {
 	private var search = ""
 	private var scroll = 0
@@ -55,7 +56,7 @@ class PerkPickerScreen(
 
 	override fun extractRenderState(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, delta: Float) {
 		super.extractRenderState(graphics, mouseX, mouseY, delta)
-		graphics.text(font, Component.literal("Choose a perk for F${index + 1}"), 8, 10, 0xFFFFFFFF.toInt(), false)
+		graphics.text(font, Component.literal("Choose a perk"), 8, 10, 0xFFFFFFFF.toInt(), false)
 
 		val items = visiblePerks()
 		val visibleRows = ((listBottom - listTop) / rowHeight).coerceAtLeast(1)
@@ -67,7 +68,7 @@ class PerkPickerScreen(
 		for (i in scroll until end) {
 			val perk = items[i]
 			val hovered = mouseX in 8 until (width - 8) && mouseY in y until (y + rowHeight - 2)
-			val selected = FilterState.slots[index].perk == perk
+			val selected = slot.perk == perk
 			val bg = when {
 				selected && hovered -> 0x8866AA66.toInt()
 				selected -> 0x55338855.toInt()
@@ -110,7 +111,7 @@ class PerkPickerScreen(
 			val my = event.y().toInt()
 			val indexInList = scroll + ((my - listTop) / rowHeight)
 			if (indexInList in items.indices && my in listTop until listBottom && indexInList < scroll + visibleRows) {
-				FilterState.slots[index].perk = items[indexInList]
+				slot.perk = items[indexInList]
 				SpotFilterConfig.save()
 				onClose()
 				return true
@@ -136,6 +137,6 @@ class PerkPickerScreen(
 	}
 
 	override fun onClose() {
-		minecraft.gui.setScreen(parent)
+		minecraft.gui.setScreen(FilterSlotScreen(returnTo, slot, heading))
 	}
 }

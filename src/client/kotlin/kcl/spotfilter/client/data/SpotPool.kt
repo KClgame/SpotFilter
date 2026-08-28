@@ -1,6 +1,7 @@
 package kcl.spotfilter.client.data
 
 import kcl.spotfilter.client.audio.SpotSounds
+import kcl.spotfilter.client.filter.AutoPin
 import kcl.spotfilter.client.world.PinnedSpotMarker
 import net.minecraft.client.Minecraft
 
@@ -26,6 +27,7 @@ object SpotPool {
 			incoming.id = nextId++
 			spots[incoming.key] = incoming
 			SpotSounds.playNewSpot()
+			AutoPin.apply(incoming)
 		} else {
 			val becameDepleted =
 				incoming.stock == StockLevel.DEPLETED && existing.stock != StockLevel.DEPLETED
@@ -38,8 +40,11 @@ object SpotPool {
 			existing.perks = incoming.perks
 			existing.lastSeenGameTime = incoming.lastSeenGameTime
 			if (becameDepleted && existing.pinned) {
+				existing.autoPinned = false
 				setPinned(existing, false)
-			} else if (existing.pinned) {
+			}
+			AutoPin.apply(existing)
+			if (existing.pinned) {
 				PinnedSpotMarker.sync(existing)
 			}
 		}
@@ -47,10 +52,12 @@ object SpotPool {
 
 	fun setPinned(spot: FishingSpot, pinned: Boolean) {
 		spot.pinned = pinned
-		if (pinned) {
-			PinnedSpotMarker.spawnOrUpdate(spot)
-		} else {
+		if (!pinned) {
+			spot.autoPinned = false
+			spot.pinColorOverride = null
 			PinnedSpotMarker.remove(spot.id)
+		} else {
+			PinnedSpotMarker.spawnOrUpdate(spot)
 		}
 	}
 

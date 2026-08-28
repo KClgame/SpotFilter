@@ -2,10 +2,14 @@ package kcl.spotfilter.client.config
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import kcl.spotfilter.client.data.StockLevel
+import kcl.spotfilter.client.filter.AutoPinRule
 import kcl.spotfilter.client.filter.CompareOp
 import kcl.spotfilter.client.filter.FilterMode
+import kcl.spotfilter.client.filter.FilterSlot
 import kcl.spotfilter.client.filter.FilterState
 import kcl.spotfilter.client.filter.SortDir
+import kcl.spotfilter.client.filter.StockFilter
 import kcl.spotfilter.client.parse.PerkType
 import net.fabricmc.loader.api.FabricLoader
 import java.nio.file.Files
@@ -15,6 +19,23 @@ class SlotConfig {
 	var compare: String = CompareOp.GT.name
 	var threshold: Int = 10
 	var sortDir: String = SortDir.DESC.name
+}
+
+class StockFilterConfig {
+	var enabled: Boolean = false
+	var compare: String = CompareOp.GT.name
+	var level: String = StockLevel.HIGH.name
+}
+
+class AutoPinRuleConfig {
+	var name: String = "Rule"
+	var enabled: Boolean = true
+	var mode: String = FilterMode.AND.name
+	var slot0: SlotConfig = SlotConfig()
+	var slot1: SlotConfig = SlotConfig()
+	var slot2: SlotConfig = SlotConfig()
+	var stock: StockFilterConfig = StockFilterConfig()
+	var customColorHex: String = ""
 }
 
 class SpotFilterConfig {
@@ -30,6 +51,8 @@ class SpotFilterConfig {
 	var slot0: SlotConfig = SlotConfig()
 	var slot1: SlotConfig = SlotConfig()
 	var slot2: SlotConfig = SlotConfig()
+	var stock: StockFilterConfig = StockFilterConfig()
+	var autoPinRules: MutableList<AutoPinRuleConfig> = ArrayList()
 
 	fun clamp() {
 		hudWidth = hudWidth.coerceIn(MIN_WIDTH, 480)
@@ -73,36 +96,79 @@ class SpotFilterConfig {
 
 	fun applyToState() {
 		FilterState.mode = runCatching { FilterMode.valueOf(filterMode) }.getOrDefault(FilterMode.AND)
-		applySlot(0, slot0)
-		applySlot(1, slot1)
-		applySlot(2, slot2)
+		applySlot(FilterState.slots[0], slot0)
+		applySlot(FilterState.slots[1], slot1)
+		applySlot(FilterState.slots[2], slot2)
+		applyStock(FilterState.stock, stock)
+		FilterState.autoPinRules.clear()
+		autoPinRules.forEach { FilterState.autoPinRules.add(fromConfig(it)) }
 	}
 
 	fun syncFromState() {
 		filterMode = FilterState.mode.name
-		slot0 = toConfig(FilterState.slots[0])
-		slot1 = toConfig(FilterState.slots[1])
-		slot2 = toConfig(FilterState.slots[2])
+		slot0 = toSlotConfig(FilterState.slots[0])
+		slot1 = toSlotConfig(FilterState.slots[1])
+		slot2 = toSlotConfig(FilterState.slots[2])
+		stock = toStockConfig(FilterState.stock)
+		autoPinRules = FilterState.autoPinRules.map { toRuleConfig(it) }.toMutableList()
 	}
 
-	private fun applySlot(index: Int, cfg: SlotConfig?) {
-		val slot = FilterState.slots[index]
-		if (cfg == null) {
-			slot.clear()
-			return
-		}
+	private fun applySlot(slot: FilterSlot, cfg: SlotConfig?) {
+		slot.clear()
+		if (cfg == null) return
 		slot.perk = cfg.perk?.let { runCatching { PerkType.valueOf(it) }.getOrNull() }
 		slot.compare = runCatching { CompareOp.valueOf(cfg.compare) }.getOrDefault(CompareOp.GT)
 		slot.threshold = cfg.threshold
 		slot.sortDir = runCatching { SortDir.valueOf(cfg.sortDir) }.getOrDefault(SortDir.DESC)
 	}
 
-	private fun toConfig(slot: kcl.spotfilter.client.filter.FilterSlot): SlotConfig {
+	private fun applyStock(target: StockFilter, cfg: StockFilterConfig?) {
+		if (cfg == null) return
+		target.enabled = cfg.enabled
+		target.compare = runCatching { CompareOp.valueOf(cfg.compare) }.getOrDefault(CompareOp.GT)
+		target.level = runCatching { StockLevel.valueOf(cfg.level) }.getOrDefault(StockLevel.HIGH)
+	}
+
+	private fun fromConfig(cfg: AutoPinRuleConfig): AutoPinRule {
+		val rule = AutoPinRule()
+		rule.name = cfg.name
+		rule.enabled = cfg.enabled
+		rule.mode = runCatching { FilterMode.valueOf(cfg.mode) }.getOrDefault(FilterMode.AND)
+		applySlot(rule.slots[0], cfg.slot0)
+		applySlot(rule.slots[1], cfg.slot1)
+		applySlot(rule.slots[2], cfg.slot2)
+		applyStock(rule.stock, cfg.stock)
+		rule.customColorHex = cfg.customColorHex
+		return rule
+	}
+
+	private fun toSlotConfig(slot: FilterSlot): SlotConfig {
 		val cfg = SlotConfig()
 		cfg.perk = slot.perk?.name
 		cfg.compare = slot.compare.name
 		cfg.threshold = slot.threshold
 		cfg.sortDir = slot.sortDir.name
+		return cfg
+	}
+
+	private fun toStockConfig(stock: StockFilter): StockFilterConfig {
+		val cfg = StockFilterConfig()
+		cfg.enabled = stock.enabled
+		cfg.compare = stock.compare.name
+		cfg.level = stock.level.name
+		return cfg
+	}
+
+	private fun toRuleConfig(rule: AutoPinRule): AutoPinRuleConfig {
+		val cfg = AutoPinRuleConfig()
+		cfg.name = rule.name
+		cfg.enabled = rule.enabled
+		cfg.mode = rule.mode.name
+		cfg.slot0 = toSlotConfig(rule.slots[0])
+		cfg.slot1 = toSlotConfig(rule.slots[1])
+		cfg.slot2 = toSlotConfig(rule.slots[2])
+		cfg.stock = toStockConfig(rule.stock)
+		cfg.customColorHex = rule.customColorHex
 		return cfg
 	}
 }

@@ -21,7 +21,7 @@ class FilterScreen : Screen(Component.literal("SpotFilter")) {
 	private var dragOffX = 0
 	private var dragOffY = 0
 
-	private val listTop get() = 88
+	private val listTop get() = 112
 	private val listBottom get() = height - 36
 	private val rowHeight = 44
 
@@ -78,10 +78,20 @@ class FilterScreen : Screen(Component.literal("SpotFilter")) {
 		repeat(3) { index ->
 			addRenderableWidget(
 				Button.builder(slotLabel(index)) { _ ->
-					minecraft.gui.setScreen(FilterSlotScreen(this, index))
+					minecraft.gui.setScreen(FilterSlotScreen(this, FilterState.slots[index], "Filter F${index + 1}"))
 				}.bounds(8 + index * (slotWidth + 4), 32, slotWidth, 20).build()
 			)
 		}
+		addRenderableWidget(
+			Button.builder(Component.literal(FilterState.stock.compactLabel())) { _ ->
+				minecraft.gui.setScreen(StockFilterScreen(this, FilterState.stock))
+			}.bounds(8, 56, (width - 20) / 2, 20).build()
+		)
+		addRenderableWidget(
+			Button.builder(Component.literal("Auto Pin (${FilterState.autoPinRules.count { it.enabled }})")) { _ ->
+				minecraft.gui.setScreen(AutoPinListScreen(this))
+			}.bounds(16 + (width - 20) / 2, 56, (width - 20) / 2, 20).build()
+		)
 	}
 
 	private fun modeLabel(): Component =
@@ -118,7 +128,7 @@ class FilterScreen : Screen(Component.literal("SpotFilter")) {
 			font,
 			Component.literal("${spots.size} spots  |  click row to pin  |  F1>F2>F3 sort  |  O close"),
 			8,
-			56,
+			82,
 			0xFFCCCCCC.toInt(),
 			false
 		)

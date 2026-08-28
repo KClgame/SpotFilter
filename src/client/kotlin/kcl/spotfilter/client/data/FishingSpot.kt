@@ -37,7 +37,9 @@ data class FishingSpot(
 	var stockRgb: Int? = null,
 	var perks: List<ParsedPerk>,
 	var lastSeenGameTime: Long,
-	var pinned: Boolean = false
+	var pinned: Boolean = false,
+	var autoPinned: Boolean = false,
+	var pinColorOverride: Int? = null
 ) {
 	fun primaryPerk(): ParsedPerk? = PerkPriority.primary(perks)
 
@@ -49,5 +51,8 @@ data class FishingSpot(
 
 	fun stockDisplayRgb(): Int = stockRgb ?: stock?.rgb ?: 0xAAAAAA
 
-	fun markerRgb(): Int = primaryPerk()?.resolvedNameRgb() ?: 0xFFFFFF
+	fun markerRgb(): Int =
+		pinColorOverride
+			?: primaryPerk()?.type?.family?.rgb
+			?: 0xFFFFFF
 }

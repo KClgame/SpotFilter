@@ -1,6 +1,6 @@
 # SpotFilter
 
-**v1.0.1** · Minecraft **26.2** · Fabric · 纯客户端
+**v1.0.2** · Minecraft **26.2** · Fabric · 纯客户端
 
 MCC Island 钓鱼点扫描、筛选与坐标 HUD。走近带 `Fishing Spot` 标签的 Text Display 即可收录；按词条过滤、钉选坐标、世界透视引导。
 
@@ -25,7 +25,7 @@ MCC Island 钓鱼点扫描、筛选与坐标 HUD。走近带 `Fishing Spot` 标�
 ## 安装
 
 1. 安装 Fabric Loader（26.2）与上述依赖。
-2. 将 `spotfilter-1.0.1.jar` 放入 `.minecraft/mods/`。
+2. 将 `spotfilter-1.0.2.jar` 放入 `.minecraft/mods/`。
 3. 启动游戏。控件里应出现 **SpotFilter** 分类。
 
 构建：
@@ -34,7 +34,7 @@ MCC Island 钓鱼点扫描、筛选与坐标 HUD。走近带 `Fishing Spot` 标�
 ./gradlew build
 ```
 
-产物：`build/libs/spotfilter-1.0.1.jar`
+产物：`build/libs/spotfilter-1.0.2.jar`
 
 ---
 
@@ -61,6 +61,18 @@ MCC Island 钓鱼点扫描、筛选与坐标 HUD。走近带 `Fishing Spot` 标�
 - **Edit HUD** — 拖动位置；滚轮放大倍率（0.5×–3.0×）；**Shift+滚轮** 背景透明度。
 - **Clear spots** — 同 **P**。
 - **Enabled / Disabled** — 总开关。Disabled 时 HUD 与引导标记消失、不再播新点音效；仍可打开 Filter，扫描与筛选照常。再开 Enabled 会恢复 HUD 和已 Pin 标记。
+
+### Stock 筛选
+
+主界面单独一栏 **Stock**，不占用 F1–F3。可开关，并设置 `>` / `<` / `=` 与档位（Plentiful → … → Depleted）。与词条筛选同时生效（必须先过 Stock）。
+
+### Auto Pin
+
+**Auto Pin** 里可建多条规则：各含 F1–F3 词条、独立 Stock、AND/OR。命中的点会自动钉上。
+
+- 颜色默认：Strong `#FC5454` · Wise `#2199F0` · Pearl `#8636FF` · Treasure `#FC7D3F` · Spirit `#23C525`（按该点主词条）
+- 规则里填写 `#RRGGBB` 则该规则钉上的点统一用这个色
+- 不再命中规则的自动 Pin 会撤掉；手动 Pin 的点不受影响
 
 ### 三个筛选槽 F1 / F2 / F3
 

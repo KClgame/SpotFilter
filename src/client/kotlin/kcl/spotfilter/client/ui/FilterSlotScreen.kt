@@ -1,7 +1,7 @@
 package kcl.spotfilter.client.ui
 
 import kcl.spotfilter.client.config.SpotFilterConfig
-import kcl.spotfilter.client.filter.FilterState
+import kcl.spotfilter.client.filter.FilterSlot
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.components.Button
 import net.minecraft.client.gui.screens.Screen
@@ -10,17 +10,17 @@ import net.minecraft.network.chat.Component
 import org.lwjgl.glfw.GLFW
 
 class FilterSlotScreen(
-	private val parent: FilterScreen,
-	private val index: Int
-) : Screen(Component.literal("Filter F${index + 1}")) {
+	private val returnTo: Screen,
+	private val slot: FilterSlot,
+	private val heading: String
+) : Screen(Component.literal(heading)) {
 	override fun isPauseScreen(): Boolean = false
 
 	override fun init() {
-		val slot = FilterState.slots[index]
 		val perk = slot.perk
 		addRenderableWidget(
 			Button.builder(Component.literal("Perk: ${perk?.displayName ?: "None"}")) { _ ->
-				minecraft.gui.setScreen(PerkPickerScreen(this, index))
+				minecraft.gui.setScreen(PerkPickerScreen(slot, heading, returnTo))
 			}.bounds(width / 2 - 120, 40, 240, 20).build()
 		)
 
@@ -65,8 +65,8 @@ class FilterSlotScreen(
 
 	override fun extractRenderState(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, delta: Float) {
 		super.extractRenderState(graphics, mouseX, mouseY, delta)
-		graphics.text(font, Component.literal("Filter F${index + 1}"), width / 2 - 40, 16, 0xFFFFFFFF.toInt(), false)
-		val perk = FilterState.slots[index].perk
+		graphics.text(font, Component.literal(heading), width / 2 - 40, 16, 0xFFFFFFFF.toInt(), false)
+		val perk = slot.perk
 		if (perk != null && !perk.hasVariableValue) {
 			graphics.text(
 				font,
@@ -89,6 +89,6 @@ class FilterSlotScreen(
 
 	override fun onClose() {
 		SpotFilterConfig.save()
-		minecraft.gui.setScreen(parent)
+		minecraft.gui.setScreen(returnTo)
 	}
 }
