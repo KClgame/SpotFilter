@@ -30,7 +30,7 @@ object SpotHud {
 	private const val WHITE = 0xFFFFFFFF.toInt()
 	private const val GRAY = 0xFFAAAAAA.toInt()
 	private const val PAD = 6
-	private const val ICON = 10
+	private const val ICON = SpotLines.ICON
 	private val EMPTY = Component.literal("(No current fishing spot)").withStyle(Style.EMPTY.withColor(0xAAAAAA))
 
 	fun register() {
@@ -64,7 +64,9 @@ object SpotHud {
 		pose.popMatrix()
 	}
 
-	private fun lineH(font: Font): Int = maxOf(font.lineHeight, ICON)
+	private fun compact(): Boolean = SpotFilterConfig.instance.layout() == HudLayout.COMPACT
+
+	private fun lineH(font: Font): Int = SpotLines.lineH(font)
 
 	private fun headerWidth(font: Font, spot: FishingSpot): Int {
 		val textW = font.width(header(spot))
@@ -76,15 +78,21 @@ object SpotHud {
 		if (pinned.isEmpty()) {
 			return font.width(EMPTY) to lh
 		}
+		val compact = compact()
 		var blockW = 0
 		var blockH = 0
 		for ((i, spot) in pinned.withIndex()) {
 			if (i > 0) blockH += 2
-			blockW = maxOf(blockW, headerWidth(font, spot))
-			blockH += lh
-			for (perk in spot.perks) {
-				blockW = maxOf(blockW, font.width(perk.coloredLine()))
+			if (compact) {
+				blockW = maxOf(blockW, SpotLines.width(font, SpotLines.compactParts(spot)))
 				blockH += lh
+			} else {
+				blockW = maxOf(blockW, headerWidth(font, spot))
+				blockH += lh
+				for (perk in spot.perks) {
+					blockW = maxOf(blockW, font.width(perk.coloredLine()))
+					blockH += lh
+				}
 			}
 		}
 		return blockW to blockH
@@ -107,9 +115,14 @@ object SpotHud {
 			graphics.text(font, EMPTY, originX, cursor, GRAY, false)
 			return
 		}
-
+		val compact = compact()
 		for ((i, spot) in pinned.withIndex()) {
 			if (i > 0) cursor += 2
+			if (compact) {
+				SpotLines.draw(graphics, font, SpotLines.compactParts(spot), originX, cursor)
+				cursor += lh
+				continue
+			}
 			val head = header(spot)
 			val primary = spot.primaryPerk()
 			if (primary != null) {

@@ -21,9 +21,10 @@ class FilterScreen : Screen(Component.literal("SpotFilter")) {
 	private var dragOffX = 0
 	private var dragOffY = 0
 
+	private val compact get() = SpotFilterConfig.instance.layout() == HudLayout.COMPACT
 	private val listTop get() = 112
 	private val listBottom get() = height - 36
-	private val rowHeight = 44
+	private val rowHeight get() = if (compact) 22 else 44
 
 	override fun isPauseScreen(): Boolean = false
 
@@ -48,26 +49,34 @@ class FilterScreen : Screen(Component.literal("SpotFilter")) {
 				FilterState.toggleKind()
 				SpotFilterConfig.save()
 				rebuildWidgets()
-			}.bounds(8, 8, 78, 20).build()
+			}.bounds(8, 8, 68, 20).build()
 		)
 		addRenderableWidget(
 			Button.builder(modeLabel()) { _ ->
 				FilterState.toggleMode()
 				SpotFilterConfig.save()
 				rebuildWidgets()
-			}.bounds(90, 8, 78, 20).build()
+			}.bounds(80, 8, 72, 20).build()
 		)
 
+		addRenderableWidget(
+			Button.builder(layoutLabel()) { _ ->
+				val cfg = SpotFilterConfig.instance
+				cfg.setLayout(cfg.layout().toggle())
+				SpotFilterConfig.save()
+				rebuildWidgets()
+			}.bounds(156, 8, 78, 20).build()
+		)
 		addRenderableWidget(
 			Button.builder(Component.literal("Edit HUD")) { _ ->
 				editingHud = true
 				rebuildWidgets()
-			}.bounds(172, 8, 78, 20).build()
+			}.bounds(238, 8, 68, 20).build()
 		)
 		addRenderableWidget(
-			Button.builder(Component.literal("Clear spots")) { _ ->
+			Button.builder(Component.literal("Clear")) { _ ->
 				SpotPool.clearSpots()
-			}.bounds(254, 8, 88, 20).build()
+			}.bounds(310, 8, 48, 20).build()
 		)
 		addRenderableWidget(
 			Button.builder(enableLabel()) { _ ->
@@ -78,7 +87,7 @@ class FilterScreen : Screen(Component.literal("SpotFilter")) {
 				}
 				SpotFilterConfig.save()
 				rebuildWidgets()
-			}.bounds(346, 8, 88, 20).build()
+			}.bounds(362, 8, 68, 20).build()
 		)
 
 		val slotWidth = ((width - 24) / 3).coerceAtLeast(90)
@@ -126,6 +135,9 @@ class FilterScreen : Screen(Component.literal("SpotFilter")) {
 
 	private fun modeLabel(): Component =
 		Component.literal("Mode: ${FilterState.mode.name}")
+
+	private fun layoutLabel(): Component =
+		Component.literal(SpotFilterConfig.instance.layout().label)
 
 	private fun enableLabel(): Component =
 		Component.literal(if (SpotFilterConfig.instance.enabled) "Enabled" else "Disabled")
@@ -204,6 +216,16 @@ class FilterScreen : Screen(Component.literal("SpotFilter")) {
 			else -> 0x33000000
 		}
 		graphics.fill(x, y, x + w, y + rowHeight - 2, bg)
+		if (compact) {
+			val parts = SpotLines.compactParts(spot).toMutableList()
+			parts += LinePart(
+				text = Component.literal(if (spot.pinned) "[PINNED]" else "[pin]").withStyle(
+					Style.EMPTY.withColor(if (spot.pinned) 0x88FF88 else 0x888888)
+				)
+			)
+			SpotLines.draw(graphics, font, parts, x + 4, y + 4)
+			return
+		}
 		val primary = spot.primaryPerk()
 		if (primary != null) {
 			graphics.blit(

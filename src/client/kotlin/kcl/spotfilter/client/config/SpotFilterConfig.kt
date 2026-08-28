@@ -15,6 +15,7 @@ import kcl.spotfilter.client.filter.SortDir
 import kcl.spotfilter.client.filter.StabilityFilter
 import kcl.spotfilter.client.filter.StockFilter
 import kcl.spotfilter.client.parse.PerkType
+import kcl.spotfilter.client.ui.HudLayout
 import net.fabricmc.loader.api.FabricLoader
 import java.nio.file.Files
 
@@ -71,6 +72,7 @@ class SpotFilterConfig {
 	var hudScale: Float = 1.0f
 	var backgroundAlpha: Int = 40
 	var hudVisible: Boolean = true
+	var hudLayout: String = HudLayout.DETAILED.name
 	var enabled: Boolean = true
 	var spotKind: String = SpotKind.NORMAL.name
 	var normal: FilterProfileConfig = FilterProfileConfig()
@@ -91,6 +93,12 @@ class SpotFilterConfig {
 		backgroundAlpha = backgroundAlpha.coerceIn(0, 90)
 		hudX = hudX.coerceAtLeast(0)
 		hudY = hudY.coerceAtLeast(0)
+	}
+
+	fun layout(): HudLayout = HudLayout.fromName(hudLayout)
+
+	fun setLayout(layout: HudLayout) {
+		hudLayout = layout.name
 	}
 
 	companion object {
@@ -144,6 +152,7 @@ class SpotFilterConfig {
 		hudScale = other.hudScale
 		backgroundAlpha = other.backgroundAlpha
 		hudVisible = other.hudVisible
+		hudLayout = other.hudLayout
 		enabled = other.enabled
 		spotKind = other.spotKind
 		normal = other.normal

@@ -1,6 +1,6 @@
 # SpotFilter
 
-**v1.1.1** · Minecraft **26.2** · Fabric · 纯客户端
+**v1.2.0** · Minecraft **26.2** · Fabric · 纯客户端
 
 MCC Island 钓鱼点扫描、筛选与坐标 HUD。走近带 `Fishing Spot` 标签的 Text Display 即可收录；按词条过滤、钉选坐标、世界透视引导。
 
@@ -25,7 +25,7 @@ MCC Island 钓鱼点扫描、筛选与坐标 HUD。走近带 `Fishing Spot` 标�
 ## 安装
 
 1. 安装 Fabric Loader（26.2）与上述依赖。
-2. 将 `spotfilter-1.1.1.jar` 放入 `.minecraft/mods/`。
+2. 将 `spotfilter-1.2.0.jar` 放入 `.minecraft/mods/`。
 3. 启动游戏。控件里应出现 **SpotFilter** 分类。
 
 构建：
@@ -34,7 +34,7 @@ MCC Island 钓鱼点扫描、筛选与坐标 HUD。走近带 `Fishing Spot` 标�
 ./gradlew build
 ```
 
-产物：`build/libs/spotfilter-1.1.1.jar`
+产物：`build/libs/spotfilter-1.2.0.jar`
 
 ---
 
@@ -60,6 +60,7 @@ MCC Island 钓鱼点扫描、筛选与坐标 HUD。走近带 `Fishing Spot` 标�
 | `/sf` / `/sf help` / `/sf status` | 帮助与当前 Enabled / Kind / HUD / 点数 |
 | `/sf on` `/sf off` `/sf toggle` | 总开关（同 Filter 里 Enabled） |
 | `/sf hud` `[on\|off\|toggle]` | 坐标 HUD |
+| `/sf hud layout <compact\|detailed>` | HUD 单行 Compact / 多行 Detailed |
 | `/sf hud scale <0.5–3>` | HUD 放大 |
 | `/sf hud opacity <0–90>` | HUD 背景透明度 |
 | `/sf hud pos <x> <y>` | HUD 屏幕位置 |
@@ -82,6 +83,7 @@ MCC Island 钓鱼点扫描、筛选与坐标 HUD。走近带 `Fishing Spot` 标�
 
 - **Normal / Grotto** — 切换点类型。两组点、筛选和 Auto Pin **互不共用**；切走后另一组从列表、HUD、引导中隐藏（钉选状态保留）。
 - **Mode: AND / OR** — 多槽组合。AND 必须同时满足；OR 满足任一即可。空槽忽略。
+- **Detailed / Compact** — HUD 与列表的文本模式。Compact 每个点一行：名字（可空）、编号（Grotto 用 Stability Cost 色）、最多三个加成（数值+icon）、坐标、Stock。
 - **Edit HUD** — 拖动位置；滚轮放大倍率（0.5×–3.0×）；**Shift+滚轮** 背景透明度。
 - **Clear spots** — 同 **P**。
 - **Enabled / Disabled** — 总开关。Disabled 时 HUD 与引导标记消失、不再播新点音效；仍可打开 Filter，扫描与筛选照常。再开 Enabled 会恢复 HUD 和已 Pin 标记。

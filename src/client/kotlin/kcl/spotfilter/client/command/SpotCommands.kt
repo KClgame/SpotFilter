@@ -13,6 +13,7 @@ import kcl.spotfilter.client.filter.AutoPin
 import kcl.spotfilter.client.filter.FilterMode
 import kcl.spotfilter.client.filter.FilterState
 import kcl.spotfilter.client.ui.FilterScreen
+import kcl.spotfilter.client.ui.HudLayout
 import kcl.spotfilter.client.world.PinnedSpotMarker
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
 import net.fabricmc.fabric.api.client.command.v2.ClientCommands.argument
@@ -64,6 +65,15 @@ object SpotCommands {
 											.executes { setHudPos(it) }
 									)
 							)
+						)
+						.then(
+							literal("layout")
+								.executes { ok(it, "HUD layout: ${SpotFilterConfig.instance.layout().label}") }
+								.then(
+									argument("value", StringArgumentType.word())
+										.suggests { _, builder -> suggest(builder, "compact", "detailed", "toggle") }
+										.executes { setHudLayout(it) }
+								)
 						)
 				)
 				.then(
@@ -128,7 +138,7 @@ object SpotCommands {
 		val lines = listOf(
 			"/sf status — overlay, kind, HUD, spot counts",
 			"/sf on | off | toggle — master overlay switch",
-			"/sf hud [on|off|toggle] | scale <0.5-3> | opacity <0-90> | pos <x> <y>",
+			"/sf hud [on|off|toggle] | scale <0.5-3> | opacity <0-90> | pos <x> <y> | layout <compact|detailed>",
 			"/sf kind <normal|grotto|toggle>",
 			"/sf logic <and|or|toggle>",
 			"/sf gui — open Filter screen",
@@ -151,7 +161,7 @@ object SpotCommands {
 		val pinned = SpotPool.pinned().size
 		ok(
 			ctx,
-			"SpotFilter  ${if (cfg.enabled) "Enabled" else "Disabled"}  |  ${kind.label}  |  HUD ${if (cfg.hudVisible) "on" else "off"} x${"%.1f".format(cfg.hudScale)}  |  ${kindCount} ${kind.label.lowercase()} / ${all.size} spots  |  $pinned pinned  |  logic ${FilterState.mode.name}"
+			"SpotFilter  ${if (cfg.enabled) "Enabled" else "Disabled"}  |  ${kind.label}  |  HUD ${if (cfg.hudVisible) "on" else "off"} ${cfg.layout().label} x${"%.1f".format(cfg.hudScale)}  |  ${kindCount} ${kind.label.lowercase()} / ${all.size} spots  |  $pinned pinned  |  logic ${FilterState.mode.name}"
 		)
 		return 1
 	}
@@ -195,6 +205,21 @@ object SpotCommands {
 		cfg.clamp()
 		SpotFilterConfig.save()
 		return ok(ctx, "HUD position ${cfg.hudX}, ${cfg.hudY}")
+	}
+
+	private fun setHudLayout(ctx: CommandContext<FabricClientCommandSource>): Int {
+		val raw = StringArgumentType.getString(ctx, "value").lowercase()
+		val cfg = SpotFilterConfig.instance
+		cfg.setLayout(
+			when (raw) {
+				"compact", "compacted" -> HudLayout.COMPACT
+				"detailed", "detail" -> HudLayout.DETAILED
+				"toggle" -> cfg.layout().toggle()
+				else -> return err(ctx, "Layout must be compact, detailed, or toggle")
+			}
+		)
+		SpotFilterConfig.save()
+		return ok(ctx, "HUD layout: ${cfg.layout().label}")
 	}
 
 	private fun setKind(ctx: CommandContext<FabricClientCommandSource>): Int {
