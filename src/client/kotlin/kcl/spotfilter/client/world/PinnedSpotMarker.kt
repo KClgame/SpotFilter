@@ -18,7 +18,10 @@ import org.joml.Vector3f
 
 object PinnedSpotMarker {
 	const val TAG = "spotfilter_marker"
-	private const val DISPLAY_SCALE = 2.75f
+	private const val CLOSE_SCALE = 2.0f
+	private const val FAR_SCALE = 7.0f
+	private const val CLOSE_DIST = 8.0
+	private const val FAR_DIST = 56.0
 
 	private var nextClientId = -910_001
 	private val entities = HashMap<Int, Display.TextDisplay>()
@@ -40,8 +43,8 @@ object PinnedSpotMarker {
 				val dy = y - camera.pos.y
 				val dz = z - camera.pos.z
 				val dist = kotlin.math.sqrt(dx * dx + dy * dy + dz * dz)
-				val scale = (dist / 8.0).coerceIn(2.4, 22.0).toFloat() * 0.038f
-				val label = Component.literal(spot.guideLabel())
+				val scale = 0.022f * (displayScale(dist) / CLOSE_SCALE)
+				val label = Component.literal(distanceLabel(spot, dist))
 					.withStyle(Style.EMPTY.withColor(TextColor.fromRgb(spot.markerRgb())))
 				pose.pushPose()
 				pose.translate(dx, dy, dz)
@@ -69,15 +72,26 @@ object PinnedSpotMarker {
 		val level = client.level ?: return
 		if (spot.key.dimension != level.dimension().identifier()) return
 
-		val label = Component.literal(spot.guideLabel())
-			.withStyle(Style.EMPTY.withColor(TextColor.fromRgb(spot.markerRgb())))
 		val x = spot.x + 0.5
 		val y = spot.y - 1.0
 		val z = spot.z + 0.5
+		val player = client.player
+		val dist = if (player != null) {
+			kotlin.math.sqrt(
+				(x - player.x) * (x - player.x) +
+					(y - player.y) * (y - player.y) +
+					(z - player.z) * (z - player.z)
+			)
+		} else {
+			CLOSE_DIST
+		}
+		val label = Component.literal(distanceLabel(spot, dist))
+			.withStyle(Style.EMPTY.withColor(TextColor.fromRgb(spot.markerRgb())))
+		val scale = displayScale(dist)
 
 		val current = entities[spot.id]
 		if (current != null && !current.isRemoved && current.level() === level) {
-			style(current, label)
+			style(current, label, scale)
 			current.snapTo(x, y, z)
 			return
 		}
@@ -92,7 +106,7 @@ object PinnedSpotMarker {
 		entity.addTag(TAG)
 		entity.setBillboardConstraints(Display.BillboardConstraints.CENTER)
 		entity.setViewRange(8.0f)
-		style(entity, label)
+		style(entity, label, scale)
 		entity.snapTo(x, y, z)
 		level.addEntity(entity)
 		entities[spot.id] = entity
@@ -131,11 +145,19 @@ object PinnedSpotMarker {
 		entities.keys.filter { it !in keep }.toList().forEach { remove(it) }
 	}
 
-	private fun style(entity: Display.TextDisplay, label: Component) {
+	private fun displayScale(dist: Double): Float {
+		val t = ((dist - CLOSE_DIST) / (FAR_DIST - CLOSE_DIST)).coerceIn(0.0, 1.0)
+		return (CLOSE_SCALE + (FAR_SCALE - CLOSE_SCALE) * t).toFloat()
+	}
+
+	private fun distanceLabel(spot: FishingSpot, dist: Double): String =
+		"${spot.guideLabel()}:${dist.toInt()}m"
+
+	private fun style(entity: Display.TextDisplay, label: Component, scale: Float) {
 		entity.setText(label)
 		TextDisplays.setSeeThrough(entity)
 		entity.setTransformation(
-			Transformation(null, null, Vector3f(DISPLAY_SCALE, DISPLAY_SCALE, DISPLAY_SCALE), null)
+			Transformation(null, null, Vector3f(scale, scale, scale), null)
 		)
 	}
 
