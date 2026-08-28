@@ -1,6 +1,6 @@
 # SpotFilter
 
-**v1.0.7** · Minecraft **26.2** · Fabric · 纯客户端
+**v1.1.0** · Minecraft **26.2** · Fabric · 纯客户端
 
 MCC Island 钓鱼点扫描、筛选与坐标 HUD。走近带 `Fishing Spot` 标签的 Text Display 即可收录；按词条过滤、钉选坐标、世界透视引导。
 
@@ -25,7 +25,7 @@ MCC Island 钓鱼点扫描、筛选与坐标 HUD。走近带 `Fishing Spot` 标�
 ## 安装
 
 1. 安装 Fabric Loader（26.2）与上述依赖。
-2. 将 `spotfilter-1.0.7.jar` 放入 `.minecraft/mods/`。
+2. 将 `spotfilter-1.1.0.jar` 放入 `.minecraft/mods/`。
 3. 启动游戏。控件里应出现 **SpotFilter** 分类。
 
 构建：
@@ -34,7 +34,7 @@ MCC Island 钓鱼点扫描、筛选与坐标 HUD。走近带 `Fishing Spot` 标�
 ./gradlew build
 ```
 
-产物：`build/libs/spotfilter-1.0.7.jar`
+产物：`build/libs/spotfilter-1.1.0.jar`
 
 ---
 
@@ -48,6 +48,29 @@ MCC Island 钓鱼点扫描、筛选与坐标 HUD。走近带 `Fishing Spot` 标�
 | Filter 内 **E** | 进入 Edit HUD |
 
 清空后 HUD 显示灰色 `(No current fishing spot)`。
+
+---
+
+## 指令 `/sf`
+
+客户端指令（单机/联机都可用）。`/spotfilter` 是同一套的别名。聊天里输入 `/sf` 可看帮助和当前状态。
+
+| 指令 | 作用 |
+| --- | --- |
+| `/sf` / `/sf help` / `/sf status` | 帮助与当前 Enabled / Kind / HUD / 点数 |
+| `/sf on` `/sf off` `/sf toggle` | 总开关（同 Filter 里 Enabled） |
+| `/sf hud` `[on\|off\|toggle]` | 坐标 HUD |
+| `/sf hud scale <0.5–3>` | HUD 放大 |
+| `/sf hud opacity <0–90>` | HUD 背景透明度 |
+| `/sf hud pos <x> <y>` | HUD 屏幕位置 |
+| `/sf kind <normal\|grotto\|toggle>` | 切换 Normal / Grotto |
+| `/sf logic <and\|or\|toggle>` | 当前组 AND / OR |
+| `/sf gui` | 打开 Filter 界面 |
+| `/sf clear` | 清空点池（同 **P**） |
+| `/sf list` `[pinned]` | 列出当前组匹配点 / 已钉选 |
+| `/sf pin <id\|all>` `/sf unpin <id\|all>` | 钉选 / 取消 |
+| `/sf autopin apply` | 按当前组规则重跑 Auto Pin |
+| `/sf reload` `/sf save` | 重读 / 写出 `config/spotfilter.json` |
 
 ---
 

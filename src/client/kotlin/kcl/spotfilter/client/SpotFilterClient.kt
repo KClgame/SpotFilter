@@ -1,6 +1,7 @@
 package kcl.spotfilter.client
 
 import kcl.spotfilter.SpotFilter
+import kcl.spotfilter.client.command.SpotCommands
 import kcl.spotfilter.client.config.SpotFilterConfig
 import kcl.spotfilter.client.data.SpotPool
 import kcl.spotfilter.client.scan.SpotScanner
@@ -36,6 +37,7 @@ object SpotFilterClient : ClientModInitializer {
 		)
 		SpotHud.register()
 		kcl.spotfilter.client.world.PinnedSpotMarker.register()
+		SpotCommands.register()
 
 		ClientTickEvents.END_CLIENT_TICK.register { client ->
 			while (openFilter.consumeClick()) {

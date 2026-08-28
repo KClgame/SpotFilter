@@ -105,16 +105,15 @@ class SpotFilterConfig {
 		val instance: SpotFilterConfig = load()
 
 		fun load(): SpotFilterConfig {
-			val loaded = if (Files.exists(path)) {
-				Files.newBufferedReader(path).use { gson.fromJson(it, SpotFilterConfig::class.java) }
-					?: SpotFilterConfig()
-			} else {
-				SpotFilterConfig()
-			}
-			loaded.clamp()
-			loaded.migrateLegacy()
+			val loaded = readFile()
 			loaded.applyToState()
 			return loaded
+		}
+
+		fun reload() {
+			val loaded = readFile()
+			instance.copyFrom(loaded)
+			instance.applyToState()
 		}
 
 		fun save() {
@@ -123,6 +122,38 @@ class SpotFilterConfig {
 			Files.createDirectories(path.parent)
 			Files.newBufferedWriter(path).use { gson.toJson(instance, it) }
 		}
+
+		private fun readFile(): SpotFilterConfig {
+			val loaded = if (Files.exists(path)) {
+				Files.newBufferedReader(path).use { gson.fromJson(it, SpotFilterConfig::class.java) }
+					?: SpotFilterConfig()
+			} else {
+				SpotFilterConfig()
+			}
+			loaded.clamp()
+			loaded.migrateLegacy()
+			return loaded
+		}
+	}
+
+	fun copyFrom(other: SpotFilterConfig) {
+		hudX = other.hudX
+		hudY = other.hudY
+		hudWidth = other.hudWidth
+		hudHeight = other.hudHeight
+		hudScale = other.hudScale
+		backgroundAlpha = other.backgroundAlpha
+		hudVisible = other.hudVisible
+		enabled = other.enabled
+		spotKind = other.spotKind
+		normal = other.normal
+		grotto = other.grotto
+		filterMode = other.filterMode
+		slot0 = other.slot0
+		slot1 = other.slot1
+		slot2 = other.slot2
+		stock = other.stock
+		autoPinRules = other.autoPinRules
 	}
 
 	private fun migrateLegacy() {
