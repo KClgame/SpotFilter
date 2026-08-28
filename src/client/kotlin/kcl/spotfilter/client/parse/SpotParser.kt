@@ -31,6 +31,10 @@ object SpotParser {
 	private val PEARL_CHANCE = Regex("""\+?\s*5\s*%\s*Pearl\s+Chance""", RegexOption.IGNORE_CASE)
 	private val TREASURE_CHANCE = Regex("""\+?\s*1\s*%\s*Treasure\s+Chance""", RegexOption.IGNORE_CASE)
 	private val SPIRIT_CHANCE = Regex("""\+?\s*2\s*%\s*Spirit\s+Chance""", RegexOption.IGNORE_CASE)
+	private val GROTTO_CHANCE = Regex(
+		"""\+?\s*100\s*%\s*(Fish|Pearl|Treasure|Spirit)\s+Chance""",
+		RegexOption.IGNORE_CASE
+	)
 	private val STABILITY_LABEL = Regex("""Stability\s+Cost""", RegexOption.IGNORE_CASE)
 	private val STABILITY_RANGE = Regex("""\(\s*\d+\s*\)\s*-\s*\(\s*\d+\s*\)\s*%""")
 	private val STABILITY_RANGE_LOOSE = Regex("""\d+\s*-\s*\d+\s*%""")
@@ -70,9 +74,16 @@ object SpotParser {
 		if (!isFishingSpot(text)) return null
 		val styled = spans(component)
 		val pos = entity.blockPosition()
-		val perks = parsePerks(text, styled).take(3)
-		val stock = STOCK.find(text)?.groupValues?.get(1)?.let { StockLevel.fromLabel(it) }
+		val allPerks = parsePerks(text, styled)
 		val grotto = parseGrotto(text, styled)
+		val perks = if (grotto != null) {
+			val chance = allPerks.filter { it.type.isGrottoChance }.take(1)
+			val bonus = allPerks.filter { !it.type.isGrottoChance }
+			(chance + bonus).take(3)
+		} else {
+			allPerks.filter { !it.type.isGrottoChance || it.value != 100 }.take(3)
+		}
+		val stock = STOCK.find(text)?.groupValues?.get(1)?.let { StockLevel.fromLabel(it) }
 		return FishingSpot(
 			key = SpotKey(level.dimension().identifier(), pos.x, pos.y, pos.z),
 			entityId = entity.id,
@@ -161,6 +172,17 @@ object SpotParser {
 		if (PEARL_CHANCE.containsMatchIn(text)) found.add(colored(PerkType.PEARL_CHANCE, 5, styled))
 		if (TREASURE_CHANCE.containsMatchIn(text)) found.add(colored(PerkType.TREASURE_CHANCE, 1, styled))
 		if (SPIRIT_CHANCE.containsMatchIn(text)) found.add(colored(PerkType.SPIRIT_CHANCE, 2, styled))
+		GROTTO_CHANCE.findAll(text).forEach { match ->
+			val type = when (match.groupValues[1].lowercase()) {
+				"fish" -> PerkType.FISH_CHANCE
+				"pearl" -> PerkType.PEARL_CHANCE
+				"treasure" -> PerkType.TREASURE_CHANCE
+				"spirit" -> PerkType.SPIRIT_CHANCE
+				else -> return@forEach
+			}
+			found.removeAll { it.type == type }
+			found.add(colored(type, 100, styled))
+		}
 		return found.distinctBy { it.type }
 	}
 

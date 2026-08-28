@@ -72,7 +72,10 @@ data class FishingSpot(
 	var nickname: String? = null,
 	var groupIndex: Int = 0
 ) {
-	fun primaryPerk(): ParsedPerk? = PerkPriority.primary(perks)
+	fun grottoChance(): ParsedPerk? = PerkPriority.grottoChance(perks)
+
+	fun primaryPerk(): ParsedPerk? =
+		if (kind == SpotKind.GROTTO) PerkPriority.grottoDisplay(perks) else PerkPriority.primary(perks)
 
 	fun perkValue(type: PerkType): Int =
 		perks.firstOrNull { it.type == type }?.value ?: -1
@@ -101,7 +104,7 @@ data class FishingSpot(
 	fun markerRgb(): Int {
 		pinColorOverride?.let { return it }
 		if (kind == SpotKind.GROTTO) {
-			(stabilityRgb ?: stability?.rgb)?.let { return it }
+			return primaryPerk()?.resolvedNameRgb() ?: 0xFFFFFF
 		}
 		return primaryPerk()?.type?.family?.rgb ?: 0xFFFFFF
 	}

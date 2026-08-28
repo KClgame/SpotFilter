@@ -225,13 +225,23 @@ class FilterScreen : Screen(Component.literal("SpotFilter")) {
 					Style.EMPTY.withColor(spot.stockDisplayRgb())
 				)
 			)
-		if (spot.kind == SpotKind.GROTTO && !spot.stabilityRange.isNullOrBlank()) {
-			header.append(Component.literal("  "))
-			header.append(
-				Component.literal(spot.stabilityRange!!).withStyle(
-					Style.EMPTY.withColor(spot.stabilityDisplayRgb())
+		if (spot.kind == SpotKind.GROTTO) {
+			spot.grottoChance()?.let { catch ->
+				header.append(Component.literal("  "))
+				header.append(
+					Component.literal(catch.type.displayName.removeSuffix(" Chance")).withStyle(
+						Style.EMPTY.withColor(catch.resolvedNameRgb())
+					)
 				)
-			)
+			}
+			if (!spot.stabilityRange.isNullOrBlank()) {
+				header.append(Component.literal("  "))
+				header.append(
+					Component.literal(spot.stabilityRange!!).withStyle(
+						Style.EMPTY.withColor(spot.stabilityDisplayRgb())
+					)
+				)
+			}
 		}
 		header.append(Component.literal(if (spot.pinned) "  [PINNED]" else "  [pin]").withStyle(Style.EMPTY.withColor(if (spot.pinned) 0x88FF88 else 0x888888)))
 		graphics.text(font, header, x + 26, y + 4, 0xFFFFFFFF.toInt(), false)

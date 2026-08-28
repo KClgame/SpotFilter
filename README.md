@@ -1,6 +1,6 @@
 # SpotFilter
 
-**v1.0.6** · Minecraft **26.2** · Fabric · 纯客户端
+**v1.0.7** · Minecraft **26.2** · Fabric · 纯客户端
 
 MCC Island 钓鱼点扫描、筛选与坐标 HUD。走近带 `Fishing Spot` 标签的 Text Display 即可收录；按词条过滤、钉选坐标、世界透视引导。
 
@@ -25,7 +25,7 @@ MCC Island 钓鱼点扫描、筛选与坐标 HUD。走近带 `Fishing Spot` 标�
 ## 安装
 
 1. 安装 Fabric Loader（26.2）与上述依赖。
-2. 将 `spotfilter-1.0.6.jar` 放入 `.minecraft/mods/`。
+2. 将 `spotfilter-1.0.7.jar` 放入 `.minecraft/mods/`。
 3. 启动游戏。控件里应出现 **SpotFilter** 分类。
 
 构建：
@@ -34,7 +34,7 @@ MCC Island 钓鱼点扫描、筛选与坐标 HUD。走近带 `Fishing Spot` 标�
 ./gradlew build
 ```
 
-产物：`build/libs/spotfilter-1.0.6.jar`
+产物：`build/libs/spotfilter-1.0.7.jar`
 
 ---
 
@@ -77,13 +77,15 @@ MCC Island 钓鱼点扫描、筛选与坐标 HUD。走近带 `Fishing Spot` 标�
 | Medium | `#55FE56` | |
 | High（最差） | `#FEFE55` | 靠后 |
 
-Grotto 模式下主界面和 Auto Pin 会出现 **Cost** 筛选（Low / Medium / High）。引导标记默认用该 Cost 颜色；自定义 hex 仍可覆盖。
+Grotto 模式下主界面和 Auto Pin 会出现 **Cost** 筛选（Low / Medium / High）。
+
+每个 Grotto 点必定有且仅有一条 **+100%** 的 Fish / Pearl / Treasure / Spirit Chance，并按这条 Chance 分类。主 Icon 与引导颜色取 **最高级加成**（数值高者优先，同值 Special > Magnet > Hook）；没有其他加成则用该 Chance 的 Icon 和颜色。自定义 hex 仍可覆盖。
 
 ### Auto Pin
 
 **Auto Pin** 里可建多条规则：各含 F1–F3 词条、独立 Stock、AND/OR（Grotto 另有 Cost）。命中的点会自动钉上。Normal 与 Grotto 各有一套规则。
 
-- 颜色默认：Normal 按主词条家族；Grotto 按 Stability Cost
+- 颜色默认：Normal 按主词条家族；Grotto 按最高级加成（没有则用 Chance 色）
 - 规则里填写 `#RRGGBB` 则该规则钉上的点统一用这个色
 - **Spot nickname**（可选）：命中后引导与 HUD 显示 `名字 #组内编号`（同一 nickname 从 1 递增），而不是全局 `#n`
 - 不再命中规则的自动 Pin 会撤掉；手动 Pin 的点不受影响
@@ -96,7 +98,7 @@ Grotto 模式下主界面和 Auto Pin 会出现 **Cost** 筛选（Low / Medium /
 2. Hook / Magnet 才有：
    - **Compare**：`>` / `<` / `=`
    - **Value**：`+10%` / `+20%` / `+30%`（Wayfinder Data 为 `+10`）
-3. 固定加成（Elusive Chance、Wayfinder Data、Pearl / Treasure / Spirit Chance）**没有**数值比较，只判断有无该词条。
+3. 固定加成（Elusive Chance、Wayfinder Data、Fish / Pearl / Treasure / Spirit Chance）**没有**数值比较，只判断有无该词条。Grotto 用 F1–F3 选 Fish/Pearl/Treasure/Spirit Chance 即可按类型筛选。
 4. **Sort**：High → Low 或 Low → High。
 5. **Clear this filter** 清空本槽。
 
@@ -108,7 +110,7 @@ Grotto 模式下主界面和 Auto Pin 会出现 **Cost** 筛选（Low / Medium /
 
 - 加入屏幕坐标 HUD
 - 在原标签附近绘制仅客户端透视名牌：默认 `fishing spot #n`；Auto Pin 填了 nickname 则为 `名字 #组内编号`  
-  Normal 颜色取主词条；Grotto 取 Stability Cost 颜色（自定义 hex 优先）。
+  Normal 颜色取主词条；Grotto 取最高级加成或 Chance 颜色（自定义 hex 优先）。
 
 再点一次取消 Pin。
 
@@ -135,6 +137,8 @@ XP · Fish · Pearl · Treasure · Spirit
 
 **固定**  
 `+5% Elusive Chance` · `+10 Wayfinder Data` · `+5% Pearl Chance` · `+1% Treasure Chance` · `+2% Spirit Chance`
+
+Grotto 另有：`+100% Fish Chance` · `+100% Pearl Chance` · `+100% Treasure Chance` · `+100% Spirit Chance`
 
 **Stock**  
 Plentiful · Very High · High · Medium · Low
@@ -164,7 +168,7 @@ Plentiful · Very High · High · Medium · Low
 /function spotfilter:clear
 ```
 
-`spawn` 在脚下刷 **50** 个普通测试点（10×5，间隔 3 格）。`spawn_grotto` 刷 **9** 个带 Stability Cost 的 Grotto 点（Low / Medium / High 颜色）。请启用 MCCI 材质包。`clear` 只删 `spotfilter_test`，不影响 Pin 引导。
+`spawn` 在脚下刷 **50** 个普通测试点（10×5，间隔 3 格）。`spawn_grotto` 刷 **9** 个 Grotto 点（Stability Cost + 100% Fish/Pearl/Treasure/Spirit Chance）。请启用 MCCI 材质包。`clear` 只删 `spotfilter_test`，不影响 Pin 引导。
 
 ---
 

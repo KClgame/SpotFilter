@@ -44,9 +44,14 @@ enum class PerkType(
 
 	ELUSIVE_CHANCE("Elusive Chance", PerkFamily.STRONG, PerkKind.SPECIAL, true),
 	WAYFINDER_DATA("Wayfinder Data", PerkFamily.WISE, PerkKind.SPECIAL, false),
+	FISH_CHANCE("Fish Chance", PerkFamily.WISE, PerkKind.SPECIAL, true),
 	PEARL_CHANCE("Pearl Chance", PerkFamily.PEARL, PerkKind.SPECIAL, true),
 	TREASURE_CHANCE("Treasure Chance", PerkFamily.TREASURE, PerkKind.SPECIAL, true),
 	SPIRIT_CHANCE("Spirit Chance", PerkFamily.SPIRIT, PerkKind.SPECIAL, true);
+
+	val isGrottoChance: Boolean
+		get() = this == FISH_CHANCE || this == PEARL_CHANCE ||
+			this == TREASURE_CHANCE || this == SPIRIT_CHANCE
 
 	val textureId: Identifier =
 		Identifier.fromNamespaceAndPath(SpotFilter.MOD_ID, "textures/gui/perk/${name.lowercase()}.png")
@@ -87,5 +92,23 @@ object PerkPriority {
 		val pool = special.ifEmpty { perks }
 		return pool.maxWithOrNull(compareBy<ParsedPerk> { it.value }
 			.thenBy { if (it.type == PerkType.STRONG_HOOK) 1 else 0 })
+	}
+
+	fun grottoChance(perks: List<ParsedPerk>): ParsedPerk? =
+		perks.firstOrNull { it.type.isGrottoChance }
+
+	fun grottoDisplay(perks: List<ParsedPerk>): ParsedPerk? {
+		val bonuses = perks.filter { !it.type.isGrottoChance }
+		val best = bonuses.maxWithOrNull(
+			compareBy<ParsedPerk> { it.value }
+				.thenBy {
+					when (it.type.kind) {
+						PerkKind.SPECIAL -> 2
+						PerkKind.MAGNET -> 1
+						PerkKind.HOOK -> 0
+					}
+				}
+		)
+		return best ?: grottoChance(perks)
 	}
 }

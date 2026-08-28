@@ -16,6 +16,7 @@ ICONS = {
     "pearl_chance": "\ue104",
     "treasure_chance": "\ue107",
     "spirit_chance": "\ue10a",
+    "fish_chance": "\ue132",
 }
 
 COLORS = {
@@ -34,6 +35,7 @@ COLORS = {
     "pearl_chance": "#8636FF",
     "treasure_chance": "#FC7D3F",
     "spirit_chance": "#23C525",
+    "fish_chance": "#2199F0",
 }
 
 NAMES = {
@@ -52,6 +54,7 @@ NAMES = {
     "pearl_chance": "Pearl Chance",
     "treasure_chance": "Treasure Chance",
     "spirit_chance": "Spirit Chance",
+    "fish_chance": "Fish Chance",
 }
 
 STOCK_COLOR = {
@@ -78,7 +81,7 @@ def value_label(key: str, value: int) -> str:
 
 
 def perk_components(key: str, value: int | None = None) -> list[str]:
-    if key in FIXED:
+    if value is None and key in FIXED:
         value, _ = FIXED[key]
     assert value is not None
     icon = ICONS[key]
@@ -202,18 +205,18 @@ def write_pack(root: Path) -> None:
     (func / "spawn.mcfunction").write_text("\n".join(lines) + "\n", encoding="utf-8")
     grotto_lines = [
         "kill @e[type=minecraft:text_display,tag=spotfilter_test]",
-        'tellraw @s {"text":"Spawning 9 Grotto test spots (Stability Cost Low/Medium/High)","color":"aqua"}',
+        'tellraw @s {"text":"Spawning 9 Grotto test spots (100% Fish/Pearl/Treasure/Spirit Chance)","color":"aqua"}',
     ]
     grotto_spots = [
-        ("Plentiful", [("glimmering_hook", 30), ("pearl_magnet", 20)], "low"),
-        ("Very High", [("glimmering_hook", 20), ("pearl_chance", None)], "low"),
-        ("High", [("pearl_magnet", 30)], "low"),
-        ("Plentiful", [("strong_hook", 30), ("xp_magnet", 20)], "medium"),
-        ("Very High", [("wise_hook", 30), ("wayfinder_data", None)], "medium"),
-        ("High", [("greedy_hook", 20), ("treasure_magnet", 10)], "medium"),
-        ("Medium", [("lucky_hook", 10), ("spirit_magnet", 20)], "high"),
-        ("Low", [("treasure_chance", None)], "high"),
-        ("Plentiful", [("elusive_chance", None)], "high"),
+        ("Plentiful", [("glimmering_hook", 30), ("pearl_magnet", 20), ("pearl_chance", 100)], "low"),
+        ("Very High", [("pearl_chance", 100)], "low"),
+        ("High", [("fish_magnet", 30), ("fish_chance", 100)], "low"),
+        ("Plentiful", [("wise_hook", 20), ("fish_chance", 100)], "medium"),
+        ("Very High", [("treasure_magnet", 30), ("greedy_hook", 10), ("treasure_chance", 100)], "medium"),
+        ("High", [("treasure_chance", 100)], "medium"),
+        ("Medium", [("lucky_hook", 30), ("spirit_magnet", 10), ("spirit_chance", 100)], "high"),
+        ("Low", [("spirit_chance", 100)], "high"),
+        ("Plentiful", [("fish_chance", 100)], "high"),
     ]
     for i, (stock, perks, cost) in enumerate(grotto_spots):
         dx = (i % 3) * 3
@@ -234,7 +237,7 @@ def write_pack(root: Path) -> None:
         "  /function spotfilter:clear\n"
         "\n"
         "spawn: 50 normal fishing spots in a 10x5 grid, 3 blocks apart.\n"
-        "spawn_grotto: 9 Grotto spots with Stability Cost (Low/Medium/High colors).\n"
+        "spawn_grotto: 9 Grotto spots with Stability Cost and 100% Fish/Pearl/Treasure/Spirit Chance.\n"
         "Enable the MCCI resource pack so perk icons render.\n",
         encoding="utf-8",
     )

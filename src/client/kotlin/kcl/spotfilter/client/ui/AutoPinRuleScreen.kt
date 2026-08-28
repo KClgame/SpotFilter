@@ -119,7 +119,7 @@ class AutoPinRuleScreen(
 			font,
 			Component.literal(
 				if (grotto) {
-					"Pin color hex (empty = Stability Cost color)"
+					"Pin color hex (empty = highest bonus, or Chance color)"
 				} else {
 					"Pin color hex (empty = Strong/Wise/Pearl/Treasure/Spirit defaults)"
 				}

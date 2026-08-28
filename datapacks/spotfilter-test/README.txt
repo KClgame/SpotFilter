@@ -6,5 +6,5 @@ In-game (cheats on):
   /function spotfilter:clear
 
 spawn: 50 normal fishing spots in a 10x5 grid, 3 blocks apart.
-spawn_grotto: 9 Grotto spots with Stability Cost (Low/Medium/High colors).
+spawn_grotto: 9 Grotto spots with Stability Cost and 100% Fish/Pearl/Treasure/Spirit Chance.
 Enable the MCCI resource pack so perk icons render.
