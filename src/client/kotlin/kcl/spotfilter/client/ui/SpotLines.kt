@@ -23,40 +23,54 @@ enum class HudLayout(val label: String) {
 
 data class LinePart(
 	val text: Component? = null,
-	val icon: Identifier? = null
+	val icon: Identifier? = null,
+	val gapAfter: Int = 4
 )
 
 object SpotLines {
 	const val ICON = 10
-	private const val GAP = 4
+	const val COMPACT_ICON = 8
+	private const val TEX = 16
 	private const val WHITE = 0xFFFFFF
 
-	fun lineH(font: Font): Int = maxOf(font.lineHeight, ICON)
+	fun lineH(font: Font): Int = maxOf(font.lineHeight, COMPACT_ICON)
 
 	fun compactPerks(spot: FishingSpot) =
 		spot.perks.filter { !it.type.isGrottoChance }.ifEmpty { spot.perks }.take(3)
 
 	fun compactParts(spot: FishingSpot): List<LinePart> {
-		val parts = ArrayList<LinePart>(10)
+		val parts = ArrayList<LinePart>(12)
 		val idRgb = if (spot.kind == SpotKind.GROTTO) spot.stabilityDisplayRgb() else WHITE
-		val name = spot.groupLabel()
-		parts += LinePart(text = Component.literal(name).withStyle(Style.EMPTY.withColor(idRgb)))
-		parts += LinePart(text = Component.literal("#${spot.rankNumber()}").withStyle(Style.EMPTY.withColor(idRgb)))
-		for (perk in compactPerks(spot)) {
+		parts += LinePart(
+			text = Component.literal(spot.groupLabel()).withStyle(Style.EMPTY.withColor(idRgb)),
+			gapAfter = 3
+		)
+		parts += LinePart(
+			text = Component.literal("#${spot.rankNumber()}").withStyle(Style.EMPTY.withColor(idRgb)),
+			gapAfter = 6
+		)
+		val perks = compactPerks(spot)
+		for ((i, perk) in perks.withIndex()) {
 			val valueColor = perk.valueRgb ?: WHITE
 			parts += LinePart(
 				text = Component.literal(perk.type.valueLabel(perk.value))
-					.withStyle(Style.EMPTY.withColor(valueColor))
+					.withStyle(Style.EMPTY.withColor(valueColor)),
+				gapAfter = 1
 			)
-			parts += LinePart(icon = perk.type.textureId)
+			parts += LinePart(
+				icon = perk.type.textureId,
+				gapAfter = if (i == perks.lastIndex) 6 else 5
+			)
 		}
 		parts += LinePart(
 			text = Component.literal("${spot.x} ${spot.y} ${spot.z}")
-				.withStyle(Style.EMPTY.withColor(WHITE))
+				.withStyle(Style.EMPTY.withColor(WHITE)),
+			gapAfter = 5
 		)
 		parts += LinePart(
 			text = Component.literal(spot.stock?.label ?: "?")
-				.withStyle(Style.EMPTY.withColor(spot.stockDisplayRgb()))
+				.withStyle(Style.EMPTY.withColor(spot.stockDisplayRgb())),
+			gapAfter = 0
 		)
 		return parts
 	}
@@ -64,10 +78,10 @@ object SpotLines {
 	fun width(font: Font, parts: List<LinePart>): Int {
 		if (parts.isEmpty()) return 0
 		var w = 0
-		for ((i, part) in parts.withIndex()) {
-			if (i > 0) w += GAP
-			if (part.icon != null) w += ICON
+		for (part in parts) {
+			if (part.icon != null) w += COMPACT_ICON
 			if (part.text != null) w += font.width(part.text)
+			w += part.gapAfter
 		}
 		return w
 	}
@@ -81,10 +95,9 @@ object SpotLines {
 	) {
 		val lh = lineH(font)
 		var cursor = x
-		for ((i, part) in parts.withIndex()) {
-			if (i > 0) cursor += GAP
+		for (part in parts) {
 			if (part.icon != null) {
-				val iconY = y + (lh - ICON).coerceAtLeast(0) / 2
+				val iconY = y + (lh - COMPACT_ICON).coerceAtLeast(0) / 2
 				graphics.blit(
 					RenderPipelines.GUI_TEXTURED,
 					part.icon,
@@ -92,17 +105,18 @@ object SpotLines {
 					iconY,
 					0f,
 					0f,
-					ICON,
-					ICON,
-					ICON,
-					ICON
+					COMPACT_ICON,
+					COMPACT_ICON,
+					TEX,
+					TEX
 				)
-				cursor += ICON
+				cursor += COMPACT_ICON
 			}
 			if (part.text != null) {
 				graphics.text(font, part.text, cursor, y, 0xFFFFFFFF.toInt(), false)
 				cursor += font.width(part.text)
 			}
+			cursor += part.gapAfter
 		}
 	}
 }

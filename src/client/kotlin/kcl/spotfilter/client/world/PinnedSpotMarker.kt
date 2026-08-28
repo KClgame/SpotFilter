@@ -151,7 +151,7 @@ object PinnedSpotMarker {
 	}
 
 	private fun distanceLabel(spot: FishingSpot, dist: Double): String =
-		"${spot.guideLabel()}:${dist.toInt()}m"
+		"${spot.guideLabel()} ${dist.toInt()}m"
 
 	private fun style(entity: Display.TextDisplay, label: Component, scale: Float) {
 		entity.setText(label)
