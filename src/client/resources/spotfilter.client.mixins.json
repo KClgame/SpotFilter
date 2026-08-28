@@ -1,0 +1,14 @@
+{
+	"required": true,
+	"package": "kcl.spotfilter.client.mixin",
+	"compatibilityLevel": "JAVA_25",
+	"client": [
+		"TextDisplayAccessor"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	},
+	"overwrites": {
+		"requireAnnotations": true
+	}
+}
