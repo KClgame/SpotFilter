@@ -17,7 +17,7 @@ object SpotPool {
 	fun all(): Collection<FishingSpot> = spots.values
 
 	fun pinned(): List<FishingSpot> =
-		spots.values.filter { it.pinned && it.kind == FilterState.kind }
+		FilterState.sortSpots(spots.values.filter { it.pinned && it.kind == FilterState.kind })
 
 	fun get(key: SpotKey): FishingSpot? = spots[key]
 

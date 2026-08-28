@@ -307,29 +307,37 @@ object FilterState {
 		}
 	}
 
-	fun filteredSorted(): List<FishingSpot> {
+	fun filteredSorted(): List<FishingSpot> =
+		sortSpots(SpotPool.all().filter { matches(it) })
+
+	fun sortSpots(spots: Collection<FishingSpot>): List<FishingSpot> {
 		val player = Minecraft.getInstance().player
 		val origin = player?.position() ?: Vec3.ZERO
-		return SpotPool.all()
-			.filter { matches(it) }
-			.sortedWith { a, b ->
-				for (slot in slots) {
-					if (!slot.isActive) continue
-					val cmp = slot.sortKey(a).compareTo(slot.sortKey(b))
-					if (cmp != 0) {
-						return@sortedWith if (slot.sortDir == SortDir.DESC) -cmp else cmp
-					}
+		val grotto = kind == SpotKind.GROTTO
+		return spots.sortedWith { a, b ->
+			for (slot in slots) {
+				if (!slot.isActive) continue
+				val cmp = slot.sortKey(a).compareTo(slot.sortKey(b))
+				if (cmp != 0) {
+					return@sortedWith if (slot.sortDir == SortDir.DESC) -cmp else cmp
 				}
-				if (kind == SpotKind.GROTTO) {
-					val costCmp = (b.stability?.rank ?: 0).compareTo(a.stability?.rank ?: 0)
-					if (costCmp != 0) return@sortedWith costCmp
-				}
-				val stockCmp = (b.stock?.rank ?: 0).compareTo(a.stock?.rank ?: 0)
-				if (stockCmp != 0) return@sortedWith stockCmp
-				val dist = distSq(a, origin).compareTo(distSq(b, origin))
-				if (dist != 0) return@sortedWith dist
-				a.id.compareTo(b.id)
 			}
+			if (grotto) {
+				val costCmp = (b.stability?.rank ?: 0).compareTo(a.stability?.rank ?: 0)
+				if (costCmp != 0) return@sortedWith costCmp
+				val familyCmp = a.grottoFamilyOrder().compareTo(b.grottoFamilyOrder())
+				if (familyCmp != 0) return@sortedWith familyCmp
+				val bonusCmp = b.grottoBonusScore().compareTo(a.grottoBonusScore())
+				if (bonusCmp != 0) return@sortedWith bonusCmp
+			}
+			val stockCmp = (b.stock?.rank ?: 0).compareTo(a.stock?.rank ?: 0)
+			if (stockCmp != 0) return@sortedWith stockCmp
+			val dist = distSq(a, origin).compareTo(distSq(b, origin))
+			if (dist != 0) return@sortedWith dist
+			val xCmp = a.x.compareTo(b.x)
+			if (xCmp != 0) return@sortedWith xCmp
+			a.z.compareTo(b.z)
+		}
 	}
 
 	private fun distSq(spot: FishingSpot, origin: Vec3): Double {

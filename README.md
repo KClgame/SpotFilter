@@ -1,6 +1,6 @@
 # SpotFilter
 
-**v1.2.1** · Minecraft **26.2** · Fabric · 纯客户端
+**v1.3.0** · Minecraft **26.2** · Fabric · 纯客户端
 
 MCC Island 钓鱼点扫描、筛选与坐标 HUD。走近带 `Fishing Spot` 标签的 Text Display 即可收录；按词条过滤、钉选坐标、世界透视引导。
 
@@ -25,7 +25,7 @@ MCC Island 钓鱼点扫描、筛选与坐标 HUD。走近带 `Fishing Spot` 标�
 ## 安装
 
 1. 安装 Fabric Loader（26.2）与上述依赖。
-2. 将 `spotfilter-1.2.1.jar` 放入 `.minecraft/mods/`。
+2. 将 `spotfilter-1.3.0.jar` 放入 `.minecraft/mods/`。
 3. 启动游戏。控件里应出现 **SpotFilter** 分类。
 
 构建：
@@ -34,7 +34,7 @@ MCC Island 钓鱼点扫描、筛选与坐标 HUD。走近带 `Fishing Spot` 标�
 ./gradlew build
 ```
 
-产物：`build/libs/spotfilter-1.2.1.jar`
+产物：`build/libs/spotfilter-1.3.0.jar`
 
 ---
 
@@ -127,15 +127,15 @@ Grotto 模式下主界面和 Auto Pin 会出现 **Cost** 筛选（Low / Medium /
 4. **Sort**：High → Low 或 Low → High。
 5. **Clear this filter** 清空本槽。
 
-总排序：**F1 > F2 > F3**，Grotto 再按 Cost（Low 最好），然后 Stock、距离、编号。
+总排序：有 F1–F3 时先按槽。默认 **不按发现顺序**。Grotto：Stability Cost（Low 最好）→ Fish / Pearl / Treasure / Spirit → 组内按加成（同系 Magnet/Hook 数值高者优先）→ Stock → 距离 → 坐标。Normal：Stock → 距离 → 坐标。
 
 ### 列表与钉选
 
 匹配的点显示编号、坐标、Stock、词条。点击一行 **Pin**：
 
 - 加入屏幕坐标 HUD
-- 在原标签 **下方一格** 生成仅客户端 `text_display`（透视名牌同时绘制，穿树叶）：默认 `fishing spot #n`；Auto Pin 填了 nickname 则为 `名字 #组内编号`  
-  Normal 颜色取主词条；Grotto 取最高级加成或 Chance 颜色（自定义 hex 优先）。
+- 在原标签 **下方一格** 生成放大的仅客户端 `text_display`（透视名牌同时绘制，穿树叶）：未起 nickname 时 Grotto 写 `fish/pearl/treasure/spirit spot #n`，普通点写 `fishing spot #n`；有 nickname 则为 `名字 #组内编号`  
+  Grotto 点色默认用 Chance 色（XP Magnet / Wayfinder Data 不参与染色）；自定义 hex 仍优先。
 
 再点一次取消 Pin。
 

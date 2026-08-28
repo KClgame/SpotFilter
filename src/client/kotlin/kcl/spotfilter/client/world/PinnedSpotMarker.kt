@@ -1,5 +1,6 @@
 package kcl.spotfilter.client.world
 
+import com.mojang.math.Transformation
 import kcl.spotfilter.client.config.SpotFilterConfig
 import kcl.spotfilter.client.data.FishingSpot
 import kcl.spotfilter.client.data.SpotPool
@@ -13,9 +14,11 @@ import net.minecraft.world.entity.Display
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.EntityTypes
 import net.minecraft.world.phys.Vec3
+import org.joml.Vector3f
 
 object PinnedSpotMarker {
 	const val TAG = "spotfilter_marker"
+	private const val DISPLAY_SCALE = 2.75f
 
 	private var nextClientId = -910_001
 	private val entities = HashMap<Int, Display.TextDisplay>()
@@ -37,7 +40,7 @@ object PinnedSpotMarker {
 				val dy = y - camera.pos.y
 				val dz = z - camera.pos.z
 				val dist = kotlin.math.sqrt(dx * dx + dy * dy + dz * dz)
-				val scale = (dist / 10.0).coerceIn(1.0, 14.0).toFloat() * 0.025f
+				val scale = (dist / 8.0).coerceIn(2.4, 22.0).toFloat() * 0.038f
 				val label = Component.literal(spot.guideLabel())
 					.withStyle(Style.EMPTY.withColor(TextColor.fromRgb(spot.markerRgb())))
 				pose.pushPose()
@@ -74,8 +77,7 @@ object PinnedSpotMarker {
 
 		val current = entities[spot.id]
 		if (current != null && !current.isRemoved && current.level() === level) {
-			current.setText(label)
-			TextDisplays.setSeeThrough(current)
+			style(current, label)
 			current.snapTo(x, y, z)
 			return
 		}
@@ -90,8 +92,7 @@ object PinnedSpotMarker {
 		entity.addTag(TAG)
 		entity.setBillboardConstraints(Display.BillboardConstraints.CENTER)
 		entity.setViewRange(8.0f)
-		entity.setText(label)
-		TextDisplays.setSeeThrough(entity)
+		style(entity, label)
 		entity.snapTo(x, y, z)
 		level.addEntity(entity)
 		entities[spot.id] = entity
@@ -128,6 +129,14 @@ object PinnedSpotMarker {
 			spawnOrUpdate(spot)
 		}
 		entities.keys.filter { it !in keep }.toList().forEach { remove(it) }
+	}
+
+	private fun style(entity: Display.TextDisplay, label: Component) {
+		entity.setText(label)
+		TextDisplays.setSeeThrough(entity)
+		entity.setTransformation(
+			Transformation(null, null, Vector3f(DISPLAY_SCALE, DISPLAY_SCALE, DISPLAY_SCALE), null)
+		)
 	}
 
 	private fun discard(entity: Display.TextDisplay) {

@@ -53,6 +53,9 @@ enum class PerkType(
 		get() = this == FISH_CHANCE || this == PEARL_CHANCE ||
 			this == TREASURE_CHANCE || this == SPIRIT_CHANCE
 
+	val skipsSpotColor: Boolean
+		get() = this == XP_MAGNET || this == WAYFINDER_DATA
+
 	val textureId: Identifier =
 		Identifier.fromNamespaceAndPath(SpotFilter.MOD_ID, "textures/gui/perk/${name.lowercase()}.png")
 
@@ -98,7 +101,7 @@ object PerkPriority {
 		perks.firstOrNull { it.type.isGrottoChance }
 
 	fun grottoDisplay(perks: List<ParsedPerk>): ParsedPerk? {
-		val bonuses = perks.filter { !it.type.isGrottoChance }
+		val bonuses = perks.filter { !it.type.isGrottoChance && !it.type.skipsSpotColor }
 		val best = bonuses.maxWithOrNull(
 			compareBy<ParsedPerk> { it.value }
 				.thenBy {

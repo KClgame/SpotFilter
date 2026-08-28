@@ -77,6 +77,36 @@ data class FishingSpot(
 	fun primaryPerk(): ParsedPerk? =
 		if (kind == SpotKind.GROTTO) PerkPriority.grottoDisplay(perks) else PerkPriority.primary(perks)
 
+	fun spotTypeLabel(): String {
+		if (kind != SpotKind.GROTTO) return "fishing"
+		return when (grottoChance()?.type) {
+			PerkType.FISH_CHANCE -> "fish"
+			PerkType.PEARL_CHANCE -> "pearl"
+			PerkType.TREASURE_CHANCE -> "treasure"
+			PerkType.SPIRIT_CHANCE -> "spirit"
+			else -> "fishing"
+		}
+	}
+
+	fun grottoFamilyOrder(): Int = when (grottoChance()?.type) {
+		PerkType.FISH_CHANCE -> 0
+		PerkType.PEARL_CHANCE -> 1
+		PerkType.TREASURE_CHANCE -> 2
+		PerkType.SPIRIT_CHANCE -> 3
+		else -> 4
+	}
+
+	fun grottoBonusScore(): Int {
+		val family = grottoChance()?.type?.family
+		val bonuses = perks.filter { !it.type.isGrottoChance && !it.type.skipsSpotColor }
+		val maxVal = bonuses.maxOfOrNull { it.value } ?: 0
+		val familyBonuses = bonuses.filter { it.type.family == family }
+		val familyMax = familyBonuses.maxOfOrNull { it.value } ?: 0
+		val magnet = if (familyBonuses.any { it.type.kind == kcl.spotfilter.client.parse.PerkKind.MAGNET }) 2 else 0
+		val hook = if (familyBonuses.any { it.type.kind == kcl.spotfilter.client.parse.PerkKind.HOOK }) 1 else 0
+		return maxVal * 1000 + familyMax * 20 + magnet + hook + bonuses.size
+	}
+
 	fun perkValue(type: PerkType): Int =
 		perks.firstOrNull { it.type == type }?.value ?: -1
 
@@ -91,20 +121,21 @@ data class FishingSpot(
 		if (!nickname.isNullOrBlank() && groupIndex > 0) {
 			"$nickname #$groupIndex"
 		} else {
-			"#${id}"
+			"${spotTypeLabel()} spot #${id}"
 		}
 
 	fun guideLabel(): String =
 		if (!nickname.isNullOrBlank() && groupIndex > 0) {
 			"$nickname #$groupIndex"
 		} else {
-			"fishing spot #${id}"
+			"${spotTypeLabel()} spot #${id}"
 		}
 
 	fun markerRgb(): Int {
 		pinColorOverride?.let { return it }
 		if (kind == SpotKind.GROTTO) {
-			return primaryPerk()?.resolvedNameRgb() ?: 0xFFFFFF
+			val chance = grottoChance()
+			return chance?.resolvedNameRgb() ?: chance?.type?.family?.rgb ?: 0xFFFFFF
 		}
 		return primaryPerk()?.type?.family?.rgb ?: 0xFFFFFF
 	}
