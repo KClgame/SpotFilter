@@ -364,13 +364,14 @@ object RulesFile {
 	private val HEADER = """
 		|# SpotFilter Auto Pin rules
 		|# Path: config/spotfilter/rules.txt
-		|# Reload in-game: /sf reload
+		|# Reload in-game: /sf reload   or   /sf rules reload
+		|# Docs: README.md  (Auto Pin 与 rules.txt)
 		|#
 		|# [normal]  island spots
 		|# [grotto]  Stability Cost spots
 		|#
 		|# Each rule starts with name=
-		|#   nick=HUD group name
+		|#   nick=HUD / world-guide group name  (Name #1, #2…)
 		|#   color=#RRGGBB
 		|#   mode=AND|OR
 		|#   enabled=true|false
@@ -382,7 +383,7 @@ object RulesFile {
 		|#   stock between Medium Plentiful
 		|#   cost <= Medium
 		|#
-		|# Blank line ends a rule. Lines starting with # are comments.
+		|# Blank line ends a rule. Lines starting with # or // are comments.
 		|
 	""".trimMargin()
 

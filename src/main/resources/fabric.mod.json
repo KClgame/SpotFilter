@@ -3,7 +3,7 @@
 	"id": "spotfilter",
 	"version": "${version}",
 	"name": "SpotFilter",
-	"description": "Client-side MCC Island fishing spot scanner, filter, and HUD.",
+	"description": "Client-only MCC Island fishing-spot scanner, filter, HUD, and see-through world guides.",
 	"authors": [
 		"KClgame"
 	],
