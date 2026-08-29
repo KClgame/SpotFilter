@@ -5,7 +5,6 @@ import kcl.spotfilter.client.config.SpotFilterConfig
 import kcl.spotfilter.client.data.FishingSpot
 import kcl.spotfilter.client.data.SpotPool
 import kcl.spotfilter.client.scan.TextDisplays
-import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents
 import net.minecraft.client.Minecraft
 import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.network.chat.Component
@@ -15,7 +14,6 @@ import net.minecraft.util.Brightness
 import net.minecraft.world.entity.Display
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.EntityTypes
-import net.minecraft.world.phys.Vec3
 import org.joml.Vector3f
 import org.slf4j.LoggerFactory
 
@@ -26,49 +24,11 @@ object PinnedSpotMarker {
 	private const val FAR_SCALE = 7.0f
 	private const val CLOSE_DIST = 8.0
 	private const val FAR_DIST = 56.0
-	private const val NAMETAG_BASE = 0.022f
 
 	private var nextClientId = -910_001
 	private val entities = HashMap<Int, Display.TextDisplay>()
 
 	fun register() {
-		LevelRenderEvents.COLLECT_SUBMITS.register { context ->
-			if (!SpotFilterConfig.instance.enabled) return@register
-			val client = Minecraft.getInstance()
-			if (client.level == null || client.player == null) return@register
-			val camera = context.levelState().cameraRenderState
-			val collector = context.submitNodeCollector()
-			val pose = context.poseStack()
-			for (spot in SpotPool.pinned()) {
-				if (spot.key.dimension != client.level!!.dimension().identifier()) continue
-				val x = spot.x + 0.5
-				val y = spot.y - 1.0
-				val z = spot.z + 0.5
-				val dx = x - camera.pos.x
-				val dy = y - camera.pos.y
-				val dz = z - camera.pos.z
-				val dist = kotlin.math.sqrt(dx * dx + dy * dy + dz * dz)
-				val scale = NAMETAG_BASE * (displayScale(dist) / CLOSE_SCALE)
-				val label = Component.literal(distanceLabel(spot, dist))
-					.withStyle(Style.EMPTY.withColor(TextColor.fromRgb(spot.markerRgb())))
-				pose.pushPose()
-				try {
-					pose.translate(dx, dy, dz)
-					pose.scale(scale, scale, scale)
-					collector.submitNameTag(
-						pose,
-						Vec3.ZERO,
-						0,
-						label,
-						true,
-						0xF000F0,
-						camera
-					)
-				} finally {
-					pose.popPose()
-				}
-			}
-		}
 	}
 
 	fun isOurs(entity: Display.TextDisplay): Boolean =
@@ -80,9 +40,9 @@ object PinnedSpotMarker {
 		val level = client.level as? ClientLevel ?: return
 		if (spot.key.dimension != level.dimension().identifier()) return
 
-		val x = spot.x + 0.5
-		val y = spot.y - 1.0
-		val z = spot.z + 0.5
+		val x = markerX(spot)
+		val y = markerY(spot)
+		val z = markerZ(spot)
 		val player = client.player
 		val dist = if (player != null) {
 			kotlin.math.sqrt(
@@ -157,6 +117,10 @@ object PinnedSpotMarker {
 		}
 		entities.keys.filter { it !in keep }.toList().forEach { remove(it) }
 	}
+
+	private fun markerX(spot: FishingSpot): Double = spot.x + 0.5
+	private fun markerY(spot: FishingSpot): Double = spot.y - 0.5
+	private fun markerZ(spot: FishingSpot): Double = spot.z + 0.5
 
 	private fun nextSafeClientId(): Int {
 		var id = nextClientId--

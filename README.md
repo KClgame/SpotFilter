@@ -1,6 +1,6 @@
 # SpotFilter
 
-**v1.5.2** · Minecraft **26.2** · Fabric · 纯客户端
+**v1.5.4** · Minecraft **26.2** · Fabric · 纯客户端
 
 MCC Island 钓鱼点扫描、筛选、坐标 HUD 与世界透视引导。走近标题含 `Fishing Spot` 的 Text Display 即可收录。
 
@@ -53,7 +53,7 @@ Client-only Fabric mod that scans MCC Island fishing-spot labels, filters and so
 ## 安装
 
 1. 安装 Fabric Loader（26.2）与上述依赖。
-2. 从 [Releases](https://github.com/KClgame/SpotFilter/releases) 下载 `spotfilter-1.5.2.jar`，放入 `.minecraft/mods/`。
+2. 从 [Releases](https://github.com/KClgame/SpotFilter/releases) 下载 `spotfilter-1.5.4.jar`，放入 `.minecraft/mods/`。
 3. 启动游戏。控件里应出现 **SpotFilter** 分类。
 
 ---
@@ -272,9 +272,7 @@ Fish Chance 的 HUD icon 与 Wayfinder Data 相同（游戏内 MCCI 字体也接
 
 ## 世界引导
 
-已 Pin 的点在原标签 **下方一格** 生成仅客户端 `text_display` 实体（F3 实体列表里能看到，标签 `spotfilter_marker`）。
-
-原版 `text_display` 的 `see_through` 走 TEXTS 渲染阶段，切面树叶仍会写深度并把字挡住。可见文字另走名牌管线的 `SEE_THROUGH_NAME_TAGS`（`submitNameTag(seeThrough=true)`），所以树叶挡不住。
+已 Pin 的点在原标签 **下方 0.5 格** 生成仅客户端 `text_display` 实体（F3 实体列表里能看到，标签 `spotfilter_marker`）。不再叠一层较小的 gizmo 字。
 
 文案：`fish spot #1 15m`（有 nickname 则为 `珍珠 #2 15m`）。距离与名字之间是空格，没有冒号。
 
@@ -379,7 +377,7 @@ MCC Island 约钓鱼 6 级才下发加成。Mod 只能解析客户端已经收�
 ./gradlew build
 ```
 
-产物：`build/libs/spotfilter-1.5.2.jar`
+产物：`build/libs/spotfilter-1.5.4.jar`
 
 需要 JDK 25。变更记录见 [CHANGELOG.md](CHANGELOG.md)。
 

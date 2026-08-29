@@ -2,6 +2,14 @@
 
 SpotFilter 版本记录。最新在上。发布包见 [GitHub Releases](https://github.com/KClgame/SpotFilter/releases)。
 
+## 1.5.4 — 2026-08-29
+
+去掉叠在下面的小号 gizmo 引导字，只保留客户端 `text_display`，高度为原标签下方 0.5 格。
+
+## 1.5.3 — 2026-08-29
+
+引导标签提高一格（与 Fishing Spot 同高）。可见字改到 gizmo 最高层（`ALWAYS_ON_TOP`）最后画，用来穿过切面树叶。
+
 ## 1.5.2 — 2026-08-29
 
 修复 1.5.1 一进游戏就黑屏。
