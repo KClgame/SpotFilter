@@ -8,6 +8,7 @@ import kcl.spotfilter.client.filter.CompareOp
 import kcl.spotfilter.client.filter.FilterMode
 import kcl.spotfilter.client.filter.FilterSlot
 import kcl.spotfilter.client.filter.FilterState
+import kcl.spotfilter.client.filter.PerkPairFilter
 import kcl.spotfilter.client.filter.StabilityFilter
 import kcl.spotfilter.client.filter.StockFilter
 import kcl.spotfilter.client.parse.PerkType
@@ -144,6 +145,23 @@ object RulesFile {
 						rule.stock.levelMax = stock.levelMax
 					}
 				}
+				lower.startsWith("pair=") || lower.startsWith("pair ") ||
+					lower.startsWith("sum=") || lower.startsWith("sum ") -> {
+					val expr = if (lower.startsWith("pair=") || lower.startsWith("sum=")) {
+						line.substringAfter("=").trim()
+					} else {
+						line.substringAfter(' ').trim()
+					}
+					val pair = parsePair(expr)
+					if (pair == null) errors.add("line $lineNo: bad pair '$expr'")
+					else {
+						val rule = ruleOrNew()
+						rule.pair.enabled = pair.enabled
+						rule.pair.compare = pair.compare
+						rule.pair.threshold = pair.threshold
+						rule.pair.thresholdMax = pair.thresholdMax
+					}
+				}
 				lower.startsWith("cost=") || lower.startsWith("stability=") ||
 					lower.startsWith("cost ") || lower.startsWith("stability ") -> {
 					val expr = if (lower.startsWith("cost=") || lower.startsWith("stability=")) {
@@ -201,6 +219,7 @@ object RulesFile {
 				if (slot.isActive) appendLine("f${slotIndex + 1}=${formatSlot(slot)}")
 			}
 			if (rule.stock.enabled) appendLine("stock=${formatStock(rule.stock)}")
+			if (rule.pair.enabled) appendLine("pair=${formatPair(rule.pair)}")
 			if (rule.stability.enabled) appendLine("cost=${formatCost(rule.stability)}")
 		}
 	}
@@ -220,6 +239,13 @@ object RulesFile {
 			"between ${stock.level.label} ${stock.levelMax.label}"
 		} else {
 			"${stock.compare.symbol} ${stock.level.label}"
+		}
+
+	private fun formatPair(pair: PerkPairFilter): String =
+		if (pair.compare == CompareOp.BETWEEN) {
+			"between ${pair.threshold} ${pair.thresholdMax}"
+		} else {
+			"${pair.compare.symbol} ${pair.threshold}"
 		}
 
 	private fun formatCost(cost: StabilityFilter): String =
@@ -276,6 +302,32 @@ object RulesFile {
 			filter.levelMax = resolveStock(parts.getOrNull(1) ?: parts[0]) ?: return null
 		} else {
 			filter.level = resolveStock(rest) ?: return null
+		}
+		return filter
+	}
+
+	private fun parsePair(raw: String): PerkPairFilter? {
+		val text = raw.trim()
+		if (text.isEmpty() || text.equals("off", true) || text.equals("none", true)) {
+			return PerkPairFilter()
+		}
+		val match = CONDITION.find("pair $text") ?: CONDITION.find(text)
+		val filter = PerkPairFilter()
+		filter.enabled = true
+		if (match == null) {
+			filter.compare = CompareOp.EQ
+			filter.threshold = parseNumber(text) ?: return null
+			return filter
+		}
+		filter.compare = parseCompare(match.groupValues[2]) ?: return null
+		val rest = match.groupValues[3].trim()
+		if (filter.compare == CompareOp.BETWEEN) {
+			val nums = rest.split(Regex("""[\s,;]+""")).mapNotNull { parseNumber(it) }
+			if (nums.isEmpty()) return null
+			filter.threshold = nums[0]
+			filter.thresholdMax = nums.getOrElse(1) { nums[0] }
+		} else {
+			filter.threshold = parseNumber(rest) ?: return null
 		}
 		return filter
 	}
@@ -381,6 +433,8 @@ object RulesFile {
 		|#   f1=Fish Magnet between 10 30
 		|#   stock >= High
 		|#   stock between Medium Plentiful
+		|#   pair >= 40
+		|#   pair between 30 60
 		|#   cost <= Medium
 		|#
 		|# Blank line ends a rule. Lines starting with # or // are comments.

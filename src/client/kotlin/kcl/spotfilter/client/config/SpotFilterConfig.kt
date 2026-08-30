@@ -12,6 +12,7 @@ import kcl.spotfilter.client.filter.FilterProfile
 import kcl.spotfilter.client.filter.FilterSlot
 import kcl.spotfilter.client.filter.FilterState
 import kcl.spotfilter.client.filter.SortDir
+import kcl.spotfilter.client.filter.PerkPairFilter
 import kcl.spotfilter.client.filter.StabilityFilter
 import kcl.spotfilter.client.filter.StockFilter
 import kcl.spotfilter.client.parse.PerkType
@@ -41,6 +42,13 @@ class StabilityFilterConfig {
 	var levelMax: String = StabilityCost.HIGH.name
 }
 
+class PairFilterConfig {
+	var enabled: Boolean = false
+	var compare: String = CompareOp.GTE.name
+	var threshold: Int = 40
+	var thresholdMax: Int = 60
+}
+
 class AutoPinRuleConfig {
 	var name: String = "Rule"
 	var enabled: Boolean = true
@@ -50,6 +58,7 @@ class AutoPinRuleConfig {
 	var slot2: SlotConfig = SlotConfig()
 	var stock: StockFilterConfig = StockFilterConfig()
 	var stability: StabilityFilterConfig = StabilityFilterConfig()
+	var pair: PairFilterConfig = PairFilterConfig()
 	var customColorHex: String = ""
 	var nickname: String = ""
 }
@@ -61,6 +70,7 @@ class FilterProfileConfig {
 	var slot2: SlotConfig = SlotConfig()
 	var stock: StockFilterConfig = StockFilterConfig()
 	var stability: StabilityFilterConfig = StabilityFilterConfig()
+	var pair: PairFilterConfig = PairFilterConfig()
 	var autoPinRules: MutableList<AutoPinRuleConfig> = ArrayList()
 }
 
@@ -73,6 +83,7 @@ class SpotFilterConfig {
 	var backgroundAlpha: Int = 40
 	var hudVisible: Boolean = true
 	var hudLayout: String = HudLayout.DETAILED.name
+	var kickDepleted: Boolean = true
 	var enabled: Boolean = true
 	var spotKind: String = SpotKind.NORMAL.name
 	var normal: FilterProfileConfig = FilterProfileConfig()
@@ -166,6 +177,7 @@ class SpotFilterConfig {
 		backgroundAlpha = other.backgroundAlpha
 		hudVisible = other.hudVisible
 		hudLayout = other.hudLayout
+		kickDepleted = other.kickDepleted
 		enabled = other.enabled
 		spotKind = other.spotKind
 		normal = other.normal
@@ -219,6 +231,7 @@ class SpotFilterConfig {
 		applySlot(target.slots[2], cfg.slot2)
 		applyStock(target.stock, cfg.stock)
 		applyStability(target.stability, cfg.stability)
+		applyPair(target.pair, cfg.pair)
 		target.autoPinRules.clear()
 		cfg.autoPinRules.forEach { target.autoPinRules.add(fromConfig(it)) }
 	}
@@ -231,6 +244,7 @@ class SpotFilterConfig {
 		cfg.slot2 = toSlotConfig(profile.slots[2])
 		cfg.stock = toStockConfig(profile.stock)
 		cfg.stability = toStabilityConfig(profile.stability)
+		cfg.pair = toPairConfig(profile.pair)
 		cfg.autoPinRules = profile.autoPinRules.map { toRuleConfig(it) }.toMutableList()
 		return cfg
 	}
@@ -261,6 +275,14 @@ class SpotFilterConfig {
 		target.levelMax = runCatching { StabilityCost.valueOf(cfg.levelMax) }.getOrDefault(StabilityCost.HIGH)
 	}
 
+	private fun applyPair(target: PerkPairFilter, cfg: PairFilterConfig?) {
+		if (cfg == null) return
+		target.enabled = cfg.enabled
+		target.compare = runCatching { CompareOp.valueOf(cfg.compare) }.getOrDefault(CompareOp.GTE)
+		target.threshold = cfg.threshold.coerceIn(10, 60)
+		target.thresholdMax = cfg.thresholdMax.coerceIn(10, 60)
+	}
+
 	private fun fromConfig(cfg: AutoPinRuleConfig): AutoPinRule {
 		val rule = AutoPinRule()
 		rule.name = cfg.name
@@ -271,6 +293,7 @@ class SpotFilterConfig {
 		applySlot(rule.slots[2], cfg.slot2)
 		applyStock(rule.stock, cfg.stock)
 		applyStability(rule.stability, cfg.stability)
+		applyPair(rule.pair, cfg.pair)
 		rule.customColorHex = cfg.customColorHex
 		rule.nickname = cfg.nickname
 		return rule
@@ -304,6 +327,15 @@ class SpotFilterConfig {
 		return cfg
 	}
 
+	private fun toPairConfig(pair: PerkPairFilter): PairFilterConfig {
+		val cfg = PairFilterConfig()
+		cfg.enabled = pair.enabled
+		cfg.compare = pair.compare.name
+		cfg.threshold = pair.threshold
+		cfg.thresholdMax = pair.thresholdMax
+		return cfg
+	}
+
 	private fun toRuleConfig(rule: AutoPinRule): AutoPinRuleConfig {
 		val cfg = AutoPinRuleConfig()
 		cfg.name = rule.name
@@ -314,6 +346,7 @@ class SpotFilterConfig {
 		cfg.slot2 = toSlotConfig(rule.slots[2])
 		cfg.stock = toStockConfig(rule.stock)
 		cfg.stability = toStabilityConfig(rule.stability)
+		cfg.pair = toPairConfig(rule.pair)
 		cfg.customColorHex = rule.customColorHex
 		cfg.nickname = rule.nickname
 		return cfg

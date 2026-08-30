@@ -1,6 +1,7 @@
 package kcl.spotfilter.client.parse
 
 import kcl.spotfilter.SpotFilter
+import kcl.spotfilter.client.data.SpotKind
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.Style
 import net.minecraft.network.chat.TextColor
@@ -74,6 +75,11 @@ enum class PerkType(
 
 	val hasVariableValue: Boolean
 		get() = kind == PerkKind.HOOK || kind == PerkKind.MAGNET
+
+	fun allowedIn(spotKind: SpotKind): Boolean = when (spotKind) {
+		SpotKind.NORMAL -> !isGrottoChance
+		SpotKind.GROTTO -> this != WAYFINDER_DATA && (!isGrottoChance || this == FISH_CHANCE)
+	}
 
 	fun valueLabel(value: Int): String =
 		if (percent) "+$value%" else "+$value"

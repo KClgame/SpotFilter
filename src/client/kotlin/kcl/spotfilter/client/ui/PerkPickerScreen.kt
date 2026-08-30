@@ -2,6 +2,7 @@ package kcl.spotfilter.client.ui
 
 import kcl.spotfilter.client.config.SpotFilterConfig
 import kcl.spotfilter.client.filter.FilterSlot
+import kcl.spotfilter.client.filter.FilterState
 import kcl.spotfilter.client.parse.PerkType
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.components.Button
@@ -49,7 +50,8 @@ class PerkPickerScreen(
 	private fun visiblePerks(): List<PerkType?> {
 		val query = search.trim()
 		val matches = PerkType.entries.filter { perk ->
-			query.isEmpty() || perk.displayName.contains(query, ignoreCase = true)
+			perk.allowedIn(FilterState.kind) &&
+				(query.isEmpty() || perk.displayName.contains(query, ignoreCase = true))
 		}
 		return listOf<PerkType?>(null) + matches
 	}

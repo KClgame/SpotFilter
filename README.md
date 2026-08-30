@@ -1,6 +1,6 @@
 # SpotFilter
 
-**v1.5.4** · Minecraft **26.2** · Fabric · 纯客户端
+**v1.6.2** · Minecraft **26.2** · Fabric · 纯客户端
 
 MCC Island 钓鱼点扫描、筛选、坐标 HUD 与世界透视引导。走近标题含 `Fishing Spot` 的 Text Display 即可收录。
 
@@ -53,7 +53,7 @@ Client-only Fabric mod that scans MCC Island fishing-spot labels, filters and so
 ## 安装
 
 1. 安装 Fabric Loader（26.2）与上述依赖。
-2. 从 [Releases](https://github.com/KClgame/SpotFilter/releases) 下载 `spotfilter-1.5.4.jar`，放入 `.minecraft/mods/`。
+2. 从 [Releases](https://github.com/KClgame/SpotFilter/releases) 下载 `spotfilter-1.6.2.jar`，放入 `.minecraft/mods/`。
 3. 启动游戏。控件里应出现 **SpotFilter** 分类。
 
 ---
@@ -103,14 +103,15 @@ Client-only Fabric mod that scans MCC Island fishing-spot labels, filters and so
 
 **O** 打开。世界不暂停，扫描继续。
 
-顶栏：
+顶栏（鼠标悬停可看说明）：
 
+- **Kick Depleted** — 与 Normal/Grotto、Mode、Enabled 同一行（Enabled 左侧）。On：Stock 变成 Depleted 时取消钉选并踢出附近点池（含手动 Pin）。Off：Depleted 仍可留在钉选里。
+- **Enabled / Disabled** — 总开关。Disabled 时 HUD 与引导消失、不再播新点音效；仍可打开 Filter，扫描与筛选照常。
 - **Normal / Grotto** — 切换点类型。两组点、筛选和 Auto Pin **互不共用**。切走后另一组从列表、HUD、引导中隐藏（钉选状态仍保留，切回来还能看见）。
 - **Mode: AND / OR** — 多槽组合。AND 必须同时满足；OR 满足任一即可。空槽忽略。
 - **Detailed / Compact** — HUD 与列表的文本模式，见 [HUD](#hud)。
 - **Edit HUD** — 拖动位置；滚轮放大（0.5×–3.0×）；**Shift+滚轮** 改背景透明度。
-- **Clear** — 同 **P**。
-- **Enabled / Disabled** — 总开关。Disabled 时 HUD 与引导消失、不再播新点音效；仍可打开 Filter，扫描与筛选照常。再开 Enabled 会恢复 HUD 和已 Pin 标记。
+- **Clear** — 同 **P**，立刻清空点池。
 
 列表：匹配的点显示编号、坐标、Stock、词条。点击一行 **Pin** / **PINNED** 切换钉选。
 
@@ -144,6 +145,19 @@ Grotto 模式下主界面和 Auto Pin 会出现 **Cost** 筛选（Low / Medium /
 
 档位从高到低：Plentiful → Very High → High → Medium → Low → Depleted。
 
+### Pair（perk1 + perk2 总和）
+
+主界面 **Pair** 栏，不占用 F1–F3。按点种类把两条可变加成相加（缺的那条算 +0%），范围 **+10%～+60%**，比较符与 Stock 相同：`>` `>=` `<` `<=` `=` `Between`。
+
+| 点种类 | 相加的两条 |
+| --- | --- |
+| fish | Strong Hook + Wise Hook |
+| pearl | Glimmering Hook + Pearl Magnet |
+| treasure | Greedy Hook + Treasure Magnet |
+| spirit | Lucky Hook + Spirit Magnet |
+
+Normal 与 Grotto **各有一套** Pair 设置。Grotto 仍按上面配对，100% Chance 不计入总和。Auto Pin 规则里也可设 `pair >= 40`。
+
 ### 三个筛选槽 F1 / F2 / F3
 
 点击进入该槽配置（不要连点切换词条）：
@@ -152,7 +166,7 @@ Grotto 模式下主界面和 Auto Pin 会出现 **Cost** 筛选（Low / Medium /
 2. Hook / Magnet 才有数值比较：
    - **Compare**：`>` `>=` `<` `<=` `=` `Between`
    - **Value**：`+10%` / `+20%` / `+30%`（Wayfinder Data 为 `+10`）。Fish Magnet 另有 **`+200%`**。**Between** 时为 Lower / Upper 两个值。
-3. 固定加成（Elusive Chance、Wayfinder Data、Fish / Pearl / Treasure / Spirit Chance）**没有**数值比较，只判断有无该词条。Grotto 用 F1–F3 选 Fish/Pearl/Treasure/Spirit Chance 即可按类型筛选。
+3. 固定加成没有数值比较，只判断有无该词条。**Normal 只能选 Wayfinder Data**（不含 100% Chance）；**Grotto 只能选 Fish Chance**（不含 Wayfinder Data 和其他 100% Chance）。二者互斥。Hook / Magnet / Elusive Chance 两边都能选。
 4. **Sort**：High → Low 或 Low → High。多槽同时启用时，按 F1 → F2 → F3 依次比较。
 5. **Clear this filter** 清空本槽。
 
@@ -288,7 +302,10 @@ Fish Chance 的 HUD icon 与 Wayfinder Data 相同（游戏内 MCCI 字体也接
 - 词条与 Stock 的 **颜色直接读取标签 Component**，与游戏里看到的一致。
 - 走近（约 48 格且区块已加载）标签消失：自动 Pin 会删点；**手动 Pin** 留下并标 Depleted。
 - 走远卸载 **不会** 删。
-- 本机本地时间整点（1:00、2:00…）自动清空池子，效果同 **P**，并提示 `SpotFilter: fishing spots refreshed`。
+- **Normal 刷新**（只清空岛上点，Grotto 保留）：
+  - 本机本地时间 **整点后 1 分钟**（1:01、2:01…）
+  - 或约 2 秒内至少 3 个 Normal 点内容变化 / 新出现（同一 xz 不同 y 会替换旧记录，避免双开）
+- **Grotto 刷新**：聊天出现 `Your Grotto has become unstable` 时只清空 Grotto 点。
 - 一个点最多解析 3 条加成。Grotto 会保留 1 条 100% Chance + 最多 2 条其他加成。
 - 主 Icon：Chance/Data > Hook/Magnet，再比数值；Strong 与 Wise 同为 +30% 时优先 Strong。Grotto 见上文「最高级额外加成」。
 
@@ -363,8 +380,8 @@ MCC Island 约钓鱼 6 级才下发加成。Mod 只能解析客户端已经收�
 **`+200%` Fish Magnet 显示成 `+100%`？**  
 1.4.5 起按 10/20/30/200 解析。请确认 jar 为 **1.5.0**。
 
-**整点点池没了？**  
-按本机本地时钟每小时清空一次，等同按 **P**。筛选和 Auto Pin 规则保留。
+**点池自己空了？**  
+Normal 在整点+1 分钟或一波多点同时变时清空；Grotto 只在聊天出现 `Your Grotto has become unstable` 时清空。筛选和 Auto Pin 规则保留。**P** 仍清空全部。
 
 **服务端要装吗？**  
 不用。纯客户端。
@@ -377,7 +394,7 @@ MCC Island 约钓鱼 6 级才下发加成。Mod 只能解析客户端已经收�
 ./gradlew build
 ```
 
-产物：`build/libs/spotfilter-1.5.4.jar`
+产物：`build/libs/spotfilter-1.6.2.jar`
 
 需要 JDK 25。变更记录见 [CHANGELOG.md](CHANGELOG.md)。
 

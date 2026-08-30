@@ -6,10 +6,12 @@ import kcl.spotfilter.client.data.SpotPool
 import kcl.spotfilter.client.filter.FilterState
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.components.Button
+import net.minecraft.client.gui.components.Tooltip
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.input.KeyEvent
 import net.minecraft.client.input.MouseButtonEvent
 import net.minecraft.client.renderer.RenderPipelines
+import net.minecraft.network.chat.CommonComponents
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.Style
 import org.lwjgl.glfw.GLFW
@@ -22,7 +24,7 @@ class FilterScreen : Screen(Component.literal("SpotFilter")) {
 	private var dragOffY = 0
 
 	private val compact get() = SpotFilterConfig.instance.layout() == HudLayout.COMPACT
-	private val listTop get() = 112
+	private val listTop get() = 136
 	private val listBottom get() = height - 36
 	private val rowHeight get() = if (compact) 22 else 44
 
@@ -44,50 +46,94 @@ class FilterScreen : Screen(Component.literal("SpotFilter")) {
 			return
 		}
 
-		addRenderableWidget(
-			Button.builder(kindLabel()) { _ ->
+		val cfg = SpotFilterConfig.instance
+		addTopRow(
+			8,
+			TopBtn(
+				kickLabel(),
+				tip(
+					"Auto-kick Depleted spots.",
+					"On: unpin and drop a spot when Stock becomes Depleted, including manual pins.",
+					"Off: keep Depleted spots pinned; they stay until you unpin or Clear."
+				)
+			) { _ ->
+				cfg.kickDepleted = !cfg.kickDepleted
+				if (cfg.kickDepleted) SpotPool.kickDepletedNow()
+				SpotFilterConfig.save()
+				rebuildWidgets()
+			},
+			TopBtn(
+				kindLabel(),
+				tip(
+					"Island Normal spots vs Grotto (Stability Cost) spots.",
+					"Filters, Pair, and Auto Pin are separate per mode.",
+					"The other group is hidden from the list, HUD, and guides."
+				)
+			) { _ ->
 				FilterState.toggleKind()
 				SpotFilterConfig.save()
 				rebuildWidgets()
-			}.bounds(8, 8, 68, 20).build()
-		)
-		addRenderableWidget(
-			Button.builder(modeLabel()) { _ ->
+			},
+			TopBtn(
+				modeLabel(),
+				tip(
+					"How F1–F3 combine.",
+					"AND: a spot must match every filled slot.",
+					"OR: a spot matches if any filled slot matches. Empty slots are ignored."
+				)
+			) { _ ->
 				FilterState.toggleMode()
 				SpotFilterConfig.save()
 				rebuildWidgets()
-			}.bounds(80, 8, 72, 20).build()
-		)
-
-		addRenderableWidget(
-			Button.builder(layoutLabel()) { _ ->
-				val cfg = SpotFilterConfig.instance
+			},
+			TopBtn(
+				layoutLabel(),
+				tip(
+					"HUD and list text layout.",
+					"Compact: one line per spot with small perk icons.",
+					"Detailed: title plus indented perk rows."
+				)
+			) { _ ->
 				cfg.setLayout(cfg.layout().toggle())
 				SpotFilterConfig.save()
 				rebuildWidgets()
-			}.bounds(156, 8, 78, 20).build()
-		)
-		addRenderableWidget(
-			Button.builder(Component.literal("Edit HUD")) { _ ->
+			},
+			TopBtn(
+				Component.literal("Edit HUD"),
+				tip(
+					"Move and style the coordinate HUD.",
+					"Drag to reposition. Scroll to scale (0.5x–3.0x).",
+					"Shift+scroll changes background opacity."
+				)
+			) { _ ->
 				editingHud = true
 				rebuildWidgets()
-			}.bounds(238, 8, 68, 20).build()
-		)
-		addRenderableWidget(
-			Button.builder(Component.literal("Clear")) { _ ->
+			},
+			TopBtn(
+				Component.literal("Clear"),
+				tip(
+					"Clear the scanned spot pool (same as P).",
+					"HUD, filters, Auto Pin rules, and Enabled stay.",
+					"Does not wait for the hourly or Grotto chat refresh."
+				)
+			) { _ ->
 				SpotPool.clearSpots()
-			}.bounds(310, 8, 48, 20).build()
-		)
-		addRenderableWidget(
-			Button.builder(enableLabel()) { _ ->
-				val cfg = SpotFilterConfig.instance
+			},
+			TopBtn(
+				enableLabel(),
+				tip(
+					"Master overlay switch.",
+					"Disabled: hide HUD and world guides, mute new-spot sound.",
+					"Scanning and this Filter screen still work. L only hides the HUD."
+				)
+			) { _ ->
 				cfg.enabled = !cfg.enabled
 				if (!cfg.enabled) {
 					kcl.spotfilter.client.world.PinnedSpotMarker.removeAll()
 				}
 				SpotFilterConfig.save()
 				rebuildWidgets()
-			}.bounds(362, 8, 68, 20).build()
+			}
 		)
 
 		val slotWidth = ((width - 24) / 3).coerceAtLeast(90)
@@ -95,7 +141,13 @@ class FilterScreen : Screen(Component.literal("SpotFilter")) {
 			addRenderableWidget(
 				Button.builder(slotLabel(index)) { _ ->
 					minecraft.gui.setScreen(FilterSlotScreen(this, FilterState.slots[index], "Filter F${index + 1}"))
-				}.bounds(8 + index * (slotWidth + 4), 32, slotWidth, 20).build()
+				}.tooltip(
+					tip(
+						"Perk filter slot F${index + 1}.",
+						"Pick a perk, optional numeric compare, and sort direction.",
+						"Sort uses F1 then F2 then F3. Click to configure (do not cycle by spam-clicking)."
+					)
+				).bounds(8 + index * (slotWidth + 4), 32, slotWidth, 20).build()
 			)
 		}
 		val grotto = FilterState.kind == SpotKind.GROTTO
@@ -104,29 +156,99 @@ class FilterScreen : Screen(Component.literal("SpotFilter")) {
 			addRenderableWidget(
 				Button.builder(Component.literal(FilterState.stock.compactLabel())) { _ ->
 					minecraft.gui.setScreen(StockFilterScreen(this, FilterState.stock))
-				}.bounds(8, 56, third, 20).build()
+				}.tooltip(
+					tip(
+						"Stock filter for the current mode.",
+						"Depleted stays hidden unless this is On and the compare includes Depleted.",
+						"Does not use an F1–F3 slot."
+					)
+				).bounds(8, 56, third, 20).build()
 			)
 			addRenderableWidget(
 				Button.builder(Component.literal(FilterState.stability.compactLabel())) { _ ->
 					minecraft.gui.setScreen(StabilityFilterScreen(this, FilterState.stability))
-				}.bounds(12 + third, 56, third, 20).build()
+				}.tooltip(
+					tip(
+						"Grotto Stability Cost filter.",
+						"Low is best (#65FEFE), then Medium, then High.",
+						"Only shown in Grotto mode."
+					)
+				).bounds(12 + third, 56, third, 20).build()
 			)
 			addRenderableWidget(
 				Button.builder(Component.literal("Auto Pin (${FilterState.autoPinRules.count { it.enabled }})")) { _ ->
 					minecraft.gui.setScreen(AutoPinListScreen(this))
-				}.bounds(16 + third * 2, 56, third, 20).build()
+				}.tooltip(
+					tip(
+						"Auto Pin rules for the current mode (Normal / Grotto are separate).",
+						"Matching spots are pinned with optional nickname and color.",
+						"Stored in config/spotfilter/rules.txt."
+					)
+				).bounds(16 + third * 2, 56, third, 20).build()
 			)
 		} else {
 			addRenderableWidget(
 				Button.builder(Component.literal(FilterState.stock.compactLabel())) { _ ->
 					minecraft.gui.setScreen(StockFilterScreen(this, FilterState.stock))
-				}.bounds(8, 56, (width - 20) / 2, 20).build()
+				}.tooltip(
+					tip(
+						"Stock filter for the current mode.",
+						"Depleted stays hidden unless this is On and the compare includes Depleted.",
+						"Does not use an F1–F3 slot."
+					)
+				).bounds(8, 56, (width - 20) / 2, 20).build()
 			)
 			addRenderableWidget(
 				Button.builder(Component.literal("Auto Pin (${FilterState.autoPinRules.count { it.enabled }})")) { _ ->
 					minecraft.gui.setScreen(AutoPinListScreen(this))
-				}.bounds(16 + (width - 20) / 2, 56, (width - 20) / 2, 20).build()
+				}.tooltip(
+					tip(
+						"Auto Pin rules for the current mode (Normal / Grotto are separate).",
+						"Matching spots are pinned with optional nickname and color.",
+						"Stored in config/spotfilter/rules.txt."
+					)
+				).bounds(16 + (width - 20) / 2, 56, (width - 20) / 2, 20).build()
 			)
+		}
+		addRenderableWidget(
+			Button.builder(Component.literal(FilterState.pair.compactLabel())) { _ ->
+				minecraft.gui.setScreen(PairFilterScreen(this, FilterState.pair))
+			}.tooltip(
+				tip(
+					"Filter by perk1 + perk2 sum for this spot type.",
+					"Fish: Strong + Wise Hook. Pearl/Treasure/Spirit: matching Hook + Magnet.",
+					"Range +10% to +60%. Missing half counts as +0%. Separate for Normal / Grotto."
+				)
+			).bounds(8, 80, width - 16, 20).build()
+		)
+	}
+
+	private class TopBtn(
+		val message: Component,
+		val tooltip: Tooltip,
+		val onPress: (Button) -> Unit
+	)
+
+	private fun addTopRow(y: Int, vararg items: TopBtn) {
+		val gap = 3
+		val n = items.size
+		val weights = floatArrayOf(1.45f, 1.0f, 1.15f, 1.15f, 1.0f, 0.7f, 1.1f)
+		val inner = (width - 16 - gap * (n - 1)).toFloat()
+		val weightSum = weights.take(n).sum()
+		var x = 8
+		items.forEachIndexed { i, item ->
+			val bw = if (i == n - 1) {
+				(width - 8 - x).coerceAtLeast(40)
+			} else {
+				(inner * weights[i] / weightSum).toInt().coerceAtLeast(40)
+			}
+			addRenderableWidget(
+				Button.builder(item.message) { btn -> item.onPress(btn) }
+					.tooltip(item.tooltip)
+					.bounds(x, y, bw, 20)
+					.build()
+			)
+			x += bw + gap
 		}
 	}
 
@@ -141,6 +263,14 @@ class FilterScreen : Screen(Component.literal("SpotFilter")) {
 
 	private fun enableLabel(): Component =
 		Component.literal(if (SpotFilterConfig.instance.enabled) "Enabled" else "Disabled")
+
+	private fun kickLabel(): Component =
+		Component.literal(
+			if (SpotFilterConfig.instance.kickDepleted) "Kick Depl: On" else "Kick Depl: Off"
+		)
+
+	private fun tip(vararg lines: String): Tooltip =
+		Tooltip.create(CommonComponents.joinLines(lines.map { Component.literal(it) }))
 
 	private fun slotLabel(index: Int): Component {
 		val slot = FilterState.slots[index]
@@ -170,7 +300,7 @@ class FilterScreen : Screen(Component.literal("SpotFilter")) {
 			font,
 			Component.literal("${spots.size} ${FilterState.kind.label.lowercase()} spots  |  click row to pin  |  F1>F2>F3 sort  |  O close"),
 			8,
-			82,
+			106,
 			0xFFCCCCCC.toInt(),
 			false
 		)

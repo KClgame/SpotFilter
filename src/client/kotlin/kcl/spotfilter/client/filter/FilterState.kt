@@ -198,6 +198,49 @@ class StabilityFilter {
 	}
 }
 
+class PerkPairFilter {
+	var enabled: Boolean = false
+	var compare: CompareOp = CompareOp.GTE
+	var threshold: Int = 40
+	var thresholdMax: Int = 60
+
+	fun matches(spot: FishingSpot): Boolean {
+		if (!enabled) return true
+		if (spot.pairTypes() == null) return false
+		return compareValues(spot.pairSum(), threshold, thresholdMax, compare)
+	}
+
+	fun compactLabel(): String {
+		if (!enabled) return "Pair: Off"
+		return if (compare == CompareOp.BETWEEN) {
+			val lo = minOf(threshold, thresholdMax)
+			val hi = maxOf(threshold, thresholdMax)
+			"Pair +$lo%–+$hi%"
+		} else {
+			"Pair ${compare.symbol} +$threshold%"
+		}
+	}
+
+	fun cycleCompare() {
+		compare = when (compare) {
+			CompareOp.GT -> CompareOp.GTE
+			CompareOp.GTE -> CompareOp.LT
+			CompareOp.LT -> CompareOp.LTE
+			CompareOp.LTE -> CompareOp.EQ
+			CompareOp.EQ -> CompareOp.BETWEEN
+			CompareOp.BETWEEN -> CompareOp.GT
+		}
+	}
+
+	fun cycleThreshold() {
+		threshold = nextPairValue(threshold)
+	}
+
+	fun cycleThresholdMax() {
+		thresholdMax = nextPairValue(thresholdMax)
+	}
+}
+
 class AutoPinRule {
 	var name: String = "Rule"
 	var enabled: Boolean = true
@@ -205,14 +248,18 @@ class AutoPinRule {
 	val slots: Array<FilterSlot> = arrayOf(FilterSlot(), FilterSlot(), FilterSlot())
 	val stock: StockFilter = StockFilter()
 	val stability: StabilityFilter = StabilityFilter()
+	val pair: PerkPairFilter = PerkPairFilter()
 	var customColorHex: String = ""
 	var nickname: String = ""
 
 	fun matches(spot: FishingSpot, useStability: Boolean): Boolean {
 		if (!stock.matches(spot)) return false
 		if (useStability && !stability.matches(spot)) return false
+		if (!pair.matches(spot)) return false
 		val active = slots.filter { it.isActive }
-		if (active.isEmpty()) return stock.enabled || (useStability && stability.enabled)
+		if (active.isEmpty()) {
+			return stock.enabled || pair.enabled || (useStability && stability.enabled)
+		}
 		return if (mode == FilterMode.AND) {
 			active.all { it.matches(spot) }
 		} else {
@@ -228,6 +275,7 @@ class FilterProfile {
 	val slots: Array<FilterSlot> = arrayOf(FilterSlot(), FilterSlot(), FilterSlot())
 	val stock: StockFilter = StockFilter()
 	val stability: StabilityFilter = StabilityFilter()
+	val pair: PerkPairFilter = PerkPairFilter()
 	val autoPinRules: MutableList<AutoPinRule> = ArrayList()
 }
 
@@ -249,6 +297,14 @@ fun perkValueOptions(type: PerkType?): List<Int> =
 
 fun nextPerkValue(current: Int, type: PerkType? = null): Int {
 	val options = perkValueOptions(type)
+	val index = options.indexOf(current)
+	return options[(index + 1).mod(options.size)]
+}
+
+fun pairValueOptions(): List<Int> = listOf(10, 20, 30, 40, 50, 60)
+
+fun nextPairValue(current: Int): Int {
+	val options = pairValueOptions()
 	val index = options.indexOf(current)
 	return options[(index + 1).mod(options.size)]
 }
@@ -288,6 +344,8 @@ object FilterState {
 		get() = active.stock
 	val stability: StabilityFilter
 		get() = active.stability
+	val pair: PerkPairFilter
+		get() = active.pair
 	val autoPinRules: MutableList<AutoPinRule>
 		get() = active.autoPinRules
 
@@ -306,6 +364,7 @@ object FilterState {
 		if (spot.kind != kind) return false
 		if (spot.stock == StockLevel.DEPLETED && !stock.allowsDepleted()) return false
 		if (!stock.matches(spot)) return false
+		if (!pair.matches(spot)) return false
 		if (kind == SpotKind.GROTTO && !stability.matches(spot)) return false
 		val activeSlots = slots.filter { it.isActive }
 		if (activeSlots.isEmpty()) return true
@@ -353,6 +412,10 @@ object FilterState {
 					return@sortedWith if (slot.sortDir == SortDir.DESC) -cmp else cmp
 				}
 			}
+			if (profile.pair.enabled) {
+				val pairCmp = b.pairSum().compareTo(a.pairSum())
+				if (pairCmp != 0) return@sortedWith pairCmp
+			}
 			if (grotto) {
 				val costCmp = (b.stability?.rank ?: 0).compareTo(a.stability?.rank ?: 0)
 				if (costCmp != 0) return@sortedWith costCmp
@@ -388,7 +451,7 @@ object FilterState {
 object AutoPin {
 	fun apply(spot: FishingSpot) {
 		if (spot.stock == StockLevel.DEPLETED) {
-			if (spot.autoPinned) {
+			if (kcl.spotfilter.client.config.SpotFilterConfig.instance.kickDepleted && spot.pinned) {
 				SpotPool.setPinned(spot, false)
 			}
 			return

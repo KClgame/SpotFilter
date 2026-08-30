@@ -133,6 +133,24 @@ data class FishingSpot(
 	fun hasPerk(type: PerkType): Boolean =
 		perks.any { it.type == type }
 
+	fun pairTypes(): Pair<PerkType, PerkType>? = when (familyGroup()) {
+		0 -> PerkType.STRONG_HOOK to PerkType.WISE_HOOK
+		1 -> PerkType.GLIMMERING_HOOK to PerkType.PEARL_MAGNET
+		2 -> PerkType.GREEDY_HOOK to PerkType.TREASURE_MAGNET
+		3 -> PerkType.LUCKY_HOOK to PerkType.SPIRIT_MAGNET
+		else -> null
+	}
+
+	fun pairSum(): Int {
+		val types = pairTypes() ?: return 0
+		return perkOrZero(types.first) + perkOrZero(types.second)
+	}
+
+	private fun perkOrZero(type: PerkType): Int = perkValue(type).coerceAtLeast(0)
+
+	fun contentFingerprint(): String =
+		"${kind.name}|${stability?.name}|${perks.joinToString(",") { "${it.type.name}:${it.value}" }}"
+
 	fun stockDisplayRgb(): Int = stockRgb ?: stock?.rgb ?: 0xAAAAAA
 
 	fun stabilityDisplayRgb(): Int = stabilityRgb ?: stability?.rgb ?: 0xAAAAAA

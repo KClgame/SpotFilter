@@ -72,7 +72,12 @@ class AutoPinRuleScreen(
 		addRenderableWidget(
 			Button.builder(Component.literal(rule.stock.compactLabel())) { _ ->
 				minecraft.gui.setScreen(StockFilterScreen(this, rule.stock, applyAutoPin = true))
-			}.bounds(8, 146, width - 16, 20).build()
+			}.bounds(8, 146, (width - 20) / 2, 20).build()
+		)
+		addRenderableWidget(
+			Button.builder(Component.literal(rule.pair.compactLabel())) { _ ->
+				minecraft.gui.setScreen(PairFilterScreen(this, rule.pair, applyAutoPin = true))
+			}.bounds(16 + (width - 20) / 2, 146, (width - 20) / 2, 20).build()
 		)
 
 		var colorY = 186

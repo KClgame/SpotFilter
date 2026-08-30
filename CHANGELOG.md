@@ -2,6 +2,21 @@
 
 SpotFilter 版本记录。最新在上。发布包见 [GitHub Releases](https://github.com/KClgame/SpotFilter/releases)。
 
+## 1.6.2 — 2026-08-30
+
+Perk picker is mode-exclusive: Normal can use Wayfinder Data (not Grotto 100% Chances); Grotto can use Fish Chance (not Wayfinder Data or other 100% Chances).
+
+## 1.6.1 — 2026-08-30
+
+Filter 顶栏新增 Kick Depleted（在 Enabled 之前）。On 时 Depleted 会取消钉选并移出附近点池；Off 时保留。顶栏按钮均有悬浮说明。
+
+## 1.6.0 — 2026-08-30
+
+- 替换 Treasure Magnet icon
+- 新增 Pair 筛选：按点种类把两条加成相加（鱼=Strong+Wise，珍珠/宝藏/魂=对应 Hook+Magnet），10%–60%，比较符与 Between；Normal / Grotto 分开
+- Normal 刷新改为整点+1 分钟，或 2 秒内 ≥3 个点同时变化；同一 xz 不同 y 只留新点
+- Grotto 刷新改为聊天检测 `Your Grotto has become unstable`
+
 ## 1.5.4 — 2026-08-29
 
 去掉叠在下面的小号 gizmo 引导字，只保留客户端 `text_display`，高度为原标签下方 0.5 格。

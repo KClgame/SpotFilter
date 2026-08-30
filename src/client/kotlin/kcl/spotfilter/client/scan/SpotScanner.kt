@@ -9,7 +9,7 @@ import net.minecraft.world.phys.AABB
 
 object SpotScanner {
 	fun tick(client: Minecraft) {
-		SpotPool.tickHourlyReset()
+		SpotPool.tickNormalClockReset()
 		val level = client.level
 		val player = client.player
 		if (level == null || player == null) {
@@ -30,6 +30,7 @@ object SpotScanner {
 		}
 
 		SpotPool.dropMissingNearPlayer(seen, now)
+		SpotPool.finishNormalScan(seen)
 		PinnedSpotMarker.tick()
 	}
 }

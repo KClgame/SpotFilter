@@ -10,6 +10,7 @@ import kcl.spotfilter.client.ui.SpotHud
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper
+import net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents
 import net.minecraft.client.KeyMapping
 import org.lwjgl.glfw.GLFW
 
@@ -38,6 +39,7 @@ object SpotFilterClient : ClientModInitializer {
 		SpotHud.register()
 		kcl.spotfilter.client.world.PinnedSpotMarker.register()
 		SpotCommands.register()
+		registerGrottoChatRefresh()
 
 		ClientTickEvents.END_CLIENT_TICK.register { client ->
 			while (openFilter.consumeClick()) {
@@ -56,6 +58,20 @@ object SpotFilterClient : ClientModInitializer {
 				SpotFilterConfig.save()
 			}
 			SpotScanner.tick(client)
+		}
+	}
+
+	private fun registerGrottoChatRefresh() {
+		val needle = "Your Grotto has become unstable"
+		ClientReceiveMessageEvents.GAME.register { message, _ ->
+			if (message.string.contains(needle, ignoreCase = true)) {
+				SpotPool.refreshGrottoFromChat()
+			}
+		}
+		ClientReceiveMessageEvents.CHAT.register { message, _, _, _, _ ->
+			if (message.string.contains(needle, ignoreCase = true)) {
+				SpotPool.refreshGrottoFromChat()
+			}
 		}
 	}
 }

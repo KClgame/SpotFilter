@@ -9,10 +9,14 @@ import net.minecraft.client.Minecraft
 object SpotPool {
 	private const val DEPLETE_RANGE = 48.0
 	private val depleteRangeSq = DEPLETE_RANGE * DEPLETE_RANGE
+	private const val WAVE_WINDOW_MS = 2000L
+	private const val WAVE_THRESHOLD = 3
 
 	private val spots = LinkedHashMap<SpotKey, FishingSpot>()
 	private var nextId = 1
-	private var lastLocalHour: Int? = null
+	private var lastNormalRefreshHour: Int? = null
+	private var waveStartMs = 0L
+	private var waveChanges = 0
 
 	fun all(): Collection<FishingSpot> = spots.values
 
@@ -35,6 +39,9 @@ object SpotPool {
 	}
 
 	fun upsert(incoming: FishingSpot) {
+		if (incoming.kind == SpotKind.NORMAL) {
+			replaceNormalColumn(incoming)
+		}
 		val existing = spots[incoming.key]
 		if (existing == null) {
 			incoming.id = nextId++
@@ -44,6 +51,7 @@ object SpotPool {
 		} else {
 			val becameDepleted =
 				incoming.stock == StockLevel.DEPLETED && existing.stock != StockLevel.DEPLETED
+			val previousFingerprint = existing.contentFingerprint()
 			existing.entityId = incoming.entityId
 			existing.x = incoming.x
 			existing.y = incoming.y
@@ -56,7 +64,10 @@ object SpotPool {
 			existing.stability = incoming.stability
 			existing.stabilityRgb = incoming.stabilityRgb
 			existing.stabilityRange = incoming.stabilityRange
-			if (becameDepleted && existing.autoPinned) {
+			if (existing.kind == SpotKind.NORMAL && previousFingerprint != incoming.contentFingerprint()) {
+				noteNormalWave()
+			}
+			if (becameDepleted && shouldKickDepleted()) {
 				setPinned(existing, false)
 			}
 			AutoPin.apply(existing)
@@ -105,17 +116,71 @@ object SpotPool {
 		nextId = 1
 	}
 
-	fun tickHourlyReset() {
-		val hour = java.time.LocalTime.now().hour
-		val previous = lastLocalHour
-		lastLocalHour = hour
+	fun clearKind(kind: SpotKind) {
+		val keys = spots.filter { it.value.kind == kind }.keys.toList()
+		keys.forEach { remove(it) }
+	}
+
+	fun tickNormalClockReset() {
+		val now = java.time.LocalTime.now()
+		val hour = now.hour
+		if (now.minute < 1) return
+		val previous = lastNormalRefreshHour
+		lastNormalRefreshHour = hour
 		if (previous != null && previous != hour) {
-			clearSpots()
-			val client = Minecraft.getInstance()
-			client.player?.sendSystemMessage(
-				net.minecraft.network.chat.Component.literal("SpotFilter: fishing spots refreshed")
-			)
+			clearKind(SpotKind.NORMAL)
+			notifyRefresh("SpotFilter: island spots refreshed")
 		}
+	}
+
+	fun finishNormalScan(seen: Set<SpotKey>) {
+		if (waveChanges < WAVE_THRESHOLD) return
+		val stale = spots.filter { it.value.kind == SpotKind.NORMAL && it.key !in seen }.keys.toList()
+		if (stale.isEmpty()) {
+			waveChanges = 0
+			return
+		}
+		stale.forEach { remove(it) }
+		waveChanges = 0
+		notifyRefresh("SpotFilter: island spots refreshed")
+	}
+
+	fun refreshGrottoFromChat() {
+		clearKind(SpotKind.GROTTO)
+		notifyRefresh("SpotFilter: grotto spots refreshed")
+	}
+
+	private fun replaceNormalColumn(incoming: FishingSpot) {
+		val stale = spots.filter { (_, spot) ->
+			spot.kind == SpotKind.NORMAL &&
+				spot.key.dimension == incoming.key.dimension &&
+				spot.x == incoming.x &&
+				spot.z == incoming.z &&
+				spot.y != incoming.y
+		}.keys.toList()
+		if (stale.isNotEmpty()) noteNormalWave()
+		stale.forEach { remove(it) }
+	}
+
+	private fun noteNormalWave() {
+		val now = System.currentTimeMillis()
+		if (now - waveStartMs > WAVE_WINDOW_MS) {
+			waveStartMs = now
+			waveChanges = 0
+		}
+		waveChanges++
+	}
+
+	fun kickDepletedNow() {
+		spots.values.filter { it.stock == StockLevel.DEPLETED && it.pinned }.toList().forEach { setPinned(it, false) }
+	}
+
+	fun shouldKickDepleted(): Boolean = kcl.spotfilter.client.config.SpotFilterConfig.instance.kickDepleted
+
+	private fun notifyRefresh(text: String) {
+		Minecraft.getInstance().player?.sendSystemMessage(
+			net.minecraft.network.chat.Component.literal(text)
+		)
 	}
 
 	fun dropMissingNearPlayer(seenKeys: Set<SpotKey>, now: Long) {
@@ -132,7 +197,7 @@ object SpotPool {
 			val distSq = dx * dx + dy * dy + dz * dz
 			if (distSq > depleteRangeSq) continue
 			if (!level.isLoaded(net.minecraft.core.BlockPos(spot.x, spot.y, spot.z))) continue
-			if (spot.pinned && !spot.autoPinned) {
+			if (spot.pinned && !shouldKickDepleted()) {
 				spot.stock = StockLevel.DEPLETED
 				continue
 			}
