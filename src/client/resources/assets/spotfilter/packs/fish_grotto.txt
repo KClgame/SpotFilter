@@ -78,15 +78,18 @@ name=low cost 鱼点
 nick=低价鱼
 mode=AND
 enabled=true
+f1=Fish Chance
 cost== Low
 
 name=medium cost 鱼点
 nick=中价鱼
 mode=AND
 enabled=true
+f1=Fish Chance
 
 name=high cost 鱼点
 nick=高价鱼
 mode=AND
 enabled=false
+f1=Fish Chance
 cost== High

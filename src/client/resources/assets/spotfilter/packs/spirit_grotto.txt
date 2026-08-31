@@ -66,15 +66,19 @@ name=low cost 灵魂点
 nick=低价灵魂
 mode=AND
 enabled=true
+f1=Spirit Chance
 cost== Low
 
 name=medium cost 灵魂点
 nick=中价灵魂
 mode=AND
 enabled=true
+f1=Spirit Chance
+cost== Medium
 
 name=high cost 灵魂点
 nick=高价灵魂
 mode=AND
 enabled=false
+f1=Spirit Chance
 cost== High
