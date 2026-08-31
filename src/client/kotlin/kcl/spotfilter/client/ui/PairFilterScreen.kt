@@ -101,11 +101,17 @@ class PairFilterScreen(
 	}
 
 	override fun keyPressed(event: KeyEvent): Boolean {
-		if (event.key() == GLFW.GLFW_KEY_ESCAPE || event.key() == GLFW.GLFW_KEY_O) {
+		if (event.key() == GLFW.GLFW_KEY_ESCAPE) {
 			onClose()
 			return true
 		}
-		return super.keyPressed(event)
+		if (super.keyPressed(event)) return true
+		if (typingInBox()) return true
+		if (event.key() == GLFW.GLFW_KEY_O) {
+			onClose()
+			return true
+		}
+		return false
 	}
 
 	override fun onClose() {

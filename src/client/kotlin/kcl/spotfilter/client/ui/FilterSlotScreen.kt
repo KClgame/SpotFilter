@@ -88,7 +88,7 @@ class FilterSlotScreen(
 		if (perk != null && !perk.hasVariableValue) {
 			graphics.text(
 				font,
-				Component.literal("Fixed bonus — value compare is hidden"),
+				Component.literal("Fixed value — selected means this perk is present"),
 				width / 2 - 110,
 				70,
 				0xFFAAAAAA.toInt(),
@@ -98,11 +98,17 @@ class FilterSlotScreen(
 	}
 
 	override fun keyPressed(event: KeyEvent): Boolean {
-		if (event.key() == GLFW.GLFW_KEY_ESCAPE || event.key() == GLFW.GLFW_KEY_O) {
+		if (event.key() == GLFW.GLFW_KEY_ESCAPE) {
 			onClose()
 			return true
 		}
-		return super.keyPressed(event)
+		if (super.keyPressed(event)) return true
+		if (typingInBox()) return true
+		if (event.key() == GLFW.GLFW_KEY_O) {
+			onClose()
+			return true
+		}
+		return false
 	}
 
 	override fun onClose() {

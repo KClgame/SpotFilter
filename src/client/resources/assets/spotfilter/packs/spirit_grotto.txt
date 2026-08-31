@@ -1,0 +1,80 @@
+# SpotFilter Auto Pin rules
+# Path: config/spotfilter/rules.txt
+# Reload in-game: /sf reload   or   /sf rules reload
+# Docs: README.md  (Auto Pin 与 rules.txt)
+#
+# [normal]  island spots
+# [grotto]  Stability Cost spots
+#
+# Each rule starts with name=
+#   nick=HUD / world-guide group name  (Name #1, #2…)
+#   color=#RRGGBB
+#   mode=AND|OR
+#   enabled=true|false
+#   f1=Strong Hook >= 20
+#   f2=Fish Magnet = 200
+#   f3=Pearl Chance
+#   f1=Fish Magnet between 10 30
+#   stock >= High
+#   stock between Medium Plentiful
+#   pair >= 40
+#   pair between 30 60
+#   cost <= Medium
+#
+# Blank line ends a rule. Lines starting with # or // are comments.
+
+# Grotto pack file (*_grotto.txt)
+
+[grotto]
+name=60灵魂点
+nick=60灵魂
+mode=AND
+enabled=true
+f1=Lucky Hook >= 30
+f2=Spirit Magnet >= 30
+pair=>= 60
+
+name=50灵魂点
+nick=50灵魂
+mode=AND
+enabled=true
+f1=Lucky Hook >= 20
+f2=Spirit Magnet >= 20
+pair=>= 50
+
+name=40灵魂点
+nick=40灵魂
+mode=AND
+enabled=true
+f1=Lucky Hook >= 10
+f2=Spirit Magnet >= 10
+pair=>= 40
+
+name=30 lucky hook
+nick=更好的灵魂
+mode=AND
+enabled=true
+f1=Lucky Hook >= 30
+
+name=30 spirit magnet
+nick=好多灵魂
+mode=AND
+enabled=true
+f1=Spirit Magnet >= 30
+
+name=low cost 灵魂点
+nick=低价灵魂
+mode=AND
+enabled=true
+cost== Low
+
+name=medium cost 灵魂点
+nick=中价灵魂
+mode=AND
+enabled=true
+
+name=high cost 灵魂点
+nick=高价灵魂
+mode=AND
+enabled=false
+cost== High

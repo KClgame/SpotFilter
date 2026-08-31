@@ -1,0 +1,29 @@
+# SpotFilter Auto Pin rules
+# Path: config/spotfilter/rules.txt
+# Reload in-game: /sf reload   or   /sf rules reload
+# Docs: README.md  (Auto Pin 与 rules.txt)
+#
+# [normal]  island spots
+# [grotto]  Stability Cost spots
+#
+# Each rule starts with name=
+#   nick=HUD / world-guide group name  (Name #1, #2…)
+#   color=#RRGGBB
+#   mode=AND|OR
+#   enabled=true|false
+#   f1=Strong Hook >= 20
+#   f2=Fish Magnet = 200
+#   f3=Pearl Chance
+#   f1=Fish Magnet between 10 30
+#   stock >= High
+#   stock between Medium Plentiful
+#   pair >= 40
+#   pair between 30 60
+#   cost <= Medium
+#
+# Blank line ends a rule. Lines starting with # or // are comments.
+
+# Normal pack file (name.txt)
+
+[normal]
+# (no rules)

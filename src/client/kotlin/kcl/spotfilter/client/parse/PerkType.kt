@@ -77,8 +77,8 @@ enum class PerkType(
 		get() = kind == PerkKind.HOOK || kind == PerkKind.MAGNET
 
 	fun allowedIn(spotKind: SpotKind): Boolean = when (spotKind) {
-		SpotKind.NORMAL -> !isGrottoChance
-		SpotKind.GROTTO -> this != WAYFINDER_DATA && (!isGrottoChance || this == FISH_CHANCE)
+		SpotKind.NORMAL -> this != FISH_CHANCE
+		SpotKind.GROTTO -> this != WAYFINDER_DATA
 	}
 
 	fun valueLabel(value: Int): String =

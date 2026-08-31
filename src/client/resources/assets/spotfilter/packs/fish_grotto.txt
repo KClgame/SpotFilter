@@ -1,0 +1,92 @@
+# SpotFilter Auto Pin rules
+# Path: config/spotfilter/rules.txt
+# Reload in-game: /sf reload   or   /sf rules reload
+# Docs: README.md  (Auto Pin 与 rules.txt)
+#
+# [normal]  island spots
+# [grotto]  Stability Cost spots
+#
+# Each rule starts with name=
+#   nick=HUD / world-guide group name  (Name #1, #2…)
+#   color=#RRGGBB
+#   mode=AND|OR
+#   enabled=true|false
+#   f1=Strong Hook >= 20
+#   f2=Fish Magnet = 200
+#   f3=Pearl Chance
+#   f1=Fish Magnet between 10 30
+#   stock >= High
+#   stock between Medium Plentiful
+#   pair >= 40
+#   pair between 30 60
+#   cost <= Medium
+#
+# Blank line ends a rule. Lines starting with # or // are comments.
+
+# Grotto pack file (*_grotto.txt)
+
+[grotto]
+name=60鱼点
+nick=60鱼点
+mode=AND
+enabled=true
+f1=Strong Hook >= 30
+f2=Wise Hook >= 30
+pair=>= 60
+
+name=50鱼点
+nick=50鱼点
+mode=AND
+enabled=true
+f1=Strong Hook >= 20
+f2=Wise Hook >= 20
+pair=>= 50
+
+name=40鱼点
+nick=40鱼点
+mode=AND
+enabled=true
+f1=Strong Hook >= 10
+f2=Wise Hook >= 10
+pair=>= 40
+
+name=30 strong hook
+nick=大鱼喵喵
+mode=AND
+enabled=true
+f1=Strong Hook >= 30
+
+name=30 wise hook
+nick=好鱼喵喵
+mode=AND
+enabled=true
+f1=Wise Hook >= 30
+
+name=30 fish magnet
+nick=好多鱼
+mode=AND
+enabled=true
+f1=Fish Magnet > 30
+
+name=200 fish magnet
+nick=超多鱼
+mode=AND
+enabled=true
+f1=Fish Magnet >= 200
+
+name=low cost 鱼点
+nick=低价鱼
+mode=AND
+enabled=true
+cost== Low
+
+name=medium cost 鱼点
+nick=中价鱼
+mode=AND
+enabled=true
+
+name=high cost 鱼点
+nick=高价鱼
+mode=AND
+enabled=false
+cost== High

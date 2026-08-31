@@ -436,7 +436,9 @@ object FilterState {
 	}
 
 	private fun customGroupOrder(name: String, profile: FilterProfile): Int {
-		val index = profile.autoPinRules.indexOfFirst { it.nickname.trim().equals(name, ignoreCase = true) }
+		val index = profile.autoPinRules.indexOfFirst {
+			kcl.spotfilter.client.config.RulePacks.groupingName(it).equals(name, ignoreCase = true)
+		}
 		return if (index >= 0) index else 1_000 + name.lowercase().hashCode().and(0x7fffffff) % 1_000
 	}
 
@@ -462,7 +464,7 @@ object AutoPin {
 		if (rule != null) {
 			spot.pinColorOverride = rule.customRgb()
 			spot.autoPinned = true
-			SpotPool.assignGroup(spot, rule.nickname)
+			SpotPool.assignGroup(spot, kcl.spotfilter.client.config.RulePacks.groupingName(rule))
 			if (!spot.pinned) {
 				SpotPool.setPinned(spot, true)
 			} else {

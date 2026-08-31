@@ -135,7 +135,13 @@ class PerkPickerScreen(
 			onClose()
 			return true
 		}
-		return super.keyPressed(event)
+		if (super.keyPressed(event)) return true
+		if (typingInBox()) return true
+		if (event.key() == GLFW.GLFW_KEY_O) {
+			onClose()
+			return true
+		}
+		return false
 	}
 
 	override fun onClose() {

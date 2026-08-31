@@ -7,6 +7,7 @@ import kcl.spotfilter.client.data.SpotPool
 import kcl.spotfilter.client.scan.SpotScanner
 import kcl.spotfilter.client.ui.FilterScreen
 import kcl.spotfilter.client.ui.SpotHud
+import kcl.spotfilter.client.ui.typingInBox
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper
@@ -43,17 +44,21 @@ object SpotFilterClient : ClientModInitializer {
 
 		ClientTickEvents.END_CLIENT_TICK.register { client ->
 			while (openFilter.consumeClick()) {
-				if (client.gui.screen() is FilterScreen) {
+				val screen = client.gui.screen()
+				if (screen.typingInBox()) continue
+				if (screen is FilterScreen) {
 					client.gui.setScreen(null)
-				} else if (client.gui.screen() == null) {
+				} else if (screen == null) {
 					client.gui.setScreen(FilterScreen())
 				}
 			}
 			while (clearSpots.consumeClick()) {
+				if (client.gui.screen().typingInBox()) continue
 				SpotPool.clearSpots()
 			}
 			while (toggleHud.consumeClick()) {
 				if (client.gui.screen() is kcl.spotfilter.client.ui.PerkPickerScreen) continue
+				if (client.gui.screen().typingInBox()) continue
 				SpotFilterConfig.instance.hudVisible = !SpotFilterConfig.instance.hudVisible
 				SpotFilterConfig.save()
 			}

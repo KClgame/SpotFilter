@@ -63,11 +63,11 @@ object RulesFile {
 		Files.writeString(path, TEMPLATE, StandardCharsets.UTF_8)
 	}
 
-	fun parse(text: String): RulesLoadResult {
+	fun parse(text: String, defaultKind: SpotKind = SpotKind.NORMAL): RulesLoadResult {
 		val normal = ArrayList<AutoPinRule>()
 		val grotto = ArrayList<AutoPinRule>()
 		val errors = ArrayList<String>()
-		var kind = SpotKind.NORMAL
+		var kind = defaultKind
 		var current: AutoPinRule? = null
 		var nextSlot = 0
 
@@ -200,6 +200,13 @@ object RulesFile {
 		appendSection("normal", normal)
 		appendLine()
 		appendSection("grotto", grotto)
+	}
+
+	fun formatKind(kind: SpotKind, rules: List<AutoPinRule>): String = buildString {
+		appendLine(HEADER)
+		appendLine(if (kind == SpotKind.GROTTO) "# Grotto pack file (*_grotto.txt)" else "# Normal pack file (name.txt)")
+		appendLine()
+		appendSection(if (kind == SpotKind.GROTTO) "grotto" else "normal", rules)
 	}
 
 	private fun StringBuilder.appendSection(title: String, rules: List<AutoPinRule>) {

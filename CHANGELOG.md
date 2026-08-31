@@ -2,6 +2,14 @@
 
 SpotFilter 版本记录。最新在上。发布包见 [GitHub Releases](https://github.com/KClgame/SpotFilter/releases)。
 
+## 1.7.0 — 2026-08-31
+
+- Auto Pin config packs: builtin **fish / pearl / treasure / spirit / xp_wayfinder** plus **blank**. Default Normal and Grotto rules shipped in the jar (xp_wayfinder Grotto empty). Multiple packs can be enabled in parallel. Duplicate rule names share one numbering group.
+- Pearl / Treasure / Spirit Chance can be selected as filters in both Normal and Grotto (fixed presence, no numeric compare). Wayfinder Data remains Normal-only; Fish Chance remains Grotto-only.
+- Typing in Auto Pin / pack name fields no longer treats **O** as back to Filter.
+- Filter top-row buttons use equal widths.
+- Grotto pin / world-guide color: Auto Pin `#RRGGBB` > Stability Cost color > perk family color.
+
 ## 1.6.2 — 2026-08-30
 
 Perk picker is mode-exclusive: Normal can use Wayfinder Data (not Grotto 100% Chances); Grotto can use Fish Chance (not Wayfinder Data or other 100% Chances).

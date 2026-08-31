@@ -1,6 +1,6 @@
 # SpotFilter
 
-**v1.6.2** · Minecraft **26.2** · Fabric · 纯客户端
+**v1.7.0** · Minecraft **26.2** · Fabric · 纯客户端
 
 MCC Island 钓鱼点扫描、筛选、坐标 HUD 与世界透视引导。走近标题含 `Fishing Spot` 的 Text Display 即可收录。
 
@@ -23,7 +23,7 @@ Client-only Fabric mod that scans MCC Island fishing-spot labels, filters and so
 - [Normal 与 Grotto](#normal-与-grotto)
 - [筛选](#筛选)
 - [分组、编号与颜色](#分组编号与颜色)
-- [Auto Pin 与 `rules.txt`](#auto-pin-与-rulestxt)
+- [Auto Pin 配置包](#auto-pin-配置包)
 - [HUD](#hud)
 - [世界引导](#世界引导)
 - [扫描与生命周期](#扫描与生命周期)
@@ -53,7 +53,7 @@ Client-only Fabric mod that scans MCC Island fishing-spot labels, filters and so
 ## 安装
 
 1. 安装 Fabric Loader（26.2）与上述依赖。
-2. 从 [Releases](https://github.com/KClgame/SpotFilter/releases) 下载 `spotfilter-1.6.2.jar`，放入 `.minecraft/mods/`。
+2. 从 [Releases](https://github.com/KClgame/SpotFilter/releases) 下载 `spotfilter-1.7.0.jar`，放入 `.minecraft/mods/`。
 3. 启动游戏。控件里应出现 **SpotFilter** 分类。
 
 ---
@@ -92,8 +92,8 @@ Client-only Fabric mod that scans MCC Island fishing-spot labels, filters and so
 | `/sf list` `[pinned\|all]` | 列出当前组匹配点 / 已钉选 |
 | `/sf pin <id\|all>` `/sf unpin <id\|all>` | 按组内编号钉选 / 取消 |
 | `/sf autopin apply` | 按当前组规则重跑 Auto Pin |
-| `/sf reload` `/sf save` | 重读 / 写出 `config/spotfilter.json`，并读写 `config/spotfilter/rules.txt` |
-| `/sf rules` `/sf rules reload` | 查看 / 重载 Auto Pin 规则文件 |
+| `/sf reload` `/sf save` | 重读 / 写出 `config/spotfilter.json`，并重载 Auto Pin 配置包 |
+| `/sf rules` `/sf rules reload` | 查看已启用的配置包 |
 
 `/sf pin` 的 `id` 是当前组排序后的 **#编号**，不是扫描顺序。
 
@@ -166,7 +166,7 @@ Normal 与 Grotto **各有一套** Pair 设置。Grotto 仍按上面配对，100
 2. Hook / Magnet 才有数值比较：
    - **Compare**：`>` `>=` `<` `<=` `=` `Between`
    - **Value**：`+10%` / `+20%` / `+30%`（Wayfinder Data 为 `+10`）。Fish Magnet 另有 **`+200%`**。**Between** 时为 Lower / Upper 两个值。
-3. 固定加成没有数值比较，只判断有无该词条。**Normal 只能选 Wayfinder Data**（不含 100% Chance）；**Grotto 只能选 Fish Chance**（不含 Wayfinder Data 和其他 100% Chance）。二者互斥。Hook / Magnet / Elusive Chance 两边都能选。
+3. 固定加成没有数值比较，选中即表示「点上有这条词条」。**Pearl / Treasure / Spirit Chance** 在 Normal 与 Grotto 都能选。**Wayfinder Data** 仅 Normal；**Fish Chance** 仅 Grotto。Hook / Magnet / Elusive Chance 两边都能选。
 4. **Sort**：High → Low 或 Low → High。多槽同时启用时，按 F1 → F2 → F3 依次比较。
 5. **Clear this filter** 清空本槽。
 
@@ -202,8 +202,8 @@ Normal 与 Grotto **各有一套** Pair 设置。Grotto 仍按上面配对，100
 
 优先级：
 
-1. Auto Pin 规则里的 `#RRGGBB`
-2. **Grotto**：Fish / Pearl / Treasure / Spirit Chance 本身的颜色（XP Magnet、Wayfinder Data 不染色）
+1. Auto Pin 规则里的 `#RRGGBB`（最高）
+2. **Grotto**：Stability Cost 色（每个 Grotto 点都有 Cost；Low `#65FEFE` / Medium `#55FE56` / High `#FEFE55`）。词条家族色低于 Cost，默认不用 perk 染引导。
 3. **Normal**：主词条家族色
 
 家族默认色：
@@ -216,29 +216,27 @@ Normal 与 Grotto **各有一套** Pair 设置。Grotto 仍按上面配对，100
 | Treasure | `#FC7D3F` | Greedy Hook、Treasure Magnet、Treasure Chance |
 | Spirit | `#23C525` | Lucky Hook、Spirit Magnet、Spirit Chance |
 
-Compact 模式下 Grotto 的名字和 `#n` 另用 **Stability Cost 色** 显示，方便扫 Cost。
+Compact 模式下 Grotto 的名字和 `#n` 用上面的点色（有 Auto Pin 色则用 Auto Pin，否则用 Cost 色）。
 
 ---
 
-## Auto Pin 与 `rules.txt`
+## Auto Pin 配置包
 
-**Auto Pin** 里可建多条规则：各含 F1–F3、独立 Stock、AND/OR（Grotto 另有 Cost）。命中的点会自动钉上。Normal 与 Grotto 各有一套。
+**Auto Pin** 用多份命名配置并行启用。Filter 里点 Auto Pin 打开配置列表，勾选若干份同时生效。
 
-- **Spot nickname**（可选）：命中后引导与 HUD 显示 `名字 #组内编号`（同一 nickname 从 1 递增）
-- 规则里填写 `#RRGGBB` 则该规则钉上的点统一用这个色
-- 不再命中规则的自动 Pin 会撤掉；**手动 Pin** 不受影响
-- Stock 变成 **Depleted** 时，自动 Pin 会撤掉；手动 Pin 会留下（引导还在，Stock 标成 Depleted）
+| 文件 | 内容 |
+| --- | --- |
+| `config/spotfilter/packs/<name>.txt` | Normal 规则 |
+| `config/spotfilter/packs/<name>_grotto.txt` | Grotto 规则 |
+| `config/spotfilter/export/` | Export as file 的输出 |
 
-规则的**源文件**是 UTF-8 文本：
+内置 **fish / pearl / treasure / spirit / xp_wayfinder** 和 **blank**（空白）。Normal 与 Grotto 默认规则都写在模组里（xp_wayfinder 的 Grotto 仍空）。首次启动写出到 `packs/`；空的内置占位文件会被模组规则替换，已有 `name=` 的文件不覆盖。可 Create 新包，Load file 从路径导入，Export 写出两份 txt。旧的 `config/spotfilter/rules.txt` 若存在会导入为 `legacy` 包（默认不勾选）。已有空的 `default` 文件会当成普通用户包，不再作为内置。
+
+- 勾选上的包 **并行**：规则合并进 Auto Pin
+- 不同包里 **规则 `name=` 或 `nick=` 相同** 视为同一分组编号（`大鱼 #1` `#2`…）
+- 每条规则仍含 F1–F3、Stock、Pair、AND/OR（Grotto 另有 Cost）、可选 nickname 与 `#RRGGBB`
 
 ```
-config/spotfilter/rules.txt
-```
-
-进游戏、`/sf reload`、`/sf rules reload`、Auto Pin 界面的 **Reload rules.txt** 都会读取。Filter 里改规则并保存会写回这个文件。首次启动若不存在，会写出带注释的模板。
-
-```
-[normal]
 name=Big Fish
 nick=大鱼喵喵
 color=#2199F0
@@ -247,25 +245,10 @@ enabled=true
 f1=Strong Hook >= 20
 f2=Wise Hook >= 20
 stock >= High
-
-[grotto]
-name=Cheap Pearl
-nick=珍珠
-f1=Glimmering Hook >= 20
-cost <= Medium
+pair >= 40
 ```
 
-要点：
-
-- `[normal]`（或 `[island]`）与 `[grotto]` 分段。空行结束一条规则。`#` 或 `//` 开头为注释。
-- `name=` 开始一条新规则。`nick=` / `nickname=`、`color=` / `hex=`、`mode=AND|OR`、`enabled=true|false`。
-- `f1` / `f2` / `f3` 为词条。也可直接写一行词条条件，自动填入空槽。
-- Compare：`>` `>=` `<` `<=` `=` `between`（或 `..`）。Fish Magnet 支持 `= 200`。
-- 固定词条只写名字，例如 `f3=Pearl Chance`。
-- `stock >= High`、`stock between Medium Plentiful`。
-- Grotto：`cost <= Medium`（也可用 `stability=`）。
-
-词条别名示例：`strong`、`wise`、`fishmagnet`、`wayfinder`、`fishchance`。完整显示名（`Strong Hook`）始终可用。
+空行结束一条规则。`#` 或 `//` 为注释。Grotto 文件里可用 `cost <= Medium`。
 
 ---
 
@@ -335,10 +318,10 @@ Plentiful · Very High · High · Medium · Low · Depleted
 
 | 文件 | 内容 |
 | --- | --- |
-| `config/spotfilter.json` | HUD 位置/缩放/透明度/布局、总开关、当前 Kind、Filter 槽 |
-| `config/spotfilter/rules.txt` | Auto Pin 规则（源文件，UTF-8） |
+| `config/spotfilter.json` | HUD、总开关、Kick Depleted、Filter 槽、已启用的配置包 id |
+| `config/spotfilter/packs/` | Auto Pin 配置包（`<name>.txt` 与 `<name>_grotto.txt`） |
 
-改 JSON 后用 `/sf reload`。改 `rules.txt` 后用 `/sf reload` 或 `/sf rules reload`。在 Filter 里保存会同时写回这两个文件。
+改 JSON 或 packs 后用 `/sf reload`。Export 写到 `config/spotfilter/export/`。
 
 ---
 
@@ -394,7 +377,7 @@ Normal 在整点+1 分钟或一波多点同时变时清空；Grotto 只在聊天
 ./gradlew build
 ```
 
-产物：`build/libs/spotfilter-1.6.2.jar`
+产物：`build/libs/spotfilter-1.7.0.jar`
 
 需要 JDK 25。变更记录见 [CHANGELOG.md](CHANGELOG.md)。
 

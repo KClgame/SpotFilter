@@ -40,7 +40,7 @@ object SpotLines {
 
 	fun compactParts(spot: FishingSpot): List<LinePart> {
 		val parts = ArrayList<LinePart>(12)
-		val idRgb = if (spot.kind == SpotKind.GROTTO) spot.stabilityDisplayRgb() else WHITE
+		val idRgb = if (spot.kind == SpotKind.GROTTO) spot.markerRgb() else WHITE
 		parts += LinePart(
 			text = Component.literal(spot.groupLabel()).withStyle(Style.EMPTY.withColor(idRgb)),
 			gapAfter = 3

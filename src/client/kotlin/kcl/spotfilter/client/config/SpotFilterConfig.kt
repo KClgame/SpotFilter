@@ -86,6 +86,7 @@ class SpotFilterConfig {
 	var kickDepleted: Boolean = true
 	var enabled: Boolean = true
 	var spotKind: String = SpotKind.NORMAL.name
+	var enabledPacks: MutableList<String> = arrayListOf("fish", "pearl", "treasure", "spirit", "xp_wayfinder")
 	var normal: FilterProfileConfig = FilterProfileConfig()
 	var grotto: FilterProfileConfig = FilterProfileConfig()
 
@@ -126,7 +127,7 @@ class SpotFilterConfig {
 		fun load(): SpotFilterConfig {
 			val loaded = readFile()
 			loaded.applyToState()
-			loadRules()
+			RulePacks.loadAll(loaded.enabledPacks)
 			return loaded
 		}
 
@@ -134,25 +135,15 @@ class SpotFilterConfig {
 			val loaded = readFile()
 			instance.copyFrom(loaded)
 			instance.applyToState()
-			loadRules()
+			RulePacks.loadAll(instance.enabledPacks)
 		}
 
 		fun save() {
 			instance.syncFromState()
+			instance.enabledPacks = RulePacks.enabledIds().toMutableList()
 			instance.clamp()
 			Files.createDirectories(path.parent)
 			Files.newBufferedWriter(path).use { gson.toJson(instance, it) }
-			RulesFile.saveFromState()
-		}
-
-		private fun loadRules() {
-			if (RulesFile.exists()) {
-				RulesFile.applyToState(RulesFile.load())
-			} else if (FilterState.normal.autoPinRules.isNotEmpty() || FilterState.grotto.autoPinRules.isNotEmpty()) {
-				RulesFile.saveFromState()
-			} else {
-				RulesFile.writeTemplateIfMissing()
-			}
 		}
 
 		private fun readFile(): SpotFilterConfig {
@@ -180,6 +171,7 @@ class SpotFilterConfig {
 		kickDepleted = other.kickDepleted
 		enabled = other.enabled
 		spotKind = other.spotKind
+		enabledPacks = ArrayList(other.enabledPacks)
 		normal = other.normal
 		grotto = other.grotto
 		filterMode = other.filterMode
@@ -245,7 +237,7 @@ class SpotFilterConfig {
 		cfg.stock = toStockConfig(profile.stock)
 		cfg.stability = toStabilityConfig(profile.stability)
 		cfg.pair = toPairConfig(profile.pair)
-		cfg.autoPinRules = profile.autoPinRules.map { toRuleConfig(it) }.toMutableList()
+		cfg.autoPinRules = ArrayList()
 		return cfg
 	}
 

@@ -164,8 +164,7 @@ data class FishingSpot(
 	fun markerRgb(): Int {
 		pinColorOverride?.let { return it }
 		if (kind == SpotKind.GROTTO) {
-			val chance = grottoChance()
-			return chance?.resolvedNameRgb() ?: chance?.type?.family?.rgb ?: 0xFFFFFF
+			return stabilityDisplayRgb()
 		}
 		return primaryPerk()?.type?.family?.rgb ?: 0xFFFFFF
 	}

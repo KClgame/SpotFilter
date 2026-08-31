@@ -113,6 +113,7 @@ class AutoPinRuleScreen(
 			Button.builder(Component.literal("Back")) { _ -> onClose() }
 				.bounds(width / 2 - 50, height - 28, 100, 20).build()
 		)
+		setInitialFocus(nameBox)
 	}
 
 	override fun extractRenderState(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, delta: Float) {
@@ -124,7 +125,7 @@ class AutoPinRuleScreen(
 			font,
 			Component.literal(
 				if (grotto) {
-					"Pin color hex (empty = highest bonus, or Chance color)"
+					"Pin color hex (empty = Stability Cost color; perk color is below Cost)"
 				} else {
 					"Pin color hex (empty = Strong/Wise/Pearl/Treasure/Spirit defaults)"
 				}
@@ -146,7 +147,13 @@ class AutoPinRuleScreen(
 			onClose()
 			return true
 		}
-		return super.keyPressed(event)
+		if (super.keyPressed(event)) return true
+		if (typingInBox()) return true
+		if (event.key() == GLFW.GLFW_KEY_O) {
+			onClose()
+			return true
+		}
+		return false
 	}
 
 	override fun onClose() {

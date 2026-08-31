@@ -171,18 +171,18 @@ class FilterScreen : Screen(Component.literal("SpotFilter")) {
 					tip(
 						"Grotto Stability Cost filter.",
 						"Low is best (#65FEFE), then Medium, then High.",
-						"Only shown in Grotto mode."
+						"Grotto pin color uses Cost unless Auto Pin sets a hex."
 					)
 				).bounds(12 + third, 56, third, 20).build()
 			)
 			addRenderableWidget(
 				Button.builder(Component.literal("Auto Pin (${FilterState.autoPinRules.count { it.enabled }})")) { _ ->
-					minecraft.gui.setScreen(AutoPinListScreen(this))
+					minecraft.gui.setScreen(ConfigPacksScreen(this))
 				}.tooltip(
 					tip(
-						"Auto Pin rules for the current mode (Normal / Grotto are separate).",
-						"Matching spots are pinned with optional nickname and color.",
-						"Stored in config/spotfilter/rules.txt."
+						"Auto Pin config packs. Check several to run in parallel.",
+						"Normal: <name>.txt   Grotto: <name>_grotto.txt",
+						"Duplicate rule names share one numbering group."
 					)
 				).bounds(16 + third * 2, 56, third, 20).build()
 			)
@@ -200,12 +200,12 @@ class FilterScreen : Screen(Component.literal("SpotFilter")) {
 			)
 			addRenderableWidget(
 				Button.builder(Component.literal("Auto Pin (${FilterState.autoPinRules.count { it.enabled }})")) { _ ->
-					minecraft.gui.setScreen(AutoPinListScreen(this))
+					minecraft.gui.setScreen(ConfigPacksScreen(this))
 				}.tooltip(
 					tip(
-						"Auto Pin rules for the current mode (Normal / Grotto are separate).",
-						"Matching spots are pinned with optional nickname and color.",
-						"Stored in config/spotfilter/rules.txt."
+						"Auto Pin config packs. Check several to run in parallel.",
+						"Normal: <name>.txt   Grotto: <name>_grotto.txt",
+						"Duplicate rule names share one numbering group."
 					)
 				).bounds(16 + (width - 20) / 2, 56, (width - 20) / 2, 20).build()
 			)
@@ -232,16 +232,12 @@ class FilterScreen : Screen(Component.literal("SpotFilter")) {
 	private fun addTopRow(y: Int, vararg items: TopBtn) {
 		val gap = 3
 		val n = items.size
-		val weights = floatArrayOf(1.45f, 1.0f, 1.15f, 1.15f, 1.0f, 0.7f, 1.1f)
-		val inner = (width - 16 - gap * (n - 1)).toFloat()
-		val weightSum = weights.take(n).sum()
+		val inner = width - 16 - gap * (n - 1)
+		val base = (inner / n).coerceAtLeast(40)
+		val extra = (inner - base * n).coerceAtLeast(0)
 		var x = 8
 		items.forEachIndexed { i, item ->
-			val bw = if (i == n - 1) {
-				(width - 8 - x).coerceAtLeast(40)
-			} else {
-				(inner * weights[i] / weightSum).toInt().coerceAtLeast(40)
-			}
+			val bw = base + if (i < extra) 1 else 0
 			addRenderableWidget(
 				Button.builder(item.message) { btn -> item.onPress(btn) }
 					.tooltip(item.tooltip)
@@ -485,10 +481,16 @@ class FilterScreen : Screen(Component.literal("SpotFilter")) {
 				}
 			}
 			GLFW.GLFW_KEY_O -> {
+				if (typingInBox()) {
+					return super.keyPressed(event) || true
+				}
 				onClose()
 				return true
 			}
 			GLFW.GLFW_KEY_P -> {
+				if (typingInBox()) {
+					return super.keyPressed(event) || true
+				}
 				SpotPool.clearSpots()
 				return true
 			}

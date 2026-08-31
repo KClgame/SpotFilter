@@ -1,6 +1,9 @@
 package kcl.spotfilter.client.ui
 
+import kcl.spotfilter.client.config.RulePack
+import kcl.spotfilter.client.config.RulePacks
 import kcl.spotfilter.client.config.SpotFilterConfig
+import kcl.spotfilter.client.data.SpotKind
 import kcl.spotfilter.client.filter.AutoPin
 import kcl.spotfilter.client.filter.AutoPinRule
 import kcl.spotfilter.client.filter.FilterState
@@ -12,18 +15,20 @@ import net.minecraft.network.chat.Component
 import org.lwjgl.glfw.GLFW
 
 class AutoPinListScreen(
-	private val returnTo: Screen
+	private val returnTo: Screen,
+	private val pack: RulePack
 ) : Screen(Component.literal("Auto Pin")) {
+	private val rules get() = pack.rules(FilterState.kind)
+
 	override fun isPauseScreen(): Boolean = false
 
 	override fun init() {
 		var y = 36
-		FilterState.autoPinRules.forEachIndexed { index, rule ->
+		rules.forEachIndexed { index, rule ->
 			addRenderableWidget(
 				Button.builder(Component.literal(if (rule.enabled) "On" else "Off")) { _ ->
 					rule.enabled = !rule.enabled
-					SpotFilterConfig.save()
-					AutoPin.applyAll()
+					persist()
 					rebuildWidgets()
 				}.bounds(8, y, 40, 20).build()
 			)
@@ -34,9 +39,8 @@ class AutoPinListScreen(
 			)
 			addRenderableWidget(
 				Button.builder(Component.literal("Del")) { _ ->
-					FilterState.autoPinRules.removeAt(index)
-					SpotFilterConfig.save()
-					AutoPin.applyAll()
+					rules.removeAt(index)
+					persist()
 					rebuildWidgets()
 				}.bounds(width - 100, y, 92, 20).build()
 			)
@@ -45,14 +49,14 @@ class AutoPinListScreen(
 		addRenderableWidget(
 			Button.builder(Component.literal("Add rule")) { _ ->
 				val rule = AutoPinRule()
-				rule.name = "Rule ${FilterState.autoPinRules.size + 1}"
-				FilterState.autoPinRules.add(rule)
-				SpotFilterConfig.save()
+				rule.name = "Rule ${rules.size + 1}"
+				rules.add(rule)
+				persist()
 				minecraft.gui.setScreen(AutoPinRuleScreen(this, rule))
 			}.bounds(8, y.coerceAtMost(height - 56), 120, 20).build()
 		)
 		addRenderableWidget(
-			Button.builder(Component.literal("Reload rules.txt")) { _ ->
+			Button.builder(Component.literal("Reload pack")) { _ ->
 				SpotFilterConfig.reload()
 				AutoPin.applyAll()
 				rebuildWidgets()
@@ -64,11 +68,22 @@ class AutoPinListScreen(
 		)
 	}
 
+	private fun persist() {
+		RulePacks.savePack(pack)
+		RulePacks.syncToFilterState()
+		SpotFilterConfig.save()
+		AutoPin.applyAll()
+	}
+
 	override fun extractRenderState(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, delta: Float) {
 		super.extractRenderState(graphics, mouseX, mouseY, delta)
 		graphics.text(
 			font,
-			Component.literal("Auto Pin (${FilterState.kind.label}) — config/spotfilter/rules.txt  |  Nickname is optional."),
+			Component.literal(
+				"Pack '${pack.id}' (${FilterState.kind.label}) — ${
+					if (FilterState.kind == SpotKind.GROTTO) "${pack.id}_grotto.txt" else "${pack.id}.txt"
+				}  |  Duplicate rule names share # numbering."
+			),
 			8,
 			12,
 			0xFFFFFFFF.toInt(),
@@ -77,16 +92,21 @@ class AutoPinListScreen(
 	}
 
 	override fun keyPressed(event: KeyEvent): Boolean {
-		if (event.key() == GLFW.GLFW_KEY_ESCAPE || event.key() == GLFW.GLFW_KEY_O) {
+		if (event.key() == GLFW.GLFW_KEY_ESCAPE) {
 			onClose()
 			return true
 		}
-		return super.keyPressed(event)
+		if (super.keyPressed(event)) return true
+		if (typingInBox()) return true
+		if (event.key() == GLFW.GLFW_KEY_O) {
+			onClose()
+			return true
+		}
+		return false
 	}
 
 	override fun onClose() {
-		SpotFilterConfig.save()
-		AutoPin.applyAll()
+		persist()
 		minecraft.gui.setScreen(returnTo)
 	}
 }

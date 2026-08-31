@@ -6,7 +6,7 @@ import com.mojang.brigadier.arguments.StringArgumentType
 import com.mojang.brigadier.context.CommandContext
 import com.mojang.brigadier.suggestion.Suggestions
 import com.mojang.brigadier.suggestion.SuggestionsBuilder
-import kcl.spotfilter.client.config.RulesFile
+import kcl.spotfilter.client.config.RulePacks
 import kcl.spotfilter.client.config.SpotFilterConfig
 import kcl.spotfilter.client.data.SpotKind
 import kcl.spotfilter.client.data.SpotPool
@@ -152,8 +152,8 @@ object SpotCommands {
 			"/sf list [pinned]",
 			"/sf pin <id|all> | /sf unpin <id|all>",
 			"/sf autopin apply",
-			"/sf reload | /sf save — also reads config/spotfilter/rules.txt",
-			"/sf rules — Auto Pin rules file status"
+			"/sf reload | /sf save — reloads json and Auto Pin packs",
+			"/sf rules — Auto Pin pack status"
 		)
 		info(ctx, "SpotFilter commands")
 		lines.forEach { info(ctx, it) }
@@ -312,16 +312,17 @@ object SpotCommands {
 	private fun reload(ctx: CommandContext<FabricClientCommandSource>): Int {
 		SpotFilterConfig.reload()
 		AutoPin.applyAll()
-		val errors = RulesFile.lastErrors
-		ok(ctx, "Reloaded spotfilter.json and ${RulesFile.path.fileName} (${FilterState.normal.autoPinRules.size} normal / ${FilterState.grotto.autoPinRules.size} grotto rules)")
+		val errors = RulePacks.lastErrors
+		ok(ctx, "Reloaded spotfilter.json and ${RulePacks.packs.count { it.enabled }} pack(s) (${FilterState.normal.autoPinRules.size} normal / ${FilterState.grotto.autoPinRules.size} grotto rules)")
 		errors.forEach { err(ctx, it) }
 		return if (errors.isEmpty()) 1 else 0
 	}
 
 	private fun rulesStatus(ctx: CommandContext<FabricClientCommandSource>): Int {
-		ok(ctx, "rules: ${RulesFile.path}")
+		ok(ctx, "packs: ${RulePacks.packsDir}")
+		ok(ctx, "enabled ${RulePacks.enabledIds().joinToString(",").ifBlank { "(none)" }}")
 		ok(ctx, "normal ${FilterState.normal.autoPinRules.size}  grotto ${FilterState.grotto.autoPinRules.size}")
-		RulesFile.lastErrors.forEach { err(ctx, it) }
+		RulePacks.lastErrors.forEach { err(ctx, it) }
 		return 1
 	}
 
