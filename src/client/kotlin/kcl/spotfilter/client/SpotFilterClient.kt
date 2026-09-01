@@ -6,6 +6,7 @@ import kcl.spotfilter.client.config.SpotFilterConfig
 import kcl.spotfilter.client.data.SpotPool
 import kcl.spotfilter.client.scan.SpotScanner
 import kcl.spotfilter.client.ui.FilterScreen
+import kcl.spotfilter.client.ui.SpotGuideOverlay
 import kcl.spotfilter.client.ui.SpotHud
 import kcl.spotfilter.client.ui.typingInBox
 import net.fabricmc.api.ClientModInitializer
@@ -45,6 +46,7 @@ object SpotFilterClient : ClientModInitializer {
 			KeyMapping("key.spotfilter.toggle_hud", GLFW.GLFW_KEY_L, category)
 		)
 		SpotHud.register()
+		SpotGuideOverlay.register()
 		kcl.spotfilter.client.world.PinnedSpotMarker.register()
 		SpotCommands.register()
 		registerGrottoChatRefresh()

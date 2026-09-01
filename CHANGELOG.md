@@ -2,6 +2,20 @@
 
 SpotFilter 版本记录。最新在上。发布包见 [GitHub Releases](https://github.com/KClgame/SpotFilter/releases)。
 
+## 1.7.8 — 2026-09-02
+
+- Pin guides follow Logical Zoom: that mod scales the world projection matrix and does not change camera FOV, so HUD projection now applies the same XY scale.
+
+## 1.7.7 — 2026-09-01
+
+- Guide HUD scale is 1.0× nearby and 1.35× at range (was 2×–7×, which was huge on screen).
+- Island → Grotto (and other place changes) keep the old pool hidden, do not drop nearby old spots, and retag mis-stamped scans so Grotto spots are detected after the sidebar updates.
+
+## 1.7.6 — 2026-09-01
+
+- When a Depleted spot is repaired (stock restored), Auto Pin can pin it again.
+- Pin guides are last-layer HUD projections instead of client `text_display` entities, so cutout leaves no longer cover them. Chat and menus still cover the guides.
+
 ## 1.7.5 — 2026-09-01
 
 - Disable and island/grotto switch hide HUD, guides, and the Filter list for those spots; the pool is kept. Switching back or re-enabling shows them again. **P** / `/sf clear` still wipes the pool.

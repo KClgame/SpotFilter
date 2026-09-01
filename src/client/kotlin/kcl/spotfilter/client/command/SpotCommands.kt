@@ -15,7 +15,6 @@ import kcl.spotfilter.client.filter.AutoPin
 import kcl.spotfilter.client.filter.FilterMode
 import kcl.spotfilter.client.filter.FilterState
 import kcl.spotfilter.client.ui.HudLayout
-import kcl.spotfilter.client.world.PinnedSpotMarker
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
 import net.fabricmc.fabric.api.client.command.v2.ClientCommands.argument
 import net.fabricmc.fabric.api.client.command.v2.ClientCommands.literal

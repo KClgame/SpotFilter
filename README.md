@@ -1,6 +1,6 @@
 # SpotFilter
 
-**v1.7.5** · Minecraft **26.2** · Fabric · 纯客户端
+**v1.7.8** · Minecraft **26.2** · Fabric · 纯客户端
 
 MCC Island 钓鱼点扫描、筛选、坐标 HUD 与世界透视引导。走近标题含 `Fishing Spot` 的 Text Display 即可收录（**Event Fishing Spot** 会忽略）。
 
@@ -53,7 +53,7 @@ Client-only Fabric mod that scans MCC Island fishing-spot labels, filters and so
 ## 安装
 
 1. 安装 Fabric Loader（26.2）与上述依赖。
-2. 从 [Releases](https://github.com/KClgame/SpotFilter/releases) 下载 `spotfilter-1.7.5.jar`，放入 `.minecraft/mods/`。
+2. 从 [Releases](https://github.com/KClgame/SpotFilter/releases) 下载 `spotfilter-1.7.8.jar`，放入 `.minecraft/mods/`。
 3. 启动游戏。控件里应出现 **SpotFilter** 分类。
 
 ---
@@ -269,11 +269,11 @@ Fish Chance 的 HUD icon 与 Wayfinder Data 相同（游戏内 MCCI 字体也接
 
 ## 世界引导
 
-已 Pin 的点在原标签 **下方 0.5 格** 生成仅客户端 `text_display` 实体（F3 实体列表里能看到，标签 `spotfilter_marker`）。不再叠一层较小的 gizmo 字。
+已 Pin 的点把世界坐标（原标签 **下方 0.5 格**）投影到屏幕，在 HUD 最末层画距离字。不再往客户端世界塞 `text_display`。切面树叶挡不住；打开聊天 / Filter 等界面时不画，避免挡住按钮。F3 隐藏 GUI 时也不画。超过约 512 格、转到摄像机背后、或在屏幕外则不画。
 
 文案：`fish spot #1 15m`（有 nickname 则为 `珍珠 #2 15m`）。距离与名字之间是空格，没有冒号。
 
-缩放：约 8 格内为正常大小，走远逐渐放大，约 56 格达到最大。
+缩放：近处约 1×，走远略放大，约 80 格到 1.35×（HUD 投影，不再用世界实体的 2×–7×）。
 
 ---
 
@@ -354,10 +354,10 @@ Plentiful · Very High · High · Medium · Low · Depleted
 MCC Island 约钓鱼 6 级才下发加成。Mod 只能解析客户端已经收到的文本。
 
 **引导被树叶挡住？**  
-引导实体仍在，但字走透视名牌阶段，切面树叶应能透过。若完全看不见：确认该点已 Pin，Filter 为 **Enabled**，且当前 Kind（Normal/Grotto）与该点一致。
+引导已改成 HUD 投影，切面树叶不应再挡住。若完全看不见：确认该点已 Pin，Filter 为 **Enabled**，当前 Kind（Normal/Grotto）与该点一致，且没有打开聊天 / 菜单。
 
 **Disabled 和 L 有什么区别？**  
-**L** 只藏 HUD。**Disabled** 藏 HUD、拆引导、关音效，扫描与 Filter 仍可用。
+**L** 只藏左上角坐标 HUD。**Disabled** 藏 HUD 与引导、关音效，点池保留。
 
 **Depleted 的点怎么还钉着？**  
 自动 Pin 会撤；你自己点 Pin 的会留下。列表默认隐藏 Depleted，要用 Stock 筛选显式包含它。
@@ -379,7 +379,7 @@ Normal 在整点+1 分钟或一波多点同时变时清空；Grotto 只在聊天
 ./gradlew build
 ```
 
-产物：`build/libs/spotfilter-1.7.5.jar`
+产物：`build/libs/spotfilter-1.7.8.jar`
 
 需要 JDK 25。变更记录见 [CHANGELOG.md](CHANGELOG.md)。
 

@@ -53,8 +53,13 @@ object SpotPool {
 			SpotSounds.playNewSpot()
 			AutoPin.apply(incoming)
 		} else {
+			val previousStock = existing.stock
 			val becameDepleted =
-				incoming.stock == StockLevel.DEPLETED && existing.stock != StockLevel.DEPLETED
+				incoming.stock == StockLevel.DEPLETED && previousStock != StockLevel.DEPLETED
+			val recoveredFromDepleted =
+				previousStock == StockLevel.DEPLETED &&
+					incoming.stock != null &&
+					incoming.stock != StockLevel.DEPLETED
 			val previousFingerprint = existing.contentFingerprint()
 			existing.entityId = incoming.entityId
 			existing.x = incoming.x
@@ -65,6 +70,9 @@ object SpotPool {
 			existing.perks = incoming.perks
 			existing.lastSeenGameTime = incoming.lastSeenGameTime
 			existing.kind = incoming.kind
+			if (incoming.place != null) {
+				existing.place = incoming.place
+			}
 			existing.stability = incoming.stability
 			existing.stabilityRgb = incoming.stabilityRgb
 			existing.stabilityRange = incoming.stabilityRange
@@ -74,7 +82,10 @@ object SpotPool {
 			if (becameDepleted && shouldKickDepleted()) {
 				setPinned(existing, false)
 			}
-			if (existing.pinned) {
+			if (recoveredFromDepleted) {
+				existing.autoPinDecided = false
+				AutoPin.apply(existing)
+			} else if (existing.pinned) {
 				PinnedSpotMarker.sync(existing)
 			}
 		}
@@ -136,9 +147,29 @@ object SpotPool {
 		}
 	}
 
+	fun retagAfterPlaceChange(prev: FishingPlace?, next: FishingPlace?) {
+		if (next == null) return
+		val now = Minecraft.getInstance().level?.gameTime ?: 0L
+		for (spot in spots.values) {
+			if (spot.kind != next.kind) continue
+			val tagged = spot.place
+			val inconsistent = tagged != null && tagged.kind != spot.kind
+			val recent = now - spot.lastSeenGameTime <= 200L
+			val fromPrev = tagged == prev
+			val untagged = tagged == null
+			if (inconsistent || (recent && (fromPrev || untagged))) {
+				spot.place = next
+			}
+		}
+	}
+
 	fun finishNormalScan(seen: Set<SpotKey>) {
 		if (waveChanges < WAVE_THRESHOLD) return
-		val stale = spots.filter { it.value.kind == SpotKind.NORMAL && it.key !in seen }.keys.toList()
+		val stale = spots.filter { (_, spot) ->
+			spot.kind == SpotKind.NORMAL &&
+				spot.key !in seen &&
+				FishingWorld.isVisible(spot)
+		}.keys.toList()
 		if (stale.isEmpty()) {
 			waveChanges = 0
 			return
@@ -193,6 +224,7 @@ object SpotPool {
 		val toRemove = ArrayList<SpotKey>()
 		for (spot in spots.values) {
 			if (spot.key.dimension != level.dimension().identifier()) continue
+			if (spot.place != null && spot.place != FishingWorld.current) continue
 			if (spot.key in seenKeys) continue
 			val dx = (spot.x + 0.5) - player.x
 			val dy = spot.y - player.y

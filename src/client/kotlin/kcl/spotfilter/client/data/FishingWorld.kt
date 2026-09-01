@@ -42,7 +42,8 @@ enum class FishingPlace(
 				?.trim()
 				?: cleaned
 			return entries.firstOrNull { named.equals(it.displayName, ignoreCase = true) }
-				?: entries.firstOrNull { cleaned.contains(it.displayName, ignoreCase = true) }
+				?: entries.firstOrNull { named.equals(it.shortId, ignoreCase = true) }
+				?: entries.firstOrNull { named.contains(it.displayName, ignoreCase = true) }
 		}
 	}
 }
@@ -90,6 +91,7 @@ object FishingWorld {
 			if (next != null) {
 				FilterState.kind = next.kind
 			}
+			SpotPool.retagAfterPlaceChange(prev, next)
 		}
 		if (enabledManual == null) {
 			applyEnabled(autoEnabled(client))

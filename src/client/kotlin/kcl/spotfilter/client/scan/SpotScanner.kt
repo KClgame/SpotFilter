@@ -28,7 +28,10 @@ object SpotScanner {
 		for (entity in level.getEntities(net.minecraft.world.entity.EntityTypes.TEXT_DISPLAY, box) { true }) {
 			if (PinnedSpotMarker.isOurs(entity)) continue
 			val parsed = SpotParser.parse(level, entity, TextDisplays.readText(entity), now) ?: continue
-			parsed.place = FishingWorld.current
+			val here = FishingWorld.current
+			if (here != null && here.kind == parsed.kind) {
+				parsed.place = here
+			}
 			seen.add(parsed.key)
 			SpotPool.upsert(parsed)
 		}
