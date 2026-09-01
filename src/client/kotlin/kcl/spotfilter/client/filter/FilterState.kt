@@ -1,6 +1,7 @@
 package kcl.spotfilter.client.filter
 
 import kcl.spotfilter.client.data.FishingSpot
+import kcl.spotfilter.client.data.FishingWorld
 import kcl.spotfilter.client.data.SpotKind
 import kcl.spotfilter.client.data.SpotPool
 import kcl.spotfilter.client.data.StabilityCost
@@ -361,6 +362,8 @@ object FilterState {
 		if (spot.kind == SpotKind.GROTTO) grotto else normal
 
 	fun matches(spot: FishingSpot): Boolean {
+		val here = FishingWorld.current
+		if (here != null && spot.place != null && spot.place != here) return false
 		if (spot.kind != kind) return false
 		if (spot.stock == StockLevel.DEPLETED && !stock.allowsDepleted()) return false
 		if (!stock.matches(spot)) return false

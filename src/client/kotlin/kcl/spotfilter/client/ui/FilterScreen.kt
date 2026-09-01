@@ -122,16 +122,12 @@ class FilterScreen : Screen(Component.literal("SpotFilter")) {
 			TopBtn(
 				enableLabel(),
 				tip(
-					"Master overlay switch.",
-					"Disabled: hide HUD and world guides, mute new-spot sound.",
-					"Scanning and this Filter screen still work. L only hides the HUD."
+					"Master overlay switch. Manual click beats auto.",
+					"Auto on when world id contains fishing or scoreboard is a fishing island.",
+					"Disabled: hide HUD and guides, skip scanning. L only hides the HUD."
 				)
 			) { _ ->
-				cfg.enabled = !cfg.enabled
-				if (!cfg.enabled) {
-					kcl.spotfilter.client.world.PinnedSpotMarker.removeAll()
-				}
-				SpotFilterConfig.save()
+				kcl.spotfilter.client.data.FishingWorld.toggleManual()
 				rebuildWidgets()
 			}
 		)
@@ -266,8 +262,14 @@ class FilterScreen : Screen(Component.literal("SpotFilter")) {
 		}
 	}
 
-	private fun kindLabel(): Component =
-		Component.literal(FilterState.kind.label)
+	private fun kindLabel(): Component {
+		val place = kcl.spotfilter.client.data.FishingWorld.current
+		return if (place != null) {
+			Component.literal("${FilterState.kind.label} · ${place.shortId}")
+		} else {
+			Component.literal(FilterState.kind.label)
+		}
+	}
 
 	private fun modeLabel(): Component =
 		Component.literal("Mode: ${FilterState.mode.name}")
@@ -312,7 +314,15 @@ class FilterScreen : Screen(Component.literal("SpotFilter")) {
 		val spots = FilterState.filteredSorted()
 		graphics.text(
 			font,
-			Component.literal("${spots.size} ${FilterState.kind.label.lowercase()} spots  |  click row to pin  |  F1>F2>F3 sort  |  O close"),
+			Component.literal(
+				buildString {
+					append("${spots.size} ${FilterState.kind.label.lowercase()} spots")
+					kcl.spotfilter.client.data.FishingWorld.current?.let { place ->
+						append("  ·  ${place.shortId} ${place.displayName}")
+					}
+					append("  |  click row to pin  |  F1>F2>F3 sort  |  O close")
+				}
+			),
 			8,
 			106,
 			0xFFCCCCCC.toInt(),

@@ -168,19 +168,14 @@ object SpotCommands {
 		val pinned = SpotPool.pinned().size
 		ok(
 			ctx,
-			"SpotFilter  ${if (cfg.enabled) "Enabled" else "Disabled"}  |  ${kind.label}  |  HUD ${if (cfg.hudVisible) "on" else "off"} ${cfg.layout().label} x${"%.1f".format(cfg.hudScale)}  |  ${kindCount} ${kind.label.lowercase()} / ${all.size} spots  |  $pinned pinned  |  logic ${FilterState.mode.name}"
+			"SpotFilter  ${if (cfg.enabled) "Enabled" else "Disabled"}  |  ${kind.label}${kcl.spotfilter.client.data.FishingWorld.current?.let { " · ${it.shortId}" } ?: ""}  |  HUD ${if (cfg.hudVisible) "on" else "off"} ${cfg.layout().label} x${"%.1f".format(cfg.hudScale)}  |  ${kindCount} ${kind.label.lowercase()} / ${all.size} spots  |  $pinned pinned  |  logic ${FilterState.mode.name}"
 		)
 		return 1
 	}
 
 	private fun setEnabled(ctx: CommandContext<FabricClientCommandSource>, enabled: Boolean): Int {
-		val cfg = SpotFilterConfig.instance
-		cfg.enabled = enabled
-		if (!enabled) {
-			PinnedSpotMarker.removeAll()
-		}
-		SpotFilterConfig.save()
-		return ok(ctx, if (enabled) "SpotFilter enabled" else "SpotFilter disabled")
+		kcl.spotfilter.client.data.FishingWorld.setManual(enabled)
+		return ok(ctx, if (enabled) "SpotFilter enabled (manual)" else "SpotFilter disabled (manual)")
 	}
 
 	private fun setHud(ctx: CommandContext<FabricClientCommandSource>, visible: Boolean): Int {

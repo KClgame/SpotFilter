@@ -2,6 +2,11 @@
 
 SpotFilter 版本记录。最新在上。发布包见 [GitHub Releases](https://github.com/KClgame/SpotFilter/releases)。
 
+## 1.7.4 — 2026-09-01
+
+- Detect fishing island from scoreboard `MCCI: <name>` (I1–I9 and Temperate/Tropical/Barren grottos). Switching island or grotto unpins and clears the spot pool, then Auto Pin only the new island.
+- Auto-enable when the world id contains `fishing` or the sidebar is a fishing island. Manual Enabled / `/sf on|off` overrides auto until the world id changes.
+
 ## 1.7.3 — 2026-09-01
 
 - Normal Filter row: Stock and Auto Pin now share the same right edge as Pair / F1–F3 (no extra pixels on Auto Pin).

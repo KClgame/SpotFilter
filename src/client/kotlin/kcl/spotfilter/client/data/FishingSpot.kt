@@ -63,6 +63,7 @@ data class FishingSpot(
 	var perks: List<ParsedPerk>,
 	var lastSeenGameTime: Long,
 	var kind: SpotKind = SpotKind.NORMAL,
+	var place: FishingPlace? = null,
 	var stability: StabilityCost? = null,
 	var stabilityRgb: Int? = null,
 	var stabilityRange: String? = null,
