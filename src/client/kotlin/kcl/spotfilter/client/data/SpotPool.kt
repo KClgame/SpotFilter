@@ -70,7 +70,6 @@ object SpotPool {
 			if (becameDepleted && shouldKickDepleted()) {
 				setPinned(existing, false)
 			}
-			AutoPin.apply(existing)
 			if (existing.pinned) {
 				PinnedSpotMarker.sync(existing)
 			}

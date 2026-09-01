@@ -1,6 +1,6 @@
 # SpotFilter
 
-**v1.7.0** · Minecraft **26.2** · Fabric · 纯客户端
+**v1.7.1** · Minecraft **26.2** · Fabric · 纯客户端
 
 MCC Island 钓鱼点扫描、筛选、坐标 HUD 与世界透视引导。走近标题含 `Fishing Spot` 的 Text Display 即可收录。
 
@@ -53,7 +53,7 @@ Client-only Fabric mod that scans MCC Island fishing-spot labels, filters and so
 ## 安装
 
 1. 安装 Fabric Loader（26.2）与上述依赖。
-2. 从 [Releases](https://github.com/KClgame/SpotFilter/releases) 下载 `spotfilter-1.7.0.jar`，放入 `.minecraft/mods/`。
+2. 从 [Releases](https://github.com/KClgame/SpotFilter/releases) 下载 `spotfilter-1.7.1.jar`，放入 `.minecraft/mods/`。
 3. 启动游戏。控件里应出现 **SpotFilter** 分类。
 
 ---
@@ -230,7 +230,7 @@ Compact 模式下 Grotto 的名字和 `#n` 用上面的点色（有 Auto Pin 色
 | `config/spotfilter/packs/<name>_grotto.txt` | Grotto 规则 |
 | `config/spotfilter/export/` | Export as file 的输出 |
 
-内置 **fish / pearl / treasure / spirit / xp_wayfinder** 和 **blank**（空白）。Normal 与 Grotto 默认规则都写在模组里（xp_wayfinder 的 Grotto 仍空）。首次启动写出到 `packs/`；空的内置占位文件会被模组规则替换，已有 `name=` 的文件不覆盖。可 Create 新包，Load file 从路径导入，Export 写出两份 txt。旧的 `config/spotfilter/rules.txt` 若存在会导入为 `legacy` 包（默认不勾选）。已有空的 `default` 文件会当成普通用户包，不再作为内置。
+内置 **fish / pearl / treasure / spirit / xp_wayfinder** 和 **blank**（空白）只在**第一次加载模组**（还没有 `packs/` 目录）时写出。之后不再检测或补文件，默认包可以删。Auto Pin 界面可切换 Normal / Grotto，只显示当前模式的规则条数。点只在**第一次被扫描到**时按规则决定是否 Pin；之后不会反复钉上，可手动取消 Pin。可 Create 新包，Load file 从路径导入，Export 写出两份 txt。旧的 `config/spotfilter/rules.txt` 若存在会导入为 `legacy` 包（默认不勾选）。
 
 - 勾选上的包 **并行**：规则合并进 Auto Pin
 - 不同包里 **规则 `name=` 或 `nick=` 相同** 视为同一分组编号（`大鱼 #1` `#2`…）
@@ -377,7 +377,7 @@ Normal 在整点+1 分钟或一波多点同时变时清空；Grotto 只在聊天
 ./gradlew build
 ```
 
-产物：`build/libs/spotfilter-1.7.0.jar`
+产物：`build/libs/spotfilter-1.7.1.jar`
 
 需要 JDK 25。变更记录见 [CHANGELOG.md](CHANGELOG.md)。
 

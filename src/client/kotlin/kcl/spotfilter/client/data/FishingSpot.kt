@@ -68,6 +68,7 @@ data class FishingSpot(
 	var stabilityRange: String? = null,
 	var pinned: Boolean = false,
 	var autoPinned: Boolean = false,
+	var autoPinDecided: Boolean = false,
 	var pinColorOverride: Int? = null,
 	var nickname: String? = null,
 	var groupIndex: Int = 0,

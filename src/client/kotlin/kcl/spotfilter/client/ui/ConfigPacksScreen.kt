@@ -3,7 +3,6 @@ package kcl.spotfilter.client.ui
 import kcl.spotfilter.client.config.RulePack
 import kcl.spotfilter.client.config.RulePacks
 import kcl.spotfilter.client.config.SpotFilterConfig
-import kcl.spotfilter.client.filter.AutoPin
 import kcl.spotfilter.client.filter.FilterState
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.components.Button
@@ -22,6 +21,15 @@ class ConfigPacksScreen(
 	override fun isPauseScreen(): Boolean = false
 
 	override fun init() {
+		val kind = FilterState.kind
+		val modeRules = RulePacks.packs.sumOf { it.rules(kind).size }
+		addRenderableWidget(
+			Button.builder(Component.literal("${kind.label}  (${modeRules} rules)")) { _ ->
+				FilterState.toggleKind()
+				SpotFilterConfig.save()
+				rebuildWidgets()
+			}.bounds(8, 6, 180, 20).build()
+		)
 		var y = 32
 		RulePacks.packs.forEach { pack ->
 			val row = y
@@ -48,16 +56,13 @@ class ConfigPacksScreen(
 					rebuildWidgets()
 				}.bounds(width - 140, row, 60, 20).build()
 			)
-			if (!pack.builtin) {
-				addRenderableWidget(
-					Button.builder(Component.literal("Del")) { _ ->
-						RulePacks.delete(pack)
-						SpotFilterConfig.save()
-						AutoPin.applyAll()
-						rebuildWidgets()
-					}.bounds(width - 76, row, 68, 20).build()
-				)
-			}
+			addRenderableWidget(
+				Button.builder(Component.literal("Del")) { _ ->
+					RulePacks.delete(pack)
+					SpotFilterConfig.save()
+					rebuildWidgets()
+				}.bounds(width - 76, row, 68, 20).build()
+			)
 			y += 24
 		}
 
@@ -82,7 +87,6 @@ class ConfigPacksScreen(
 			Button.builder(Component.literal("Load file")) { _ ->
 				RulePacks.importFile(fileBox.value)
 				SpotFilterConfig.save()
-				AutoPin.applyAll()
 				rebuildWidgets()
 			}.bounds(width - 124, boxY + 24, 116, 20).build()
 		)
@@ -94,19 +98,17 @@ class ConfigPacksScreen(
 	}
 
 	private fun packLabel(pack: RulePack): String {
-		val tag = if (pack.builtin) "builtin" else "file"
-		val n = pack.normal.size
-		val g = pack.grotto.size
-		return "${pack.id}  [$tag]  N:$n  G:$g"
+		val n = pack.rules(FilterState.kind).size
+		return "${pack.id}  ${FilterState.kind.label}: $n rules"
 	}
 
 	override fun extractRenderState(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, delta: Float) {
 		super.extractRenderState(graphics, mouseX, mouseY, delta)
 		graphics.text(
 			font,
-			Component.literal("Configs (${FilterState.kind.label}) — builtin fish/pearl/treasure/spirit/xp_wayfinder. Check several to run in parallel."),
-			8,
-			8,
+			Component.literal("Showing ${FilterState.kind.label} rules only. Check several packs to run in parallel."),
+			196,
+			10,
 			0xFFFFFFFF.toInt(),
 			false
 		)
@@ -141,7 +143,6 @@ class ConfigPacksScreen(
 	override fun onClose() {
 		SpotFilterConfig.save()
 		RulePacks.syncToFilterState()
-		AutoPin.applyAll()
 		minecraft.gui.setScreen(returnTo)
 	}
 }

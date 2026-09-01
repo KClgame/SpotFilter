@@ -2,6 +2,12 @@
 
 SpotFilter 版本记录。最新在上。发布包见 [GitHub Releases](https://github.com/KClgame/SpotFilter/releases)。
 
+## 1.7.1 — 2026-09-01
+
+- Auto Pin only decides on a spot's first detection; later scans do not re-pin. Manual unpin sticks.
+- Auto Pin UI switches Normal / Grotto and lists that mode's rules (with counts).
+- Default packs are copied only on first mod load; missing files are not repaired later and packs can be deleted.
+
 ## 1.7.0 — 2026-08-31
 
 - Auto Pin config packs: builtin **fish / pearl / treasure / spirit / xp_wayfinder** plus **blank**. Default Normal and Grotto rules shipped in the jar (xp_wayfinder Grotto empty). Multiple packs can be enabled in parallel. Duplicate rule names share one numbering group.

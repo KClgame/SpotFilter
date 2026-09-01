@@ -41,42 +41,37 @@ object RulePacks {
 	fun byId(id: String): RulePack? = packs.firstOrNull { it.id.equals(id, ignoreCase = true) }
 
 	fun loadAll(enabled: List<String>?) {
-		Files.createDirectories(packsDir)
-		ensureBuiltinFiles()
+		Files.createDirectories(root)
+		seedDefaultsOnce()
 		migrateLegacyRules()
 		val enabledSet = resolveEnabled(enabled)
 		val loaded = LinkedHashMap<String, RulePack>()
-		for (id in builtins) {
-			loaded[id] = readPack(id, builtin = true, enabled = id.lowercase() in enabledSet)
-		}
-		if (!Files.isDirectory(packsDir)) {
-			packs.clear()
-			packs.addAll(loaded.values)
-			syncToFilterState()
-			return
-		}
-		Files.list(packsDir).use { stream ->
-			stream.filter { Files.isRegularFile(it) && it.fileName.toString().endsWith(".txt", true) }
-				.forEach { file ->
-					val (id, grottoFile) = splitPackFileName(file.fileName.toString()) ?: return@forEach
-					if (id in loaded && loaded[id]!!.builtin) return@forEach
-					val pack = loaded.getOrPut(id) {
-						RulePack(id, builtin = false, enabled = id.lowercase() in enabledSet)
-					}
-					val parsed = readFile(file, if (grottoFile) SpotKind.GROTTO else SpotKind.NORMAL)
-					if (grottoFile) {
-						pack.grotto.clear()
-						pack.grotto.addAll(parsed.grotto.ifEmpty { parsed.normal })
-					} else {
-						pack.normal.clear()
-						pack.normal.addAll(parsed.normal)
-						if (parsed.grotto.isNotEmpty() && pack.grotto.isEmpty()) {
-							pack.grotto.addAll(parsed.grotto)
+		if (Files.isDirectory(packsDir)) {
+			Files.list(packsDir).use { stream ->
+				stream.filter { Files.isRegularFile(it) && it.fileName.toString().endsWith(".txt", true) }
+					.forEach { file ->
+						val (id, grottoFile) = splitPackFileName(file.fileName.toString()) ?: return@forEach
+						val pack = loaded.getOrPut(id) {
+							RulePack(id, builtin = false, enabled = id.lowercase() in enabledSet)
+						}
+						val parsed = readFile(file, if (grottoFile) SpotKind.GROTTO else SpotKind.NORMAL)
+						if (grottoFile) {
+							pack.grotto.clear()
+							pack.grotto.addAll(parsed.grotto.ifEmpty { parsed.normal })
+						} else {
+							pack.normal.clear()
+							pack.normal.addAll(parsed.normal)
+							if (parsed.grotto.isNotEmpty() && pack.grotto.isEmpty()) {
+								pack.grotto.addAll(parsed.grotto)
+							}
 						}
 					}
-				}
+			}
 		}
 		packs.clear()
+		for (id in builtins) {
+			loaded.remove(id)?.let { packs.add(it) }
+		}
 		packs.addAll(loaded.values)
 		syncToFilterState()
 	}
@@ -111,10 +106,6 @@ object RulePacks {
 	}
 
 	fun delete(pack: RulePack): Boolean {
-		if (pack.builtin) {
-			lastMessage = "Cannot delete builtin pack '${pack.id}'"
-			return false
-		}
 		packs.remove(pack)
 		Files.deleteIfExists(normalPath(pack.id))
 		Files.deleteIfExists(grottoPath(pack.id))
@@ -134,7 +125,7 @@ object RulePacks {
 			return null
 		}
 		val parsed = readFile(source, if (grottoFile) SpotKind.GROTTO else SpotKind.NORMAL)
-		val pack = byId(id) ?: RulePack(id, builtin = id in builtins, enabled = false).also { packs.add(it) }
+		val pack = byId(id) ?: RulePack(id, builtin = false, enabled = false).also { packs.add(it) }
 		if (grottoFile) {
 			pack.grotto.clear()
 			pack.grotto.addAll(parsed.grotto.ifEmpty { parsed.normal })
@@ -181,28 +172,23 @@ object RulePacks {
 		return set
 	}
 
-	private fun ensureBuiltinFiles() {
+	private fun seedDefaultsOnce() {
+		val marker = root.resolve(".packs_seeded")
+		if (Files.exists(marker)) return
+		val firstInstall = !Files.isDirectory(packsDir)
 		Files.createDirectories(packsDir)
-		for (id in builtins) {
-			seedBuiltinFile(normalPath(id), "$id.txt", emptyPackText(id, SpotKind.NORMAL))
-			seedBuiltinFile(grottoPath(id), "${id}_grotto.txt", emptyPackText(id, SpotKind.GROTTO))
+		if (firstInstall) {
+			for (id in builtins) {
+				writeIfMissing(normalPath(id), "$id.txt", emptyPackText(id, SpotKind.NORMAL))
+				writeIfMissing(grottoPath(id), "${id}_grotto.txt", emptyPackText(id, SpotKind.GROTTO))
+			}
 		}
+		Files.writeString(marker, "1\n", StandardCharsets.UTF_8)
 	}
 
-	private fun seedBuiltinFile(path: Path, resourceName: String, fallback: String) {
-		val shipped = readBuiltinResource(resourceName)
-		if (!Files.exists(path)) {
-			Files.writeString(path, shipped ?: fallback, StandardCharsets.UTF_8)
-			return
-		}
-		if (shipped != null && isEmptyPlaceholder(path)) {
-			Files.writeString(path, shipped, StandardCharsets.UTF_8)
-		}
-	}
-
-	private fun isEmptyPlaceholder(path: Path): Boolean {
-		val text = Files.readString(path, StandardCharsets.UTF_8)
-		return text.lineSequence().none { it.trim().startsWith("name=", ignoreCase = true) }
+	private fun writeIfMissing(path: Path, resourceName: String, fallback: String) {
+		if (Files.exists(path)) return
+		Files.writeString(path, readBuiltinResource(resourceName) ?: fallback, StandardCharsets.UTF_8)
 	}
 
 	private fun readBuiltinResource(fileName: String): String? {

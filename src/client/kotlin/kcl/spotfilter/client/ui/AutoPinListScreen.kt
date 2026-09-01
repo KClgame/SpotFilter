@@ -23,6 +23,13 @@ class AutoPinListScreen(
 	override fun isPauseScreen(): Boolean = false
 
 	override fun init() {
+		addRenderableWidget(
+			Button.builder(Component.literal("${FilterState.kind.label}  (${rules.size} rules)")) { _ ->
+				FilterState.toggleKind()
+				SpotFilterConfig.save()
+				rebuildWidgets()
+			}.bounds(width - 188, 8, 180, 20).build()
+		)
 		var y = 36
 		rules.forEachIndexed { index, rule ->
 			addRenderableWidget(

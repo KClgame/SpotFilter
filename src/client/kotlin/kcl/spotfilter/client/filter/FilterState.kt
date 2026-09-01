@@ -456,26 +456,21 @@ object AutoPin {
 			if (kcl.spotfilter.client.config.SpotFilterConfig.instance.kickDepleted && spot.pinned) {
 				SpotPool.setPinned(spot, false)
 			}
+			spot.autoPinDecided = true
 			return
 		}
+		if (spot.autoPinDecided) return
+		spot.autoPinDecided = true
 		val profile = FilterState.profileFor(spot)
 		val grotto = spot.kind == SpotKind.GROTTO
-		val rule = profile.autoPinRules.firstOrNull { it.enabled && it.matches(spot, grotto) }
-		if (rule != null) {
-			spot.pinColorOverride = rule.customRgb()
-			spot.autoPinned = true
-			SpotPool.assignGroup(spot, kcl.spotfilter.client.config.RulePacks.groupingName(rule))
-			if (!spot.pinned) {
-				SpotPool.setPinned(spot, true)
-			} else {
-				kcl.spotfilter.client.world.PinnedSpotMarker.sync(spot)
-			}
-		} else if (spot.autoPinned) {
-			spot.pinColorOverride = null
-			spot.autoPinned = false
-			if (spot.pinned) {
-				SpotPool.setPinned(spot, false)
-			}
+		val rule = profile.autoPinRules.firstOrNull { it.enabled && it.matches(spot, grotto) } ?: return
+		spot.pinColorOverride = rule.customRgb()
+		spot.autoPinned = true
+		SpotPool.assignGroup(spot, kcl.spotfilter.client.config.RulePacks.groupingName(rule))
+		if (!spot.pinned) {
+			SpotPool.setPinned(spot, true)
+		} else {
+			kcl.spotfilter.client.world.PinnedSpotMarker.sync(spot)
 		}
 	}
 
