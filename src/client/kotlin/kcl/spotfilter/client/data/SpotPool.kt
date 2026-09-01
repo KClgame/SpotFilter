@@ -23,7 +23,11 @@ object SpotPool {
 	fun pinned(): List<FishingSpot> {
 		FilterState.refreshRanks()
 		return FilterState.sortSpots(
-			spots.values.filter { it.pinned && it.kind == FilterState.kind },
+			spots.values.filter { spot ->
+				spot.pinned &&
+					spot.kind == FilterState.kind &&
+					FishingWorld.isVisible(spot)
+			},
 			FilterState.kind
 		)
 	}

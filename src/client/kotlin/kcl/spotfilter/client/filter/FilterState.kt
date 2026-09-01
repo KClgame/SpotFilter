@@ -362,8 +362,7 @@ object FilterState {
 		if (spot.kind == SpotKind.GROTTO) grotto else normal
 
 	fun matches(spot: FishingSpot): Boolean {
-		val here = FishingWorld.current
-		if (here != null && spot.place != null && spot.place != here) return false
+		if (!FishingWorld.isVisible(spot)) return false
 		if (spot.kind != kind) return false
 		if (spot.stock == StockLevel.DEPLETED && !stock.allowsDepleted()) return false
 		if (!stock.matches(spot)) return false
@@ -385,7 +384,12 @@ object FilterState {
 
 	fun refreshRanks() {
 		SpotKind.entries.forEach { k ->
-			val ordered = sortSpots(SpotPool.all().filter { it.kind == k }, k)
+			val ordered = sortSpots(
+				SpotPool.all().filter { spot ->
+					spot.kind == k && FishingWorld.isVisible(spot)
+				},
+				k
+			)
 			val counts = HashMap<String, Int>()
 			for (spot in ordered) {
 				val key = spot.groupLabel().lowercase()

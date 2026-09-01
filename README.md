@@ -1,6 +1,6 @@
 # SpotFilter
 
-**v1.7.4** · Minecraft **26.2** · Fabric · 纯客户端
+**v1.7.5** · Minecraft **26.2** · Fabric · 纯客户端
 
 MCC Island 钓鱼点扫描、筛选、坐标 HUD 与世界透视引导。走近标题含 `Fishing Spot` 的 Text Display 即可收录（**Event Fishing Spot** 会忽略）。
 
@@ -53,7 +53,7 @@ Client-only Fabric mod that scans MCC Island fishing-spot labels, filters and so
 ## 安装
 
 1. 安装 Fabric Loader（26.2）与上述依赖。
-2. 从 [Releases](https://github.com/KClgame/SpotFilter/releases) 下载 `spotfilter-1.7.4.jar`，放入 `.minecraft/mods/`。
+2. 从 [Releases](https://github.com/KClgame/SpotFilter/releases) 下载 `spotfilter-1.7.5.jar`，放入 `.minecraft/mods/`。
 3. 启动游戏。控件里应出现 **SpotFilter** 分类。
 
 ---
@@ -106,7 +106,7 @@ Client-only Fabric mod that scans MCC Island fishing-spot labels, filters and so
 顶栏（鼠标悬停可看说明）：
 
 - **Kick Depleted** — 与 Normal/Grotto、Mode、Enabled 同一行（Enabled 左侧）。On：Stock 变成 Depleted 时取消钉选并踢出附近点池（含手动 Pin）。Off：Depleted 仍可留在钉选里。
-- **Enabled / Disabled** — 总开关。Disabled 时 HUD 与引导消失、不再播新点音效；仍可打开 Filter，扫描与筛选照常。
+- **Enabled / Disabled** — 总开关。Disabled 时 HUD 与引导隐藏、停止扫描；点池保留，Filter 仍可打开查看。
 - **Normal / Grotto** — 切换点类型。两组点、筛选和 Auto Pin **互不共用**。切走后另一组从列表、HUD、引导中隐藏（钉选状态仍保留，切回来还能看见）。
 - **Mode: AND / OR** — 多槽组合。AND 必须同时满足；OR 满足任一即可。空槽忽略。
 - **Detailed / Compact** — HUD 与列表的文本模式，见 [HUD](#hud)。
@@ -280,7 +280,7 @@ Fish Chance 的 HUD icon 与 Wayfinder Data 相同（游戏内 MCCI 字体也接
 ## 扫描与生命周期
 
 - 每 tick 扫描渲染距离内的 `text_display`，标题含 `Fishing Spot` 则入池；含 `Event Fishing Spot` 的忽略。
-- 记分板标题 `MCCI: <岛名>` 识别当前岛：Normal **I1–I9**（Verdant Woods … Ashen Wastes），Grotto 按气候 **Temperate / Tropical / Barren**（Sunken Swamp / Mirrored Oasis / Volcanic Springs）。切岛或进出 Grotto 会 unpin 并清空点池，只保留当前岛新扫到的点。
+- 记分板标题 `MCCI: <岛名>` 识别当前岛：Normal **I1–I9**（Verdant Woods … Ashen Wastes），Grotto 按气候 **Temperate / Tropical / Barren**（Sunken Swamp / Mirrored Oasis / Volcanic Springs）。切岛或进出 Grotto **只隐藏**另一岛的 HUD / 引导 / 列表，点池保留；切回来仍在。只有 **P** / Clear 会清空。
 - 世界 id 含 `fishing` 或已识别钓鱼岛时自动 Enabled；离开后自动 Disabled。Filter 里手点 Enabled 或 `/sf on|off` 优先，直到世界 id 变化。
 - 同一取整坐标更新 Stock/词条，不换号、不重复音效。
 - 新点播放一次经验球音效（Enabled 时）。
@@ -379,7 +379,7 @@ Normal 在整点+1 分钟或一波多点同时变时清空；Grotto 只在聊天
 ./gradlew build
 ```
 
-产物：`build/libs/spotfilter-1.7.4.jar`
+产物：`build/libs/spotfilter-1.7.5.jar`
 
 需要 JDK 25。变更记录见 [CHANGELOG.md](CHANGELOG.md)。
 

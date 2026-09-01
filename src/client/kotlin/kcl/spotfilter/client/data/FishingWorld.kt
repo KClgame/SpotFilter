@@ -55,6 +55,12 @@ object FishingWorld {
 
 	fun overlayOn(): Boolean = SpotFilterConfig.instance.enabled
 
+	fun isVisible(spot: FishingSpot): Boolean {
+		val place = spot.place ?: return true
+		val here = current
+		return here != null && place == here
+	}
+
 	fun toggleManual() {
 		setManual(!overlayOn())
 	}
@@ -68,10 +74,7 @@ object FishingWorld {
 	fun tick(client: Minecraft) {
 		val level = client.level
 		if (level == null || client.player == null) {
-			if (current != null) {
-				current = null
-				SpotPool.clearSpots()
-			}
+			current = null
 			if (enabledManual == null) applyEnabled(false)
 			return
 		}
@@ -84,9 +87,6 @@ object FishingWorld {
 		val prev = current
 		if (prev != next) {
 			current = next
-			if (prev != null) {
-				SpotPool.clearSpots()
-			}
 			if (next != null) {
 				FilterState.kind = next.kind
 			}

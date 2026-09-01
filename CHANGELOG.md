@@ -2,6 +2,11 @@
 
 SpotFilter 版本记录。最新在上。发布包见 [GitHub Releases](https://github.com/KClgame/SpotFilter/releases)。
 
+## 1.7.5 — 2026-09-01
+
+- Disable and island/grotto switch hide HUD, guides, and the Filter list for those spots; the pool is kept. Switching back or re-enabling shows them again. **P** / `/sf clear` still wipes the pool.
+- `/sf gui` and `/sf filter` open Filter on the next client tick after chat closes.
+
 ## 1.7.4 — 2026-09-01
 
 - Detect fishing island from scoreboard `MCCI: <name>` (I1–I9 and Temperate/Tropical/Barren grottos). Switching island or grotto unpins and clears the spot pool, then Auto Pin only the new island.

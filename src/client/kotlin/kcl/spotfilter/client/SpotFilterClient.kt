@@ -26,6 +26,13 @@ object SpotFilterClient : ClientModInitializer {
 	lateinit var toggleHud: KeyMapping
 		private set
 
+	@Volatile
+	private var openFilterPending = false
+
+	fun requestOpenFilter() {
+		openFilterPending = true
+	}
+
 	override fun onInitializeClient() {
 		SpotFilterConfig.instance
 		openFilter = KeyMappingHelper.registerKeyMapping(
@@ -43,6 +50,15 @@ object SpotFilterClient : ClientModInitializer {
 		registerGrottoChatRefresh()
 
 		ClientTickEvents.END_CLIENT_TICK.register { client ->
+			if (openFilterPending) {
+				val screen = client.gui.screen()
+				if (screen !is net.minecraft.client.gui.screens.ChatScreen) {
+					openFilterPending = false
+					if (screen !is FilterScreen) {
+						client.gui.setScreen(FilterScreen())
+					}
+				}
+			}
 			while (openFilter.consumeClick()) {
 				val screen = client.gui.screen()
 				if (screen.typingInBox()) continue

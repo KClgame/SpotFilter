@@ -6,6 +6,7 @@ import com.mojang.brigadier.arguments.StringArgumentType
 import com.mojang.brigadier.context.CommandContext
 import com.mojang.brigadier.suggestion.Suggestions
 import com.mojang.brigadier.suggestion.SuggestionsBuilder
+import kcl.spotfilter.client.SpotFilterClient
 import kcl.spotfilter.client.config.RulePacks
 import kcl.spotfilter.client.config.SpotFilterConfig
 import kcl.spotfilter.client.data.SpotKind
@@ -13,14 +14,12 @@ import kcl.spotfilter.client.data.SpotPool
 import kcl.spotfilter.client.filter.AutoPin
 import kcl.spotfilter.client.filter.FilterMode
 import kcl.spotfilter.client.filter.FilterState
-import kcl.spotfilter.client.ui.FilterScreen
 import kcl.spotfilter.client.ui.HudLayout
 import kcl.spotfilter.client.world.PinnedSpotMarker
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
 import net.fabricmc.fabric.api.client.command.v2.ClientCommands.argument
 import net.fabricmc.fabric.api.client.command.v2.ClientCommands.literal
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
-import net.minecraft.client.Minecraft
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.Style
 import java.util.concurrent.CompletableFuture
@@ -249,8 +248,7 @@ object SpotCommands {
 	}
 
 	private fun openGui(ctx: CommandContext<FabricClientCommandSource>): Int {
-		val client = Minecraft.getInstance()
-		client.gui.setScreen(FilterScreen())
+		SpotFilterClient.requestOpenFilter()
 		return ok(ctx, "Opened Filter")
 	}
 
