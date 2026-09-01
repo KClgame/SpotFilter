@@ -2,6 +2,10 @@
 
 SpotFilter 版本记录。最新在上。发布包见 [GitHub Releases](https://github.com/KClgame/SpotFilter/releases)。
 
+## 1.7.2 — 2026-09-01
+
+Filter / perk-picker lists treat any non-zero mouse-wheel delta as at least one row, so high-res mice and Disable Hotbar Scrolling no longer stall scrolling. Arrow keys and Page Up/Down also move the Filter list.
+
 ## 1.7.1 — 2026-09-01
 
 - Auto Pin only decides on a spot's first detection; later scans do not re-pin. Manual unpin sticks.

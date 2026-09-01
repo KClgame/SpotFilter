@@ -126,7 +126,7 @@ class PerkPickerScreen(
 		val items = visiblePerks()
 		val visibleRows = ((listBottom - listTop) / rowHeight).coerceAtLeast(1)
 		val max = (items.size - visibleRows).coerceAtLeast(0)
-		scroll = (scroll - scrollY.toInt()).coerceIn(0, max)
+		scroll = (scroll - wheelRows(scrollY)).coerceIn(0, max)
 		return true
 	}
 

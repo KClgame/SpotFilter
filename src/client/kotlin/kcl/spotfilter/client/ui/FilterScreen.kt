@@ -448,11 +448,16 @@ class FilterScreen : Screen(Component.literal("SpotFilter")) {
 			}
 			return true
 		}
+		shiftList(-wheelRows(scrollY))
+		return true
+	}
+
+	private fun shiftList(delta: Int) {
+		if (delta == 0) return
 		val spots = FilterState.filteredSorted()
 		val visibleRows = ((listBottom - listTop) / rowHeight).coerceAtLeast(1)
 		val max = (spots.size - visibleRows).coerceAtLeast(0)
-		scroll = (scroll - scrollY.toInt()).coerceIn(0, max)
-		return true
+		scroll = (scroll + delta).coerceIn(0, max)
 	}
 
 	override fun keyPressed(event: KeyEvent): Boolean {
@@ -493,6 +498,32 @@ class FilterScreen : Screen(Component.literal("SpotFilter")) {
 				}
 				SpotPool.clearSpots()
 				return true
+			}
+			GLFW.GLFW_KEY_UP -> {
+				if (!editingHud) {
+					shiftList(-1)
+					return true
+				}
+			}
+			GLFW.GLFW_KEY_DOWN -> {
+				if (!editingHud) {
+					shiftList(1)
+					return true
+				}
+			}
+			GLFW.GLFW_KEY_PAGE_UP -> {
+				if (!editingHud) {
+					val visibleRows = ((listBottom - listTop) / rowHeight).coerceAtLeast(1)
+					shiftList(-visibleRows)
+					return true
+				}
+			}
+			GLFW.GLFW_KEY_PAGE_DOWN -> {
+				if (!editingHud) {
+					val visibleRows = ((listBottom - listTop) / rowHeight).coerceAtLeast(1)
+					shiftList(visibleRows)
+					return true
+				}
 			}
 		}
 		return super.keyPressed(event)
