@@ -1,8 +1,8 @@
 # SpotFilter
 
-**v1.7.2** · Minecraft **26.2** · Fabric · 纯客户端
+**v1.7.3** · Minecraft **26.2** · Fabric · 纯客户端
 
-MCC Island 钓鱼点扫描、筛选、坐标 HUD 与世界透视引导。走近标题含 `Fishing Spot` 的 Text Display 即可收录。
+MCC Island 钓鱼点扫描、筛选、坐标 HUD 与世界透视引导。走近标题含 `Fishing Spot` 的 Text Display 即可收录（**Event Fishing Spot** 会忽略）。
 
 Client-only Fabric mod that scans MCC Island fishing-spot labels, filters and sorts them, pins coordinates to a HUD, and draws see-through world guides.
 
@@ -53,7 +53,7 @@ Client-only Fabric mod that scans MCC Island fishing-spot labels, filters and so
 ## 安装
 
 1. 安装 Fabric Loader（26.2）与上述依赖。
-2. 从 [Releases](https://github.com/KClgame/SpotFilter/releases) 下载 `spotfilter-1.7.2.jar`，放入 `.minecraft/mods/`。
+2. 从 [Releases](https://github.com/KClgame/SpotFilter/releases) 下载 `spotfilter-1.7.3.jar`，放入 `.minecraft/mods/`。
 3. 启动游戏。控件里应出现 **SpotFilter** 分类。
 
 ---
@@ -279,7 +279,7 @@ Fish Chance 的 HUD icon 与 Wayfinder Data 相同（游戏内 MCCI 字体也接
 
 ## 扫描与生命周期
 
-- 每 tick 扫描渲染距离内的 `text_display`，标题含 `Fishing Spot` 则入池。
+- 每 tick 扫描渲染距离内的 `text_display`，标题含 `Fishing Spot` 则入池；含 `Event Fishing Spot` 的忽略。
 - 同一取整坐标更新 Stock/词条，不换号、不重复音效。
 - 新点播放一次经验球音效（Enabled 时）。
 - 词条与 Stock 的 **颜色直接读取标签 Component**，与游戏里看到的一致。
@@ -377,7 +377,7 @@ Normal 在整点+1 分钟或一波多点同时变时清空；Grotto 只在聊天
 ./gradlew build
 ```
 
-产物：`build/libs/spotfilter-1.7.2.jar`
+产物：`build/libs/spotfilter-1.7.3.jar`
 
 需要 JDK 25。变更记录见 [CHANGELOG.md](CHANGELOG.md)。
 

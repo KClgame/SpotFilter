@@ -2,6 +2,11 @@
 
 SpotFilter 版本记录。最新在上。发布包见 [GitHub Releases](https://github.com/KClgame/SpotFilter/releases)。
 
+## 1.7.3 — 2026-09-01
+
+- Normal Filter row: Stock and Auto Pin now share the same right edge as Pair / F1–F3 (no extra pixels on Auto Pin).
+- Ignore labels containing **Event Fishing Spot**; those entities are not scanned.
+
 ## 1.7.2 — 2026-09-01
 
 Filter / perk-picker lists treat any non-zero mouse-wheel delta as at least one row, so high-res mice and Disable Hotbar Scrolling no longer stall scrolling. Arrow keys and Page Up/Down also move the Filter list.

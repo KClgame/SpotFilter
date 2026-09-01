@@ -136,8 +136,9 @@ class FilterScreen : Screen(Component.literal("SpotFilter")) {
 			}
 		)
 
-		val slotWidth = ((width - 24) / 3).coerceAtLeast(90)
+		val slotCols = equalCols(3)
 		repeat(3) { index ->
+			val (x, w) = slotCols[index]
 			addRenderableWidget(
 				Button.builder(slotLabel(index)) { _ ->
 					minecraft.gui.setScreen(FilterSlotScreen(this, FilterState.slots[index], "Filter F${index + 1}"))
@@ -147,12 +148,12 @@ class FilterScreen : Screen(Component.literal("SpotFilter")) {
 						"Pick a perk, optional numeric compare, and sort direction.",
 						"Sort uses F1 then F2 then F3. Click to configure (do not cycle by spam-clicking)."
 					)
-				).bounds(8 + index * (slotWidth + 4), 32, slotWidth, 20).build()
+				).bounds(x, 32, w, 20).build()
 			)
 		}
 		val grotto = FilterState.kind == SpotKind.GROTTO
 		if (grotto) {
-			val third = ((width - 24) / 3).coerceAtLeast(80)
+			val cols = equalCols(3)
 			addRenderableWidget(
 				Button.builder(Component.literal(FilterState.stock.compactLabel())) { _ ->
 					minecraft.gui.setScreen(StockFilterScreen(this, FilterState.stock))
@@ -162,7 +163,7 @@ class FilterScreen : Screen(Component.literal("SpotFilter")) {
 						"Depleted stays hidden unless this is On and the compare includes Depleted.",
 						"Does not use an F1–F3 slot."
 					)
-				).bounds(8, 56, third, 20).build()
+				).bounds(cols[0].first, 56, cols[0].second, 20).build()
 			)
 			addRenderableWidget(
 				Button.builder(Component.literal(FilterState.stability.compactLabel())) { _ ->
@@ -173,7 +174,7 @@ class FilterScreen : Screen(Component.literal("SpotFilter")) {
 						"Low is best (#65FEFE), then Medium, then High.",
 						"Grotto pin color uses Cost unless Auto Pin sets a hex."
 					)
-				).bounds(12 + third, 56, third, 20).build()
+				).bounds(cols[1].first, 56, cols[1].second, 20).build()
 			)
 			addRenderableWidget(
 				Button.builder(Component.literal("Auto Pin (${FilterState.autoPinRules.count { it.enabled }})")) { _ ->
@@ -184,9 +185,10 @@ class FilterScreen : Screen(Component.literal("SpotFilter")) {
 						"Normal: <name>.txt   Grotto: <name>_grotto.txt",
 						"Duplicate rule names share one numbering group."
 					)
-				).bounds(16 + third * 2, 56, third, 20).build()
+				).bounds(cols[2].first, 56, cols[2].second, 20).build()
 			)
 		} else {
+			val cols = equalCols(2)
 			addRenderableWidget(
 				Button.builder(Component.literal(FilterState.stock.compactLabel())) { _ ->
 					minecraft.gui.setScreen(StockFilterScreen(this, FilterState.stock))
@@ -196,7 +198,7 @@ class FilterScreen : Screen(Component.literal("SpotFilter")) {
 						"Depleted stays hidden unless this is On and the compare includes Depleted.",
 						"Does not use an F1–F3 slot."
 					)
-				).bounds(8, 56, (width - 20) / 2, 20).build()
+				).bounds(cols[0].first, 56, cols[0].second, 20).build()
 			)
 			addRenderableWidget(
 				Button.builder(Component.literal("Auto Pin (${FilterState.autoPinRules.count { it.enabled }})")) { _ ->
@@ -207,7 +209,7 @@ class FilterScreen : Screen(Component.literal("SpotFilter")) {
 						"Normal: <name>.txt   Grotto: <name>_grotto.txt",
 						"Duplicate rule names share one numbering group."
 					)
-				).bounds(16 + (width - 20) / 2, 56, (width - 20) / 2, 20).build()
+				).bounds(cols[1].first, 56, cols[1].second, 20).build()
 			)
 		}
 		addRenderableWidget(
@@ -228,6 +230,22 @@ class FilterScreen : Screen(Component.literal("SpotFilter")) {
 		val tooltip: Tooltip,
 		val onPress: (Button) -> Unit
 	)
+
+	private fun equalCols(count: Int): List<Pair<Int, Int>> {
+		val gap = 4
+		val start = 8
+		val end = width - 8
+		val inner = end - start - gap * (count - 1)
+		val base = inner / count
+		val extra = inner - base * count
+		var x = start
+		return List(count) { i ->
+			val w = base + if (i < extra) 1 else 0
+			val col = x to w
+			x += w + gap
+			col
+		}
+	}
 
 	private fun addTopRow(y: Int, vararg items: TopBtn) {
 		val gap = 3

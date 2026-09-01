@@ -65,8 +65,10 @@ object SpotParser {
 		}?.rgb
 	}
 
-	fun isFishingSpot(text: String): Boolean =
-		text.contains("Fishing Spot", ignoreCase = true)
+	fun isFishingSpot(text: String): Boolean {
+		if (text.contains("Event Fishing Spot", ignoreCase = true)) return false
+		return text.contains("Fishing Spot", ignoreCase = true)
+	}
 
 	fun parse(
 		level: Level,
