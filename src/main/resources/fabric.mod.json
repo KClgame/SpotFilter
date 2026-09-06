@@ -26,6 +26,12 @@
 				"value": "kcl.spotfilter.client.SpotFilterClient",
 				"adapter": "kotlin"
 			}
+		],
+		"modmenu": [
+			{
+				"value": "kcl.spotfilter.client.SpotFilterModMenu",
+				"adapter": "kotlin"
+			}
 		]
 	},
 	"mixins": [

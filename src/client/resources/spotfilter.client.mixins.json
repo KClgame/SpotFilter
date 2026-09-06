@@ -3,7 +3,8 @@
 	"package": "kcl.spotfilter.client.mixin",
 	"compatibilityLevel": "JAVA_25",
 	"client": [
-		"TextDisplayAccessor"
+		"TextDisplayAccessor",
+		"GlowOutlineMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

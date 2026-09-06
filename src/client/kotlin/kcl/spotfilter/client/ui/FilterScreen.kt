@@ -16,7 +16,7 @@ import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.Style
 import org.lwjgl.glfw.GLFW
 
-class FilterScreen : Screen(Component.literal("SpotFilter")) {
+class FilterScreen(private val parent: Screen? = null) : Screen(Component.literal("SpotFilter")) {
 	private var editingHud = false
 	private var scroll = 0
 	private var dragging = false
@@ -29,6 +29,10 @@ class FilterScreen : Screen(Component.literal("SpotFilter")) {
 	private val rowHeight get() = if (compact) 22 else 44
 
 	override fun isPauseScreen(): Boolean = false
+
+	override fun onClose() {
+		minecraft.gui.setScreen(parent)
+	}
 
 	override fun init() {
 		fillButtons()
@@ -108,6 +112,16 @@ class FilterScreen : Screen(Component.literal("SpotFilter")) {
 			) { _ ->
 				editingHud = true
 				rebuildWidgets()
+			},
+			TopBtn(
+				Component.literal("Keys"),
+				tip(
+					"Modifier A + main key B for each action.",
+					"Record A here (right-click = None). Change B in Controls.",
+					"Highlight up/down and lock highlight are listed here too."
+				)
+			) { _ ->
+				minecraft.gui.setScreen(HotkeyScreen(this))
 			},
 			TopBtn(
 				Component.literal("Clear"),

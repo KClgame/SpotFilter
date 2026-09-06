@@ -5,6 +5,7 @@ import kcl.spotfilter.client.config.SpotFilterConfig
 import kcl.spotfilter.client.data.FishingSpot
 import kcl.spotfilter.client.data.SpotKind
 import kcl.spotfilter.client.data.SpotPool
+import kcl.spotfilter.client.highlight.HighlightState
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry
 import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements
 import net.minecraft.client.Minecraft
@@ -45,7 +46,7 @@ object SpotHud {
 		val client = Minecraft.getInstance()
 		val cfg = SpotFilterConfig.instance
 		cfg.clamp()
-		val (w, h) = measure(client.font, SpotPool.pinned())
+		val (w, h) = measure(client.font, HighlightState.visiblePinned())
 		return HudMetrics(cfg.hudX, cfg.hudY, w, h, cfg.hudScale)
 	}
 
@@ -73,6 +74,8 @@ object SpotHud {
 		return if (spot.primaryPerk() != null) ICON + 4 + textW else textW
 	}
 
+	private fun cursorW(font: Font): Int = font.width(">") + 4
+
 	private fun blockSize(font: Font, pinned: List<FishingSpot>): Pair<Int, Int> {
 		val lh = lineH(font)
 		if (pinned.isEmpty()) {
@@ -95,7 +98,7 @@ object SpotHud {
 				}
 			}
 		}
-		return blockW to blockH
+		return blockW + cursorW(font) to blockH
 	}
 
 	private fun measure(font: Font, pinned: List<FishingSpot>): Pair<Int, Int> {
@@ -106,7 +109,8 @@ object SpotHud {
 	private fun drawContent(graphics: GuiGraphicsExtractor, font: Font, w: Int, h: Int) {
 		val alpha = (SpotFilterConfig.instance.backgroundAlpha / 100.0 * 180).toInt().coerceIn(0, 180)
 		graphics.fill(0, 0, w, h, ARGB.color(alpha, 0, 0, 0))
-		val pinned = SpotPool.pinned()
+		HighlightState.prune()
+		val pinned = HighlightState.visiblePinned()
 		val lh = lineH(font)
 		val (blockW, blockH) = blockSize(font, pinned)
 		val originX = (w - blockW) / 2
@@ -115,11 +119,24 @@ object SpotHud {
 			graphics.text(font, EMPTY, originX, cursor, GRAY, false)
 			return
 		}
+		val markW = cursorW(font)
+		val textX = originX + markW
 		val compact = compact()
 		for ((i, spot) in pinned.withIndex()) {
 			if (i > 0) cursor += 2
+			val lit = HighlightState.isLit(spot)
+			if (HighlightState.isCursor(spot)) {
+				graphics.text(font, ">", originX, cursor, HighlightState.ORANGE_ARGB, false)
+			}
+			val ink = if (lit) HighlightState.ORANGE_ARGB else WHITE
 			if (compact) {
-				SpotLines.draw(graphics, font, SpotLines.compactParts(spot), originX, cursor)
+				SpotLines.draw(
+					graphics,
+					font,
+					SpotLines.compactParts(spot, lit),
+					textX,
+					cursor
+				)
 				cursor += lh
 				continue
 			}
@@ -127,17 +144,18 @@ object SpotHud {
 			val primary = spot.primaryPerk()
 			if (primary != null) {
 				val iconY = cursor + (lh - ICON).coerceAtLeast(0) / 2
-				SpotLines.blitIcon(graphics, primary.type.textureId, originX, iconY, ICON)
-				graphics.text(font, head, originX + ICON + 4, cursor, WHITE, false)
+				SpotLines.blitIcon(graphics, primary.type.textureId, textX, iconY, ICON)
+				graphics.text(font, head, textX + ICON + 4, cursor, ink, false)
 			} else {
-				graphics.text(font, head, originX, cursor, WHITE, false)
+				graphics.text(font, head, textX, cursor, ink, false)
 			}
 			cursor += lh
 			for (perk in spot.perks) {
-				val perkX = originX + PERK_INDENT
+				val perkX = textX + PERK_INDENT
 				val iconY = cursor + (lh - ICON).coerceAtLeast(0) / 2
 				SpotLines.blitIcon(graphics, perk.type.textureId, perkX, iconY, ICON)
-				graphics.text(font, perk.coloredLine(), perkX + ICON + 4, cursor, WHITE, false)
+				val line = if (lit) HighlightState.tintWhites(perk.coloredLine()) else perk.coloredLine()
+				graphics.text(font, line, perkX + ICON + 4, cursor, ink, false)
 				cursor += lh
 			}
 		}

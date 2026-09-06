@@ -17,6 +17,7 @@ object SpotScanner {
 		val player = client.player
 		if (level == null || player == null || !SpotFilterConfig.instance.enabled) {
 			PinnedSpotMarker.tick()
+			kcl.spotfilter.client.world.GlowPigs.tick()
 			return
 		}
 
@@ -39,5 +40,6 @@ object SpotScanner {
 		SpotPool.dropMissingNearPlayer(seen, now)
 		SpotPool.finishNormalScan(seen)
 		PinnedSpotMarker.tick()
+		kcl.spotfilter.client.world.GlowPigs.tick()
 	}
 }

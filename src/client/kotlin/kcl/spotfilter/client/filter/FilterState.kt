@@ -7,8 +7,6 @@ import kcl.spotfilter.client.data.SpotPool
 import kcl.spotfilter.client.data.StabilityCost
 import kcl.spotfilter.client.data.StockLevel
 import kcl.spotfilter.client.parse.PerkType
-import net.minecraft.client.Minecraft
-import net.minecraft.world.phys.Vec3
 
 enum class FilterMode {
 	AND,
@@ -401,8 +399,6 @@ object FilterState {
 	}
 
 	fun sortSpots(spots: Collection<FishingSpot>, forKind: SpotKind = kind): List<FishingSpot> {
-		val player = Minecraft.getInstance().player
-		val origin = player?.position() ?: Vec3.ZERO
 		val profile = if (forKind == SpotKind.GROTTO) grotto else normal
 		val grotto = forKind == SpotKind.GROTTO
 		return spots.sortedWith { a, b ->
@@ -434,11 +430,7 @@ object FilterState {
 			}
 			val stockCmp = (b.stock?.rank ?: 0).compareTo(a.stock?.rank ?: 0)
 			if (stockCmp != 0) return@sortedWith stockCmp
-			val dist = distSq(a, origin).compareTo(distSq(b, origin))
-			if (dist != 0) return@sortedWith dist
-			val xCmp = a.x.compareTo(b.x)
-			if (xCmp != 0) return@sortedWith xCmp
-			a.z.compareTo(b.z)
+			a.id.compareTo(b.id)
 		}
 	}
 
@@ -449,12 +441,6 @@ object FilterState {
 		return if (index >= 0) index else 1_000 + name.lowercase().hashCode().and(0x7fffffff) % 1_000
 	}
 
-	private fun distSq(spot: FishingSpot, origin: Vec3): Double {
-		val dx = (spot.x + 0.5) - origin.x
-		val dy = spot.y - origin.y
-		val dz = (spot.z + 0.5) - origin.z
-		return dx * dx + dy * dy + dz * dz
-	}
 }
 
 object AutoPin {

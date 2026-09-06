@@ -112,8 +112,11 @@ object PerkPriority {
 		if (perks.isEmpty()) return null
 		val special = perks.filter { it.type.kind == PerkKind.SPECIAL }
 		val pool = special.ifEmpty { perks }
-		return pool.maxWithOrNull(compareBy<ParsedPerk> { it.value }
-			.thenBy { if (it.type == PerkType.STRONG_HOOK) 1 else 0 })
+		return pool.maxWithOrNull(
+			compareBy<ParsedPerk> { it.value }
+				.thenBy { if (it.type.family == PerkFamily.STRONG) 1 else 0 }
+				.thenBy { if (it.type == PerkType.STRONG_HOOK) 1 else 0 }
+		)
 	}
 
 	fun grottoChance(perks: List<ParsedPerk>): ParsedPerk? =

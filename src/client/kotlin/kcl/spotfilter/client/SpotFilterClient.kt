@@ -4,6 +4,7 @@ import kcl.spotfilter.SpotFilter
 import kcl.spotfilter.client.command.SpotCommands
 import kcl.spotfilter.client.config.SpotFilterConfig
 import kcl.spotfilter.client.data.SpotPool
+import kcl.spotfilter.client.highlight.HighlightState
 import kcl.spotfilter.client.scan.SpotScanner
 import kcl.spotfilter.client.ui.FilterScreen
 import kcl.spotfilter.client.ui.SpotGuideOverlay
@@ -26,6 +27,14 @@ object SpotFilterClient : ClientModInitializer {
 		private set
 	lateinit var toggleHud: KeyMapping
 		private set
+	lateinit var highlightUp: KeyMapping
+		private set
+	lateinit var highlightDown: KeyMapping
+		private set
+	lateinit var lockHighlight: KeyMapping
+		private set
+	lateinit var clearHighlights: KeyMapping
+		private set
 
 	@Volatile
 	private var openFilterPending = false
@@ -45,6 +54,18 @@ object SpotFilterClient : ClientModInitializer {
 		toggleHud = KeyMappingHelper.registerKeyMapping(
 			KeyMapping("key.spotfilter.toggle_hud", GLFW.GLFW_KEY_L, category)
 		)
+		highlightUp = KeyMappingHelper.registerKeyMapping(
+			KeyMapping("key.spotfilter.highlight_up", GLFW.GLFW_KEY_UP, category)
+		)
+		highlightDown = KeyMappingHelper.registerKeyMapping(
+			KeyMapping("key.spotfilter.highlight_down", GLFW.GLFW_KEY_DOWN, category)
+		)
+		lockHighlight = KeyMappingHelper.registerKeyMapping(
+			KeyMapping("key.spotfilter.lock_highlight", GLFW.GLFW_KEY_G, category)
+		)
+		clearHighlights = KeyMappingHelper.registerKeyMapping(
+			KeyMapping("key.spotfilter.clear_highlights", GLFW.GLFW_KEY_H, category)
+		)
 		SpotHud.register()
 		SpotGuideOverlay.register()
 		kcl.spotfilter.client.world.PinnedSpotMarker.register()
@@ -61,24 +82,48 @@ object SpotFilterClient : ClientModInitializer {
 					}
 				}
 			}
-			while (openFilter.consumeClick()) {
+			val cfg = SpotFilterConfig.instance
+			if (Hotkeys.consume(openFilter, cfg.modOpenFilter)) {
 				val screen = client.gui.screen()
-				if (screen.typingInBox()) continue
-				if (screen is FilterScreen) {
-					client.gui.setScreen(null)
-				} else if (screen == null) {
-					client.gui.setScreen(FilterScreen())
+				if (!screen.typingInBox()) {
+					if (screen is FilterScreen) {
+						client.gui.setScreen(null)
+					} else if (screen == null) {
+						client.gui.setScreen(FilterScreen())
+					}
 				}
 			}
-			while (clearSpots.consumeClick()) {
-				if (client.gui.screen().typingInBox()) continue
-				SpotPool.clearSpots()
+			if (Hotkeys.consume(clearSpots, cfg.modClearSpots)) {
+				if (!client.gui.screen().typingInBox()) {
+					SpotPool.clearSpots()
+				}
 			}
-			while (toggleHud.consumeClick()) {
-				if (client.gui.screen() is kcl.spotfilter.client.ui.PerkPickerScreen) continue
-				if (client.gui.screen().typingInBox()) continue
-				SpotFilterConfig.instance.hudVisible = !SpotFilterConfig.instance.hudVisible
-				SpotFilterConfig.save()
+			if (Hotkeys.consume(toggleHud, cfg.modToggleHud)) {
+				if (client.gui.screen() !is kcl.spotfilter.client.ui.PerkPickerScreen &&
+					!client.gui.screen().typingInBox()
+				) {
+					cfg.hudVisible = !cfg.hudVisible
+					SpotFilterConfig.save()
+				}
+			}
+			if (client.gui.screen() == null) {
+				if (Hotkeys.consume(highlightUp, cfg.modHighlightUp)) {
+					HighlightState.move(-1)
+				}
+				if (Hotkeys.consume(highlightDown, cfg.modHighlightDown)) {
+					HighlightState.move(1)
+				}
+				if (Hotkeys.consume(lockHighlight, cfg.modLockHighlight)) {
+					HighlightState.toggleLock()
+				}
+				if (Hotkeys.consume(clearHighlights, cfg.modClearHighlights)) {
+					HighlightState.clearLocks()
+				}
+			} else {
+				while (highlightUp.consumeClick()) {}
+				while (highlightDown.consumeClick()) {}
+				while (lockHighlight.consumeClick()) {}
+				while (clearHighlights.consumeClick()) {}
 			}
 			SpotScanner.tick(client)
 		}

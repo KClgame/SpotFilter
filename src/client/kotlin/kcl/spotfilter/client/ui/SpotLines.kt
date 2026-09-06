@@ -38,9 +38,10 @@ object SpotLines {
 	fun compactPerks(spot: FishingSpot) =
 		spot.perks.filter { !it.type.isGrottoChance }.ifEmpty { spot.perks }.take(3)
 
-	fun compactParts(spot: FishingSpot): List<LinePart> {
+	fun compactParts(spot: FishingSpot, highlight: Boolean = false): List<LinePart> {
 		val parts = ArrayList<LinePart>(12)
-		val idRgb = if (spot.kind == SpotKind.GROTTO) spot.markerRgb() else WHITE
+		val white = if (highlight) kcl.spotfilter.client.highlight.HighlightState.ORANGE else WHITE
+		val idRgb = spot.markerRgb()
 		parts += LinePart(
 			text = Component.literal(spot.groupLabel()).withStyle(Style.EMPTY.withColor(idRgb)),
 			gapAfter = 3
@@ -51,7 +52,7 @@ object SpotLines {
 		)
 		val perks = compactPerks(spot)
 		for ((i, perk) in perks.withIndex()) {
-			val valueColor = perk.valueRgb ?: WHITE
+			val valueColor = perk.valueRgb ?: white
 			parts += LinePart(
 				text = Component.literal(perk.type.valueLabel(perk.value))
 					.withStyle(Style.EMPTY.withColor(valueColor)),
@@ -64,7 +65,7 @@ object SpotLines {
 		}
 		parts += LinePart(
 			text = Component.literal("${spot.x} ${spot.y} ${spot.z}")
-				.withStyle(Style.EMPTY.withColor(WHITE)),
+				.withStyle(Style.EMPTY.withColor(white)),
 			gapAfter = 5
 		)
 		parts += LinePart(

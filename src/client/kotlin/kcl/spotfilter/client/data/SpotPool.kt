@@ -95,8 +95,6 @@ object SpotPool {
 		spot.pinned = pinned
 		if (!pinned) {
 			spot.autoPinned = false
-			spot.pinColorOverride = null
-			assignGroup(spot, null)
 			PinnedSpotMarker.remove(spot.id)
 		} else {
 			PinnedSpotMarker.spawnOrUpdate(spot)
@@ -126,6 +124,8 @@ object SpotPool {
 
 	fun clearSpots() {
 		PinnedSpotMarker.removeAll()
+		kcl.spotfilter.client.world.GlowPigs.removeAll()
+		kcl.spotfilter.client.highlight.HighlightState.clear()
 		spots.clear()
 		nextId = 1
 	}

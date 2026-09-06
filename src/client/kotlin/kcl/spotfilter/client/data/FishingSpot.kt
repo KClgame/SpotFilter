@@ -168,6 +168,14 @@ data class FishingSpot(
 		if (kind == SpotKind.GROTTO) {
 			return stabilityDisplayRgb()
 		}
+		val strong = perkValue(PerkType.STRONG_HOOK)
+		if (strong >= 0) {
+			val wise = perkValue(PerkType.WISE_HOOK).coerceAtLeast(0)
+			val fish = perkValue(PerkType.FISH_MAGNET).coerceAtLeast(0)
+			if (strong >= wise && strong >= fish) {
+				return kcl.spotfilter.client.parse.PerkFamily.STRONG.rgb
+			}
+		}
 		return primaryPerk()?.type?.family?.rgb ?: 0xFFFFFF
 	}
 }

@@ -3,6 +3,7 @@ package kcl.spotfilter.client.ui
 import kcl.spotfilter.SpotFilter
 import kcl.spotfilter.client.config.SpotFilterConfig
 import kcl.spotfilter.client.data.SpotPool
+import kcl.spotfilter.client.highlight.HighlightState
 import kcl.spotfilter.client.world.PinnedSpotMarker
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry
 import net.minecraft.client.Minecraft
@@ -35,7 +36,7 @@ object SpotGuideOverlay {
 		val font = client.font
 		val zoom = LogicalZoomCompat.ndcXyScale()
 
-		for (spot in SpotPool.pinned()) {
+		for (spot in HighlightState.visiblePinned()) {
 			if (spot.key.dimension != level.dimension().identifier()) continue
 			val wx = PinnedSpotMarker.worldX(spot)
 			val wy = PinnedSpotMarker.worldY(spot)
@@ -53,10 +54,11 @@ object SpotGuideOverlay {
 			val sy = ((1.0 - ndc.y * zoom) * 0.5 * height).toFloat()
 			if (sx < 0f || sy < 0f || sx > width || sy > height) continue
 
-			val rgb = spot.markerRgb()
+			val lit = HighlightState.isLit(spot)
+			val rgb = if (lit) HighlightState.brighten(spot.markerRgb()) else spot.markerRgb()
 			val label = Component.literal(PinnedSpotMarker.distanceLabel(spot, dist))
 				.withStyle(Style.EMPTY.withColor(TextColor.fromRgb(rgb)))
-			val scale = PinnedSpotMarker.displayScale(dist)
+			val scale = PinnedSpotMarker.displayScale(dist) * if (lit) 1.35f else 1f
 			val pose = graphics.pose()
 			pose.pushMatrix()
 			pose.translate(sx, sy)

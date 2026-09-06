@@ -15,6 +15,7 @@ import kcl.spotfilter.client.filter.SortDir
 import kcl.spotfilter.client.filter.PerkPairFilter
 import kcl.spotfilter.client.filter.StabilityFilter
 import kcl.spotfilter.client.filter.StockFilter
+import kcl.spotfilter.client.highlight.HighlightMode
 import kcl.spotfilter.client.parse.PerkType
 import kcl.spotfilter.client.ui.HudLayout
 import net.fabricmc.loader.api.FabricLoader
@@ -87,6 +88,14 @@ class SpotFilterConfig {
 	var enabled: Boolean = true
 	var spotKind: String = SpotKind.NORMAL.name
 	var enabledPacks: MutableList<String> = arrayListOf("fish", "pearl", "treasure", "spirit", "xp_wayfinder")
+	var modOpenFilter: Int = 0
+	var modClearSpots: Int = 0
+	var modToggleHud: Int = 0
+	var modHighlightUp: Int = 0
+	var modHighlightDown: Int = 0
+	var modLockHighlight: Int = 0
+	var modClearHighlights: Int = 0
+	var highlightMode: String = HighlightMode.GLOWING.name
 	var normal: FilterProfileConfig = FilterProfileConfig()
 	var grotto: FilterProfileConfig = FilterProfileConfig()
 
@@ -111,6 +120,12 @@ class SpotFilterConfig {
 
 	fun setLayout(layout: HudLayout) {
 		hudLayout = layout.name
+	}
+
+	fun highlightMode(): HighlightMode = HighlightMode.fromName(highlightMode)
+
+	fun setHighlightMode(mode: HighlightMode) {
+		highlightMode = mode.name
 	}
 
 	companion object {
@@ -172,6 +187,14 @@ class SpotFilterConfig {
 		enabled = other.enabled
 		spotKind = other.spotKind
 		enabledPacks = ArrayList(other.enabledPacks)
+		modOpenFilter = other.modOpenFilter
+		modClearSpots = other.modClearSpots
+		modToggleHud = other.modToggleHud
+		modHighlightUp = other.modHighlightUp
+		modHighlightDown = other.modHighlightDown
+		modLockHighlight = other.modLockHighlight
+		modClearHighlights = other.modClearHighlights
+		highlightMode = other.highlightMode
 		normal = other.normal
 		grotto = other.grotto
 		filterMode = other.filterMode

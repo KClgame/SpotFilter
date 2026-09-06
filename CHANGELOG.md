@@ -2,6 +2,14 @@
 
 SpotFilter 版本记录。最新在上。发布包见 [GitHub Releases](https://github.com/KClgame/SpotFilter/releases)。
 
+## 1.8.0 — 2026-09-06
+
+- Mod Menu Config opens Filter (optional).
+- HUD highlight: `>` cursor, orange whites, ↑/↓, G lock (multiple). Keys page: record modifier A (right-click None); main key B in Controls. Highlight mode Glowing (invisible glowing pig) or Solo (HUD/guides show only highlighted spots). H clears locked highlights.
+- Unpin keeps Auto Pin nicknames and grouping.
+- HUD lists by label number. Numbers change only with perk/stock attributes or first-seen order, not distance or coordinates.
+- Fish-spot marker red is `#FC5454` when Strong Hook is highest or tied with Wise Hook / Fish Magnet.
+
 ## 1.7.8 — 2026-09-02
 
 - Pin guides follow Logical Zoom: that mod scales the world projection matrix and does not change camera FOV, so HUD projection now applies the same XY scale.

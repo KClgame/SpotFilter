@@ -113,7 +113,10 @@ object FishingWorld {
 		val cfg = SpotFilterConfig.instance
 		if (cfg.enabled == want) return
 		cfg.enabled = want
-		if (!want) PinnedSpotMarker.removeAll()
+		if (!want) {
+			PinnedSpotMarker.removeAll()
+			kcl.spotfilter.client.world.GlowPigs.removeAll()
+		}
 	}
 
 	private fun detectPlace(client: Minecraft): FishingPlace? {

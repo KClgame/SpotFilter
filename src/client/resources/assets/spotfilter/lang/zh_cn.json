@@ -2,5 +2,9 @@
 	"key.spotfilter.open_filter": "打开 Spot Filter",
 	"key.spotfilter.clear_spots": "清空钓鱼点",
 	"key.spotfilter.toggle_hud": "开关坐标 HUD",
+	"key.spotfilter.highlight_up": "高亮上一个点",
+	"key.spotfilter.highlight_down": "高亮下一个点",
+	"key.spotfilter.lock_highlight": "锁定 / 解锁高亮",
+	"key.spotfilter.clear_highlights": "清除全部高亮",
 	"key.category.spotfilter.main": "SpotFilter"
 }
