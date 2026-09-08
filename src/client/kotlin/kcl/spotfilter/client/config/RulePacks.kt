@@ -12,12 +12,20 @@ import java.nio.file.Path
 class RulePack(
 	val id: String,
 	val builtin: Boolean,
-	var enabled: Boolean,
+	var enabledNormal: Boolean,
+	var enabledGrotto: Boolean,
 	val normal: MutableList<AutoPinRule> = ArrayList(),
 	val grotto: MutableList<AutoPinRule> = ArrayList()
 ) {
 	fun rules(kind: SpotKind): MutableList<AutoPinRule> =
 		if (kind == SpotKind.GROTTO) grotto else normal
+
+	fun enabledFor(kind: SpotKind): Boolean =
+		if (kind == SpotKind.GROTTO) enabledGrotto else enabledNormal
+
+	fun setEnabledFor(kind: SpotKind, value: Boolean) {
+		if (kind == SpotKind.GROTTO) enabledGrotto = value else enabledNormal = value
+	}
 }
 
 object RulePacks {
@@ -36,15 +44,25 @@ object RulePacks {
 	var lastMessage: String = ""
 		private set
 
-	fun enabledIds(): List<String> = packs.filter { it.enabled }.map { it.id }
+	fun enabledIds(kind: SpotKind? = null): List<String> = when (kind) {
+		null -> packs.filter { it.enabledNormal || it.enabledGrotto }.map { it.id }
+		SpotKind.GROTTO -> packs.filter { it.enabledGrotto }.map { it.id }
+		SpotKind.NORMAL -> packs.filter { it.enabledNormal }.map { it.id }
+	}
 
 	fun byId(id: String): RulePack? = packs.firstOrNull { it.id.equals(id, ignoreCase = true) }
 
-	fun loadAll(enabled: List<String>?) {
+	fun loadAll(
+		enabled: List<String>?,
+		order: List<String>? = null,
+		enabledNormal: List<String>? = null,
+		enabledGrotto: List<String>? = null
+	) {
 		Files.createDirectories(root)
 		seedDefaultsOnce()
 		migrateLegacyRules()
-		val enabledSet = resolveEnabled(enabled)
+		val normalSet = resolveEnabled(enabledNormal ?: enabled)
+		val grottoSet = resolveEnabled(enabledGrotto ?: enabled)
 		val loaded = LinkedHashMap<String, RulePack>()
 		if (Files.isDirectory(packsDir)) {
 			Files.list(packsDir).use { stream ->
@@ -52,7 +70,13 @@ object RulePacks {
 					.forEach { file ->
 						val (id, grottoFile) = splitPackFileName(file.fileName.toString()) ?: return@forEach
 						val pack = loaded.getOrPut(id) {
-							RulePack(id, builtin = false, enabled = id.lowercase() in enabledSet)
+							val key = id.lowercase()
+							RulePack(
+								id,
+								builtin = false,
+								enabledNormal = key in normalSet,
+								enabledGrotto = key in grottoSet
+							)
 						}
 						val parsed = readFile(file, if (grottoFile) SpotKind.GROTTO else SpotKind.NORMAL)
 						if (grottoFile) {
@@ -69,19 +93,50 @@ object RulePacks {
 			}
 		}
 		packs.clear()
-		for (id in builtins) {
-			loaded.remove(id)?.let { packs.add(it) }
+		val seen = HashSet<String>()
+		val preferred = ArrayList<String>()
+		order?.forEach { id ->
+			val key = id.lowercase()
+			if (key.isNotBlank() && seen.add(key)) preferred.add(key)
+		}
+		builtins.forEach { id -> if (seen.add(id)) preferred.add(id) }
+		loaded.keys.forEach { id -> if (seen.add(id.lowercase())) preferred.add(id.lowercase()) }
+		for (id in preferred) {
+			val entry = loaded.entries.firstOrNull { it.key.equals(id, ignoreCase = true) } ?: continue
+			loaded.remove(entry.key)
+			packs.add(entry.value)
 		}
 		packs.addAll(loaded.values)
 		syncToFilterState()
 	}
 
+	fun movePack(pack: RulePack, delta: Int) {
+		val i = packs.indexOf(pack)
+		if (i < 0) return
+		val j = (i + delta).coerceIn(0, packs.lastIndex)
+		if (i == j) return
+		packs.removeAt(i)
+		packs.add(j, pack)
+		syncToFilterState()
+		AutoPin.refreshAll()
+	}
+
+	fun moveRule(rules: MutableList<kcl.spotfilter.client.filter.AutoPinRule>, index: Int, delta: Int) {
+		if (index !in rules.indices) return
+		val j = (index + delta).coerceIn(0, rules.lastIndex)
+		if (index == j) return
+		val rule = rules.removeAt(index)
+		rules.add(j, rule)
+		syncToFilterState()
+		AutoPin.refreshAll()
+	}
+
 	fun syncToFilterState() {
 		FilterState.normal.autoPinRules.clear()
 		FilterState.grotto.autoPinRules.clear()
-		for (pack in packs.filter { it.enabled }) {
-			FilterState.normal.autoPinRules.addAll(pack.normal)
-			FilterState.grotto.autoPinRules.addAll(pack.grotto)
+		for (pack in packs) {
+			if (pack.enabledNormal) FilterState.normal.autoPinRules.addAll(pack.normal)
+			if (pack.enabledGrotto) FilterState.grotto.autoPinRules.addAll(pack.grotto)
 		}
 	}
 
@@ -98,7 +153,7 @@ object RulePacks {
 			lastMessage = "Pack '$id' already exists"
 			return byId(id)
 		}
-		val pack = RulePack(id, builtin = false, enabled = false)
+		val pack = RulePack(id, builtin = false, enabledNormal = false, enabledGrotto = false)
 		packs.add(pack)
 		savePack(pack)
 		lastMessage = "Created pack '$id'"
@@ -125,7 +180,7 @@ object RulePacks {
 			return null
 		}
 		val parsed = readFile(source, if (grottoFile) SpotKind.GROTTO else SpotKind.NORMAL)
-		val pack = byId(id) ?: RulePack(id, builtin = false, enabled = false).also { packs.add(it) }
+		val pack = byId(id) ?: RulePack(id, builtin = false, enabledNormal = false, enabledGrotto = false).also { packs.add(it) }
 		if (grottoFile) {
 			pack.grotto.clear()
 			pack.grotto.addAll(parsed.grotto.ifEmpty { parsed.normal })
@@ -154,8 +209,8 @@ object RulePacks {
 		return exportDir
 	}
 
-	fun toggle(pack: RulePack) {
-		pack.enabled = !pack.enabled
+	fun toggle(pack: RulePack, kind: SpotKind = FilterState.kind) {
+		pack.setEnabledFor(kind, !pack.enabledFor(kind))
 		syncToFilterState()
 		AutoPin.applyAll()
 	}
@@ -203,14 +258,14 @@ object RulePacks {
 		val imported = packsDir.resolve("legacy.txt")
 		if (Files.exists(imported) || Files.exists(packsDir.resolve("legacy_grotto.txt"))) return
 		val parsed = readFile(legacy, SpotKind.NORMAL)
-		val pack = RulePack("legacy", builtin = false, enabled = false)
+		val pack = RulePack("legacy", builtin = false, enabledNormal = false, enabledGrotto = false)
 		pack.normal.addAll(parsed.normal)
 		pack.grotto.addAll(parsed.grotto)
 		savePack(pack)
 	}
 
-	private fun readPack(id: String, builtin: Boolean, enabled: Boolean): RulePack {
-		val pack = RulePack(id, builtin, enabled)
+	private fun readPack(id: String, builtin: Boolean, enabledNormal: Boolean, enabledGrotto: Boolean): RulePack {
+		val pack = RulePack(id, builtin, enabledNormal, enabledGrotto)
 		val normalFile = normalPath(id)
 		val grottoFile = grottoPath(id)
 		if (Files.exists(normalFile)) {

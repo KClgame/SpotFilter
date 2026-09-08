@@ -86,8 +86,13 @@ class SpotFilterConfig {
 	var hudLayout: String = HudLayout.DETAILED.name
 	var kickDepleted: Boolean = true
 	var enabled: Boolean = true
+	var normalEnabled: Boolean? = null
+	var grottoEnabled: Boolean? = null
 	var spotKind: String = SpotKind.NORMAL.name
 	var enabledPacks: MutableList<String> = arrayListOf("fish", "pearl", "treasure", "spirit", "xp_wayfinder")
+	var enabledPacksNormal: MutableList<String>? = null
+	var enabledPacksGrotto: MutableList<String>? = null
+	var packOrder: MutableList<String> = arrayListOf("fish", "pearl", "treasure", "spirit", "xp_wayfinder", "blank")
 	var modOpenFilter: Int = 0
 	var modClearSpots: Int = 0
 	var modToggleHud: Int = 0
@@ -95,6 +100,9 @@ class SpotFilterConfig {
 	var modHighlightDown: Int = 0
 	var modLockHighlight: Int = 0
 	var modClearHighlights: Int = 0
+	var modToggleHighlight: Int = 0
+	var modToggleHighlightMode: Int = 0
+	var highlightEnabled: Boolean = true
 	var highlightMode: String = HighlightMode.GLOWING.name
 	var normal: FilterProfileConfig = FilterProfileConfig()
 	var grotto: FilterProfileConfig = FilterProfileConfig()
@@ -122,6 +130,10 @@ class SpotFilterConfig {
 		hudLayout = layout.name
 	}
 
+	fun isNormalEnabled(): Boolean = normalEnabled ?: enabled
+
+	fun isGrottoEnabled(): Boolean = grottoEnabled ?: enabled
+
 	fun highlightMode(): HighlightMode = HighlightMode.fromName(highlightMode)
 
 	fun setHighlightMode(mode: HighlightMode) {
@@ -142,7 +154,12 @@ class SpotFilterConfig {
 		fun load(): SpotFilterConfig {
 			val loaded = readFile()
 			loaded.applyToState()
-			RulePacks.loadAll(loaded.enabledPacks)
+			RulePacks.loadAll(
+				loaded.enabledPacks,
+				loaded.packOrder,
+				loaded.enabledPacksNormal,
+				loaded.enabledPacksGrotto
+			)
 			return loaded
 		}
 
@@ -150,12 +167,23 @@ class SpotFilterConfig {
 			val loaded = readFile()
 			instance.copyFrom(loaded)
 			instance.applyToState()
-			RulePacks.loadAll(instance.enabledPacks)
+			RulePacks.loadAll(
+				instance.enabledPacks,
+				instance.packOrder,
+				instance.enabledPacksNormal,
+				instance.enabledPacksGrotto
+			)
 		}
 
 		fun save() {
 			instance.syncFromState()
+			instance.normalEnabled = instance.isNormalEnabled()
+			instance.grottoEnabled = instance.isGrottoEnabled()
+			instance.enabled = instance.isNormalEnabled() || instance.isGrottoEnabled()
+			instance.enabledPacksNormal = RulePacks.enabledIds(SpotKind.NORMAL).toMutableList()
+			instance.enabledPacksGrotto = RulePacks.enabledIds(SpotKind.GROTTO).toMutableList()
 			instance.enabledPacks = RulePacks.enabledIds().toMutableList()
+			instance.packOrder = RulePacks.packs.map { it.id }.toMutableList()
 			instance.clamp()
 			Files.createDirectories(path.parent)
 			Files.newBufferedWriter(path).use { gson.toJson(instance, it) }
@@ -185,8 +213,13 @@ class SpotFilterConfig {
 		hudLayout = other.hudLayout
 		kickDepleted = other.kickDepleted
 		enabled = other.enabled
+		normalEnabled = other.normalEnabled
+		grottoEnabled = other.grottoEnabled
 		spotKind = other.spotKind
 		enabledPacks = ArrayList(other.enabledPacks)
+		enabledPacksNormal = other.enabledPacksNormal?.let { ArrayList(it) }
+		enabledPacksGrotto = other.enabledPacksGrotto?.let { ArrayList(it) }
+		packOrder = ArrayList(other.packOrder)
 		modOpenFilter = other.modOpenFilter
 		modClearSpots = other.modClearSpots
 		modToggleHud = other.modToggleHud
@@ -194,6 +227,9 @@ class SpotFilterConfig {
 		modHighlightDown = other.modHighlightDown
 		modLockHighlight = other.modLockHighlight
 		modClearHighlights = other.modClearHighlights
+		modToggleHighlight = other.modToggleHighlight
+		modToggleHighlightMode = other.modToggleHighlightMode
+		highlightEnabled = other.highlightEnabled
 		highlightMode = other.highlightMode
 		normal = other.normal
 		grotto = other.grotto

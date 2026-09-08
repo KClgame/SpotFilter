@@ -7,7 +7,7 @@ import net.minecraft.sounds.SoundSource
 
 object SpotSounds {
 	fun playNewSpot() {
-		if (!SpotFilterConfig.instance.enabled) return
+		if (!kcl.spotfilter.client.data.FishingWorld.overlayOn()) return
 		val client = Minecraft.getInstance()
 		val player = client.player ?: return
 		val level = client.level ?: return

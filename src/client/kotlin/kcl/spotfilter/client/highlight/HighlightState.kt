@@ -11,37 +11,37 @@ object HighlightState {
 	const val ORANGE = 0xFFAA55
 	const val ORANGE_ARGB = 0xFFFFAA55.toInt()
 
-	private var cursor = 0
+	private var cursorId = 0
 	private val locked = HashSet<Int>()
 
 	fun prune() {
 		val spots = SpotPool.pinned()
 		if (spots.isEmpty()) {
-			cursor = 0
+			cursorId = 0
 			locked.clear()
 			return
 		}
 		val ids = spots.map { it.id }.toHashSet()
 		locked.removeAll { it !in ids }
-		cursor = cursor.coerceIn(0, spots.lastIndex)
+		if (cursorId != 0 && cursorId !in ids) cursorId = 0
 	}
 
 	fun spots(): List<FishingSpot> = SpotPool.pinned()
 
 	fun current(): FishingSpot? {
-		val spots = spots()
-		if (spots.isEmpty()) return null
-		return spots[cursor.coerceIn(0, spots.lastIndex)]
+		if (cursorId == 0) return null
+		return spots().firstOrNull { it.id == cursorId }
 	}
 
 	fun move(delta: Int) {
 		val spots = spots()
 		if (spots.isEmpty()) {
-			cursor = 0
+			cursorId = 0
 			return
 		}
-		val size = spots.size
-		cursor = Math.floorMod(cursor.coerceIn(0, size - 1) + delta, size)
+		val index = spots.indexOfFirst { it.id == cursorId }
+		val start = if (index >= 0) index else if (delta > 0) -1 else spots.size
+		cursorId = spots[Math.floorMod(start + delta, spots.size)].id
 	}
 
 	fun toggleLock() {
@@ -49,10 +49,12 @@ object HighlightState {
 		if (!locked.add(spot.id)) locked.remove(spot.id)
 	}
 
+	fun visualsOn(): Boolean = SpotFilterConfig.instance.highlightEnabled
+
 	fun isCursor(spot: FishingSpot): Boolean = current()?.id == spot.id
 
 	fun isLit(spot: FishingSpot): Boolean =
-		isCursor(spot) || spot.id in locked
+		visualsOn() && (isCursor(spot) || spot.id in locked)
 
 	fun litSpots(): List<FishingSpot> {
 		val spots = spots()
@@ -65,14 +67,19 @@ object HighlightState {
 	}
 
 	fun clear() {
-		cursor = 0
+		cursorId = 0
 		locked.clear()
+	}
+
+	fun hudPinned(): List<FishingSpot> {
+		prune()
+		return SpotPool.pinned()
 	}
 
 	fun visiblePinned(): List<FishingSpot> {
 		prune()
 		val pinned = SpotPool.pinned()
-		if (SpotFilterConfig.instance.highlightMode() != HighlightMode.SOLO) return pinned
+		if (!visualsOn() || SpotFilterConfig.instance.highlightMode() != HighlightMode.SOLO) return pinned
 		return pinned.filter { isLit(it) }
 	}
 

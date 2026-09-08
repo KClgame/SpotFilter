@@ -6,5 +6,7 @@
 	"key.spotfilter.highlight_down": "Highlight next spot",
 	"key.spotfilter.lock_highlight": "Lock / unlock highlight",
 	"key.spotfilter.clear_highlights": "Clear all highlights",
+	"key.spotfilter.toggle_highlight": "Highlight on / off",
+	"key.spotfilter.toggle_highlight_mode": "Highlight mode Glowing / Solo",
 	"key.category.spotfilter.main": "SpotFilter"
 }

@@ -37,7 +37,9 @@ object SpotCommands {
 				.then(literal("status").executes { status(it) })
 				.then(literal("on").executes { setEnabled(it, true) })
 				.then(literal("off").executes { setEnabled(it, false) })
-				.then(literal("toggle").executes { setEnabled(it, !SpotFilterConfig.instance.enabled) })
+				.then(literal("toggle").executes {
+					setEnabled(it, !kcl.spotfilter.client.data.FishingWorld.kindEnabled())
+				})
 				.then(
 					literal("hud")
 						.executes { setHud(it, !SpotFilterConfig.instance.hudVisible) }
@@ -166,14 +168,17 @@ object SpotCommands {
 		val pinned = SpotPool.pinned().size
 		ok(
 			ctx,
-			"SpotFilter  ${if (cfg.enabled) "Enabled" else "Disabled"}  |  ${kind.label}${kcl.spotfilter.client.data.FishingWorld.current?.let { " · ${it.shortId}" } ?: ""}  |  HUD ${if (cfg.hudVisible) "on" else "off"} ${cfg.layout().label} x${"%.1f".format(cfg.hudScale)}  |  ${kindCount} ${kind.label.lowercase()} / ${all.size} spots  |  $pinned pinned  |  logic ${FilterState.mode.name}"
+			"SpotFilter  live ${if (kcl.spotfilter.client.data.FishingWorld.overlayOn()) "on" else "off"}  |  Normal ${if (cfg.isNormalEnabled()) "On" else "Off"}  Grotto ${if (cfg.isGrottoEnabled()) "On" else "Off"}  |  ${kind.label}${kcl.spotfilter.client.data.FishingWorld.current?.let { " · ${it.shortId}" } ?: ""}  |  HUD ${if (cfg.hudVisible) "on" else "off"} ${cfg.layout().label} x${"%.1f".format(cfg.hudScale)}  |  ${kindCount} ${kind.label.lowercase()} / ${all.size} spots  |  $pinned pinned  |  logic ${FilterState.mode.name}"
 		)
 		return 1
 	}
 
 	private fun setEnabled(ctx: CommandContext<FabricClientCommandSource>, enabled: Boolean): Int {
-		kcl.spotfilter.client.data.FishingWorld.setManual(enabled)
-		return ok(ctx, if (enabled) "SpotFilter enabled (manual)" else "SpotFilter disabled (manual)")
+		kcl.spotfilter.client.data.FishingWorld.setKindEnabled(FilterState.kind, enabled)
+		return ok(
+			ctx,
+			"${FilterState.kind.label} ${if (enabled) "On" else "Off"} (saved; live ${if (kcl.spotfilter.client.data.FishingWorld.overlayOn()) "on" else "off"})"
+		)
 	}
 
 	private fun setHud(ctx: CommandContext<FabricClientCommandSource>, visible: Boolean): Int {
@@ -305,14 +310,15 @@ object SpotCommands {
 		SpotFilterConfig.reload()
 		AutoPin.applyAll()
 		val errors = RulePacks.lastErrors
-		ok(ctx, "Reloaded spotfilter.json and ${RulePacks.packs.count { it.enabled }} pack(s) (${FilterState.normal.autoPinRules.size} normal / ${FilterState.grotto.autoPinRules.size} grotto rules)")
+		ok(ctx, "Reloaded spotfilter.json and ${RulePacks.enabledIds(SpotKind.NORMAL).size} normal / ${RulePacks.enabledIds(SpotKind.GROTTO).size} grotto pack(s) (${FilterState.normal.autoPinRules.size} / ${FilterState.grotto.autoPinRules.size} rules)")
 		errors.forEach { err(ctx, it) }
 		return if (errors.isEmpty()) 1 else 0
 	}
 
 	private fun rulesStatus(ctx: CommandContext<FabricClientCommandSource>): Int {
 		ok(ctx, "packs: ${RulePacks.packsDir}")
-		ok(ctx, "enabled ${RulePacks.enabledIds().joinToString(",").ifBlank { "(none)" }}")
+		ok(ctx, "normal packs ${RulePacks.enabledIds(SpotKind.NORMAL).joinToString(",").ifBlank { "(none)" }}")
+		ok(ctx, "grotto packs ${RulePacks.enabledIds(SpotKind.GROTTO).joinToString(",").ifBlank { "(none)" }}")
 		ok(ctx, "normal ${FilterState.normal.autoPinRules.size}  grotto ${FilterState.grotto.autoPinRules.size}")
 		RulePacks.lastErrors.forEach { err(ctx, it) }
 		return 1

@@ -114,6 +114,19 @@ class FilterScreen(private val parent: Screen? = null) : Screen(Component.litera
 				rebuildWidgets()
 			},
 			TopBtn(
+				Component.literal(cfg.highlightMode().label),
+				tip(
+					"How highlighted spots are shown.",
+					"Glowing: item icon 5 blocks above the spot; HUD still lists every pin.",
+					"Solo: world guides only for highlighted spots; HUD still lists every pin."
+				)
+			) { _ ->
+				cfg.setHighlightMode(cfg.highlightMode().toggle())
+				SpotFilterConfig.save()
+				kcl.spotfilter.client.world.GlowMarkers.removeAll()
+				rebuildWidgets()
+			},
+			TopBtn(
 				Component.literal("Keys"),
 				tip(
 					"Modifier A + main key B for each action.",
@@ -136,12 +149,12 @@ class FilterScreen(private val parent: Screen? = null) : Screen(Component.litera
 			TopBtn(
 				enableLabel(),
 				tip(
-					"Master overlay switch. Manual click beats auto.",
-					"Auto on when world id contains fishing or scoreboard is a fishing island.",
-					"Disabled: hide HUD and guides, skip scanning. L only hides the HUD."
+					"On/Off for the current mode only (Normal and Grotto are separate).",
+					"Leave the fishing island: live overlay turns off. Come back: these saved flags restore.",
+					"Off-island both look disabled; your Normal/Grotto On-Off is remembered."
 				)
 			) { _ ->
-				kcl.spotfilter.client.data.FishingWorld.toggleManual()
+				kcl.spotfilter.client.data.FishingWorld.toggleKindEnabled()
 				rebuildWidgets()
 			}
 		)
@@ -278,7 +291,7 @@ class FilterScreen(private val parent: Screen? = null) : Screen(Component.litera
 
 	private fun kindLabel(): Component {
 		val place = kcl.spotfilter.client.data.FishingWorld.current
-		return if (place != null) {
+		return if (place != null && place.kind == FilterState.kind) {
 			Component.literal("${FilterState.kind.label} · ${place.shortId}")
 		} else {
 			Component.literal(FilterState.kind.label)
@@ -292,7 +305,9 @@ class FilterScreen(private val parent: Screen? = null) : Screen(Component.litera
 		Component.literal(SpotFilterConfig.instance.layout().label)
 
 	private fun enableLabel(): Component =
-		Component.literal(if (SpotFilterConfig.instance.enabled) "Enabled" else "Disabled")
+		Component.literal(
+			if (kcl.spotfilter.client.data.FishingWorld.kindEnabled()) "Enabled" else "Disabled"
+		)
 
 	private fun kickLabel(): Component =
 		Component.literal(
@@ -332,7 +347,9 @@ class FilterScreen(private val parent: Screen? = null) : Screen(Component.litera
 				buildString {
 					append("${spots.size} ${FilterState.kind.label.lowercase()} spots")
 					kcl.spotfilter.client.data.FishingWorld.current?.let { place ->
-						append("  ·  ${place.shortId} ${place.displayName}")
+						if (place.kind == FilterState.kind) {
+							append("  ·  ${place.shortId} ${place.displayName}")
+						}
 					}
 					append("  |  click row to pin  |  F1>F2>F3 sort  |  O close")
 				}

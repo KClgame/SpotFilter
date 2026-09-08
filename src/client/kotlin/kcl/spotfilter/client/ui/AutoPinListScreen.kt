@@ -30,8 +30,13 @@ class AutoPinListScreen(
 				rebuildWidgets()
 			}.bounds(width - 188, 8, 180, 20).build()
 		)
+		val aw = 52
+		val gap = 4
+		val actions = 3
+		val block = actions * aw + (actions - 1) * gap
 		var y = 36
 		rules.forEachIndexed { index, rule ->
+			val x0 = width - 8 - block
 			addRenderableWidget(
 				Button.builder(Component.literal(if (rule.enabled) "On" else "Off")) { _ ->
 					rule.enabled = !rule.enabled
@@ -40,17 +45,31 @@ class AutoPinListScreen(
 				}.bounds(8, y, 40, 20).build()
 			)
 			addRenderableWidget(
-				Button.builder(Component.literal(rule.name)) { _ ->
+				Button.builder(Component.literal("#${index + 1}  ${rule.name}")) { _ ->
 					minecraft.gui.setScreen(AutoPinRuleScreen(this, rule))
-				}.bounds(52, y, width - 160, 20).build()
+				}.bounds(52, y, (x0 - 56).coerceAtLeast(80), 20).build()
 			)
-			addRenderableWidget(
-				Button.builder(Component.literal("Del")) { _ ->
-					rules.removeAt(index)
-					persist()
-					rebuildWidgets()
-				}.bounds(width - 100, y, 92, 20).build()
-			)
+			fun action(i: Int, label: String, click: () -> Unit) {
+				addRenderableWidget(
+					Button.builder(Component.literal(label)) { _ -> click() }
+						.bounds(x0 + i * (aw + gap), y, aw, 20).build()
+				)
+			}
+			action(0, "Up") {
+				RulePacks.moveRule(rules, index, -1)
+				persist()
+				rebuildWidgets()
+			}
+			action(1, "Down") {
+				RulePacks.moveRule(rules, index, 1)
+				persist()
+				rebuildWidgets()
+			}
+			action(2, "Del") {
+				rules.remove(rule)
+				persist()
+				rebuildWidgets()
+			}
 			y += 24
 		}
 		addRenderableWidget(
@@ -89,7 +108,7 @@ class AutoPinListScreen(
 			Component.literal(
 				"Pack '${pack.id}' (${FilterState.kind.label}) — ${
 					if (FilterState.kind == SpotKind.GROTTO) "${pack.id}_grotto.txt" else "${pack.id}.txt"
-				}  |  Duplicate rule names share # numbering."
+				}  |  #1 is highest Auto Pin priority."
 			),
 			8,
 			12,

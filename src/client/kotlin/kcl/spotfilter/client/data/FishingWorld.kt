@@ -52,9 +52,7 @@ object FishingWorld {
 	var current: FishingPlace? = null
 		private set
 	private var lastWorldKey: String? = null
-	private var enabledManual: Boolean? = null
-
-	fun overlayOn(): Boolean = SpotFilterConfig.instance.enabled
+	private var lastOnFishing = false
 
 	fun isVisible(spot: FishingSpot): Boolean {
 		val place = spot.place ?: return true
@@ -62,27 +60,47 @@ object FishingWorld {
 		return here != null && place == here
 	}
 
+	fun onFishing(): Boolean = autoEnabled()
+
+	fun overlayOn(): Boolean = onFishing() && kindEnabled(FilterState.kind)
+
+	fun scanOn(): Boolean = onFishing() && (kindEnabled(SpotKind.NORMAL) || kindEnabled(SpotKind.GROTTO))
+
+	fun kindEnabled(kind: SpotKind = FilterState.kind): Boolean {
+		val cfg = SpotFilterConfig.instance
+		return if (kind == SpotKind.GROTTO) cfg.isGrottoEnabled() else cfg.isNormalEnabled()
+	}
+
+	fun setKindEnabled(kind: SpotKind, enabled: Boolean) {
+		val cfg = SpotFilterConfig.instance
+		if (kind == SpotKind.GROTTO) cfg.grottoEnabled = enabled else cfg.normalEnabled = enabled
+		SpotFilterConfig.save()
+		if (!overlayOn()) hideVisuals()
+	}
+
+	fun toggleKindEnabled(kind: SpotKind = FilterState.kind) {
+		setKindEnabled(kind, !kindEnabled(kind))
+	}
+
 	fun toggleManual() {
-		setManual(!overlayOn())
+		toggleKindEnabled()
 	}
 
 	fun setManual(enabled: Boolean) {
-		enabledManual = enabled
-		applyEnabled(enabled)
-		SpotFilterConfig.save()
+		setKindEnabled(FilterState.kind, enabled)
 	}
 
 	fun tick(client: Minecraft) {
 		val level = client.level
 		if (level == null || client.player == null) {
 			current = null
-			if (enabledManual == null) applyEnabled(false)
+			lastOnFishing = false
+			hideVisuals()
 			return
 		}
 		val worldKey = level.dimension().identifier().toString()
 		if (worldKey != lastWorldKey) {
 			lastWorldKey = worldKey
-			enabledManual = null
 		}
 		val next = detectPlace(client)
 		val prev = current
@@ -93,9 +111,12 @@ object FishingWorld {
 			}
 			SpotPool.retagAfterPlaceChange(prev, next)
 		}
-		if (enabledManual == null) {
-			applyEnabled(autoEnabled(client))
+		val fishing = autoEnabled(client)
+		if (lastOnFishing && !fishing) {
+			hideVisuals()
 		}
+		lastOnFishing = fishing
+		if (!overlayOn()) hideVisuals()
 	}
 
 	fun autoEnabled(client: Minecraft = Minecraft.getInstance()): Boolean {
@@ -109,14 +130,9 @@ object FishingWorld {
 		return level.dimension().identifier().toString().contains("fishing", ignoreCase = true)
 	}
 
-	private fun applyEnabled(want: Boolean) {
-		val cfg = SpotFilterConfig.instance
-		if (cfg.enabled == want) return
-		cfg.enabled = want
-		if (!want) {
-			PinnedSpotMarker.removeAll()
-			kcl.spotfilter.client.world.GlowPigs.removeAll()
-		}
+	private fun hideVisuals() {
+		PinnedSpotMarker.removeAll()
+		kcl.spotfilter.client.world.GlowMarkers.removeAll()
 	}
 
 	private fun detectPlace(client: Minecraft): FishingPlace? {

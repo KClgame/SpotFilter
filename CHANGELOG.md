@@ -2,6 +2,52 @@
 
 SpotFilter 版本记录。最新在上。发布包见 [GitHub Releases](https://github.com/KClgame/SpotFilter/releases)。
 
+## 1.9.0 — 2026-09-08
+
+- Glowing highlight is an `item_display` icon 5 blocks above the spot (replaces the invisible pig). Icons stay upright and yaw toward the player; type and pair sum pick the item.
+- Solo only limits world guides to highlighted spots. HUD still lists every pin.
+- Hotkey to switch Glowing / Solo (default Y). Highlight on/off remains U.
+- Highlight follows a spot id, not HUD list index.
+- Normal and Grotto each keep Enabled/Disabled. Leaving a fishing island live-disables the overlay; coming back restores the saved pair.
+- Auto Pin pack On/Off is independent per mode. Pack/rule Up/Down sets priority (top / #1 wins).
+- Auto Pin unpins when perks/stock no longer match any rule. Island pool clears as soon as the clock hour changes.
+- Keys screen shows each action name like Controls.
+
+## 1.8.7 — 2026-09-07
+
+- Filter overlay button is Enabled/Disabled again (still saved per Normal/Grotto).
+- Auto Pin pack On/Off is independent per mode: a pack can be On for Normal and Off for Grotto.
+
+## 1.8.6 — 2026-09-07
+
+- Normal and Grotto each have their own On/Off. Leaving a fishing island live-disables the overlay; coming back restores the saved pair (e.g. Normal On, Grotto Off).
+- Auto Pin priority is top-to-bottom (#1 wins). Packs: Up / Down / Edit / Export / Del at equal width. Rules: Up / Down / Del at equal width.
+
+## 1.8.5 — 2026-09-07
+
+- Highlight follows a spot id, not HUD list index, so a pin appearing or disappearing no longer jumps the glow to another spot.
+- Auto Pin drops a pin when perks/stock no longer match any rule (hourly refresh at the same block no longer keeps a stale Lucky 30 pin on a Lucky 10).
+- Island pool clears as soon as the clock hour changes, not at :01.
+- Keys screen shows each action name like Controls.
+
+## 1.8.4 — 2026-09-06
+
+- Glowing item icons stay upright and yaw to face the player (`billboard: vertical`).
+
+## 1.8.3 — 2026-09-06
+
+- Glowing perk icons no longer render as missing-texture cubes. 26.2's item atlas only stitches `textures/item/`, so perk sprites are packed there instead of only under `textures/gui/perk/`.
+
+## 1.8.2 — 2026-09-06
+
+- Glowing highlight is an `item_display` icon 5 blocks above the spot (replaces the invisible pig). Icon follows spot type and pair sum: dual 30 uses axolotl bucket / pristine pearl / mythic treasure / pure spirit; 40–50 and Auto Pin / single-30 / chance spots use the detailed HUD perk icon; leftover fish use a sticky vanilla fish; leftover pearl/treasure/spirit use rough / common–rare / ordinary spirit. Outline color still matches the spot.
+
+## 1.8.1 — 2026-09-06
+
+- Highlight on/off hotkey (default U). Glowing vs Solo is a Filter button after Edit HUD, not in Keys.
+- Grotto mode shows Temperate/Tropical/Barren, never island I1–I9.
+- Auto Pin grouping updates when Stock or perks change (Plentiful → Very High no longer keeps the old group name).
+
 ## 1.8.0 — 2026-09-06
 
 - Mod Menu Config opens Filter (optional).

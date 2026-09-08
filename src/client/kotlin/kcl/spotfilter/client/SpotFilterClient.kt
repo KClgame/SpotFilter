@@ -35,6 +35,10 @@ object SpotFilterClient : ClientModInitializer {
 		private set
 	lateinit var clearHighlights: KeyMapping
 		private set
+	lateinit var toggleHighlight: KeyMapping
+		private set
+	lateinit var toggleHighlightMode: KeyMapping
+		private set
 
 	@Volatile
 	private var openFilterPending = false
@@ -65,6 +69,12 @@ object SpotFilterClient : ClientModInitializer {
 		)
 		clearHighlights = KeyMappingHelper.registerKeyMapping(
 			KeyMapping("key.spotfilter.clear_highlights", GLFW.GLFW_KEY_H, category)
+		)
+		toggleHighlight = KeyMappingHelper.registerKeyMapping(
+			KeyMapping("key.spotfilter.toggle_highlight", GLFW.GLFW_KEY_U, category)
+		)
+		toggleHighlightMode = KeyMappingHelper.registerKeyMapping(
+			KeyMapping("key.spotfilter.toggle_highlight_mode", GLFW.GLFW_KEY_Y, category)
 		)
 		SpotHud.register()
 		SpotGuideOverlay.register()
@@ -119,11 +129,25 @@ object SpotFilterClient : ClientModInitializer {
 				if (Hotkeys.consume(clearHighlights, cfg.modClearHighlights)) {
 					HighlightState.clearLocks()
 				}
+				if (Hotkeys.consume(toggleHighlight, cfg.modToggleHighlight)) {
+					cfg.highlightEnabled = !cfg.highlightEnabled
+					SpotFilterConfig.save()
+					if (!cfg.highlightEnabled) {
+						kcl.spotfilter.client.world.GlowMarkers.removeAll()
+					}
+				}
+				if (Hotkeys.consume(toggleHighlightMode, cfg.modToggleHighlightMode)) {
+					cfg.setHighlightMode(cfg.highlightMode().toggle())
+					SpotFilterConfig.save()
+					kcl.spotfilter.client.world.GlowMarkers.removeAll()
+				}
 			} else {
 				while (highlightUp.consumeClick()) {}
 				while (highlightDown.consumeClick()) {}
 				while (lockHighlight.consumeClick()) {}
 				while (clearHighlights.consumeClick()) {}
+				while (toggleHighlight.consumeClick()) {}
+				while (toggleHighlightMode.consumeClick()) {}
 			}
 			SpotScanner.tick(client)
 		}

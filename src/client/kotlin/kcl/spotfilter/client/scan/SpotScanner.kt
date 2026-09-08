@@ -15,9 +15,9 @@ object SpotScanner {
 		SpotPool.tickNormalClockReset()
 		val level = client.level
 		val player = client.player
-		if (level == null || player == null || !SpotFilterConfig.instance.enabled) {
+		if (level == null || player == null || !FishingWorld.scanOn()) {
 			PinnedSpotMarker.tick()
-			kcl.spotfilter.client.world.GlowPigs.tick()
+			kcl.spotfilter.client.world.GlowMarkers.tick()
 			return
 		}
 
@@ -40,6 +40,6 @@ object SpotScanner {
 		SpotPool.dropMissingNearPlayer(seen, now)
 		SpotPool.finishNormalScan(seen)
 		PinnedSpotMarker.tick()
-		kcl.spotfilter.client.world.GlowPigs.tick()
+		kcl.spotfilter.client.world.GlowMarkers.tick()
 	}
 }

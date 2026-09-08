@@ -46,7 +46,7 @@ object SpotHud {
 		val client = Minecraft.getInstance()
 		val cfg = SpotFilterConfig.instance
 		cfg.clamp()
-		val (w, h) = measure(client.font, HighlightState.visiblePinned())
+		val (w, h) = measure(client.font, HighlightState.hudPinned())
 		return HudMetrics(cfg.hudX, cfg.hudY, w, h, cfg.hudScale)
 	}
 
@@ -54,7 +54,7 @@ object SpotHud {
 		val client = Minecraft.getInstance()
 		if (client.level == null || client.player == null) return
 		val cfg = SpotFilterConfig.instance
-		if (!cfg.enabled) return
+		if (!kcl.spotfilter.client.data.FishingWorld.overlayOn()) return
 		if (!cfg.hudVisible && client.gui.screen() !is FilterScreen) return
 		val metrics = metrics()
 		val pose = graphics.pose()
@@ -110,7 +110,7 @@ object SpotHud {
 		val alpha = (SpotFilterConfig.instance.backgroundAlpha / 100.0 * 180).toInt().coerceIn(0, 180)
 		graphics.fill(0, 0, w, h, ARGB.color(alpha, 0, 0, 0))
 		HighlightState.prune()
-		val pinned = HighlightState.visiblePinned()
+		val pinned = HighlightState.hudPinned()
 		val lh = lineH(font)
 		val (blockW, blockH) = blockSize(font, pinned)
 		val originX = (w - blockW) / 2
@@ -125,7 +125,7 @@ object SpotHud {
 		for ((i, spot) in pinned.withIndex()) {
 			if (i > 0) cursor += 2
 			val lit = HighlightState.isLit(spot)
-			if (HighlightState.isCursor(spot)) {
+			if (HighlightState.visualsOn() && HighlightState.isCursor(spot)) {
 				graphics.text(font, ">", originX, cursor, HighlightState.ORANGE_ARGB, false)
 			}
 			val ink = if (lit) HighlightState.ORANGE_ARGB else WHITE

@@ -82,9 +82,13 @@ object SpotPool {
 			if (becameDepleted && shouldKickDepleted()) {
 				setPinned(existing, false)
 			}
+			val groupingChanged =
+				previousStock != existing.stock || previousFingerprint != existing.contentFingerprint()
 			if (recoveredFromDepleted) {
 				existing.autoPinDecided = false
 				AutoPin.apply(existing)
+			} else if (groupingChanged) {
+				AutoPin.refreshGrouping(existing)
 			} else if (existing.pinned) {
 				PinnedSpotMarker.sync(existing)
 			}
@@ -124,7 +128,7 @@ object SpotPool {
 
 	fun clearSpots() {
 		PinnedSpotMarker.removeAll()
-		kcl.spotfilter.client.world.GlowPigs.removeAll()
+		kcl.spotfilter.client.world.GlowMarkers.removeAll()
 		kcl.spotfilter.client.highlight.HighlightState.clear()
 		spots.clear()
 		nextId = 1
@@ -136,12 +140,11 @@ object SpotPool {
 	}
 
 	fun tickNormalClockReset() {
-		val now = java.time.LocalTime.now()
-		val hour = now.hour
-		if (now.minute < 1) return
+		val hour = java.time.LocalTime.now().hour
 		val previous = lastNormalRefreshHour
+		if (previous == hour) return
 		lastNormalRefreshHour = hour
-		if (previous != null && previous != hour) {
+		if (previous != null) {
 			clearKind(SpotKind.NORMAL)
 			notifyRefresh("SpotFilter: island spots refreshed")
 		}

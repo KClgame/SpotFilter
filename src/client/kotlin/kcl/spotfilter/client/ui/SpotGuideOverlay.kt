@@ -22,7 +22,7 @@ object SpotGuideOverlay {
 	fun extract(graphics: GuiGraphicsExtractor, deltaTracker: net.minecraft.client.DeltaTracker) {
 		graphics.nextStratum()
 		val client = Minecraft.getInstance()
-		if (!SpotFilterConfig.instance.enabled) return
+		if (!kcl.spotfilter.client.data.FishingWorld.overlayOn()) return
 		val level = client.level ?: return
 		if (client.player == null) return
 		if (client.gui.hud.isHidden()) return

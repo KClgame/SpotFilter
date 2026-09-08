@@ -30,39 +30,54 @@ class ConfigPacksScreen(
 				rebuildWidgets()
 			}.bounds(8, 6, 180, 20).build()
 		)
+		val aw = 52
+		val gap = 4
+		val actions = 5
+		val block = actions * aw + (actions - 1) * gap
 		var y = 32
-		RulePacks.packs.forEach { pack ->
+		RulePacks.packs.forEachIndexed { index, pack ->
 			val row = y
+			val x0 = width - 8 - block
 			addRenderableWidget(
-				Button.builder(Component.literal(if (pack.enabled) "On" else "Off")) { _ ->
-					RulePacks.toggle(pack)
+				Button.builder(Component.literal(if (pack.enabledFor(kind)) "On" else "Off")) { _ ->
+					RulePacks.toggle(pack, kind)
 					SpotFilterConfig.save()
 					rebuildWidgets()
 				}.bounds(8, row, 36, 20).build()
 			)
 			addRenderableWidget(
-				Button.builder(Component.literal(packLabel(pack))) { _ ->
+				Button.builder(Component.literal(packLabel(index, pack))) { _ ->
 					minecraft.gui.setScreen(AutoPinListScreen(this, pack))
-				}.bounds(48, row, width - 248, 20).build()
+				}.bounds(48, row, (x0 - 52).coerceAtLeast(80), 20).build()
 			)
-			addRenderableWidget(
-				Button.builder(Component.literal("Edit")) { _ ->
-					minecraft.gui.setScreen(AutoPinListScreen(this, pack))
-				}.bounds(width - 192, row, 48, 20).build()
-			)
-			addRenderableWidget(
-				Button.builder(Component.literal("Export")) { _ ->
-					RulePacks.exportPack(pack)
-					rebuildWidgets()
-				}.bounds(width - 140, row, 60, 20).build()
-			)
-			addRenderableWidget(
-				Button.builder(Component.literal("Del")) { _ ->
-					RulePacks.delete(pack)
-					SpotFilterConfig.save()
-					rebuildWidgets()
-				}.bounds(width - 76, row, 68, 20).build()
-			)
+			fun action(i: Int, label: String, click: () -> Unit) {
+				addRenderableWidget(
+					Button.builder(Component.literal(label)) { _ -> click() }
+						.bounds(x0 + i * (aw + gap), row, aw, 20).build()
+				)
+			}
+			action(0, "Up") {
+				RulePacks.movePack(pack, -1)
+				SpotFilterConfig.save()
+				rebuildWidgets()
+			}
+			action(1, "Down") {
+				RulePacks.movePack(pack, 1)
+				SpotFilterConfig.save()
+				rebuildWidgets()
+			}
+			action(2, "Edit") {
+				minecraft.gui.setScreen(AutoPinListScreen(this, pack))
+			}
+			action(3, "Export") {
+				RulePacks.exportPack(pack)
+				rebuildWidgets()
+			}
+			action(4, "Del") {
+				RulePacks.delete(pack)
+				SpotFilterConfig.save()
+				rebuildWidgets()
+			}
 			y += 24
 		}
 
@@ -97,16 +112,16 @@ class ConfigPacksScreen(
 		)
 	}
 
-	private fun packLabel(pack: RulePack): String {
+	private fun packLabel(index: Int, pack: RulePack): String {
 		val n = pack.rules(FilterState.kind).size
-		return "${pack.id}  ${FilterState.kind.label}: $n rules"
+		return "#${index + 1}  ${pack.id}  ${FilterState.kind.label}: $n"
 	}
 
 	override fun extractRenderState(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, delta: Float) {
 		super.extractRenderState(graphics, mouseX, mouseY, delta)
 		graphics.text(
 			font,
-			Component.literal("Showing ${FilterState.kind.label} rules only. Check several packs to run in parallel."),
+			Component.literal("Higher # = lower priority. Top pack wins Auto Pin."),
 			196,
 			10,
 			0xFFFFFFFF.toInt(),

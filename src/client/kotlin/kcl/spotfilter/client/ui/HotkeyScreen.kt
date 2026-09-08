@@ -3,6 +3,7 @@ package kcl.spotfilter.client.ui
 import kcl.spotfilter.client.Hotkeys
 import kcl.spotfilter.client.SpotFilterClient
 import kcl.spotfilter.client.config.SpotFilterConfig
+import net.minecraft.client.KeyMapping
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.components.Button
 import net.minecraft.client.gui.components.Tooltip
@@ -15,37 +16,31 @@ import org.lwjgl.glfw.GLFW
 
 class HotkeyScreen(private val returnTo: Screen) : Screen(Component.literal("SpotFilter Keys")) {
 	private var recording: String? = null
+	private val labelRows = ArrayList<Pair<Int, Component>>()
 
 	override fun isPauseScreen(): Boolean = false
 
 	override fun init() {
 		val cfg = SpotFilterConfig.instance
-		addRenderableWidget(
-			Button.builder(Component.literal("Highlight: ${cfg.highlightMode().label}")) { _ ->
-				cfg.setHighlightMode(cfg.highlightMode().toggle())
-				SpotFilterConfig.save()
-				kcl.spotfilter.client.world.GlowPigs.removeAll()
-				rebuildWidgets()
-			}.tooltip(
-				Tooltip.create(
-					Component.literal("Glowing: invisible glowing pig at highlighted spots. Solo: HUD and guides show only highlighted spots.")
-				)
-			).bounds(12, 36, 240, 20).build()
-		)
-		var y = 64
-		row("Open Filter", SpotFilterClient.openFilter, cfg.modOpenFilter, y)
+		labelRows.clear()
+		var y = 40
+		row(SpotFilterClient.openFilter, cfg.modOpenFilter, y)
 		y += 24
-		row("Clear spots", SpotFilterClient.clearSpots, cfg.modClearSpots, y)
+		row(SpotFilterClient.clearSpots, cfg.modClearSpots, y)
 		y += 24
-		row("Toggle HUD", SpotFilterClient.toggleHud, cfg.modToggleHud, y)
+		row(SpotFilterClient.toggleHud, cfg.modToggleHud, y)
 		y += 24
-		row("Highlight up", SpotFilterClient.highlightUp, cfg.modHighlightUp, y)
+		row(SpotFilterClient.highlightUp, cfg.modHighlightUp, y)
 		y += 24
-		row("Highlight down", SpotFilterClient.highlightDown, cfg.modHighlightDown, y)
+		row(SpotFilterClient.highlightDown, cfg.modHighlightDown, y)
 		y += 24
-		row("Lock highlight", SpotFilterClient.lockHighlight, cfg.modLockHighlight, y)
+		row(SpotFilterClient.lockHighlight, cfg.modLockHighlight, y)
 		y += 24
-		row("Clear highlights", SpotFilterClient.clearHighlights, cfg.modClearHighlights, y)
+		row(SpotFilterClient.clearHighlights, cfg.modClearHighlights, y)
+		y += 24
+		row(SpotFilterClient.toggleHighlight, cfg.modToggleHighlight, y)
+		y += 24
+		row(SpotFilterClient.toggleHighlightMode, cfg.modToggleHighlightMode, y)
 
 		addRenderableWidget(
 			Button.builder(CommonComponents.GUI_DONE) { _ ->
@@ -55,15 +50,13 @@ class HotkeyScreen(private val returnTo: Screen) : Screen(Component.literal("Spo
 		)
 	}
 
-	private fun row(
-		label: String,
-		mapping: net.minecraft.client.KeyMapping,
-		modifier: Int,
-		y: Int
-	) {
-		val left = 12
-		val modId = label
-		val recordingThis = recording == modId
+	private fun row(mapping: KeyMapping, modifier: Int, y: Int) {
+		labelRows.add(y to Component.translatable(mapping.name))
+		val bW = 130
+		val aW = 96
+		val bX = width - 12 - bW
+		val aX = bX - 8 - aW
+		val recordingThis = recording == mapping.name
 		val modText = if (recordingThis) {
 			Component.literal("> press key <")
 		} else {
@@ -71,20 +64,20 @@ class HotkeyScreen(private val returnTo: Screen) : Screen(Component.literal("Spo
 		}
 		addRenderableWidget(
 			Button.builder(modText) { _ ->
-				recording = modId
+				recording = mapping.name
 				rebuildWidgets()
 			}.tooltip(
 				Tooltip.create(
 					Component.literal("Modifier A (default None). Click then press a key to record. Right-click sets None.")
 				)
-			).bounds(left, y, 150, 20).build()
+			).bounds(aX, y, aW, 20).build()
 		)
 		addRenderableWidget(
 			Button.builder(
 				Component.literal("B: ").append(mapping.translatedKeyMessage)
 			) { _ -> }.tooltip(
 				Tooltip.create(Component.literal("Main key B. Change it in Controls → SpotFilter."))
-			).bounds(left + 158, y, 160, 20).build()
+			).bounds(bX, y, bW, 20).build()
 		)
 	}
 
@@ -92,7 +85,7 @@ class HotkeyScreen(private val returnTo: Screen) : Screen(Component.literal("Spo
 		if (event.button() == 1) {
 			val cfg = SpotFilterConfig.instance
 			val yHit = event.y().toInt()
-			val index = ((yHit - 64) / 24)
+			val index = ((yHit - 40) / 24)
 			val setter: ((Int) -> Unit)? = when (index) {
 				0 -> { v -> cfg.modOpenFilter = v }
 				1 -> { v -> cfg.modClearSpots = v }
@@ -101,9 +94,14 @@ class HotkeyScreen(private val returnTo: Screen) : Screen(Component.literal("Spo
 				4 -> { v -> cfg.modHighlightDown = v }
 				5 -> { v -> cfg.modLockHighlight = v }
 				6 -> { v -> cfg.modClearHighlights = v }
+				7 -> { v -> cfg.modToggleHighlight = v }
+				8 -> { v -> cfg.modToggleHighlightMode = v }
 				else -> null
 			}
-			if (setter != null && event.x().toInt() in 12 until 162) {
+			val bW = 130
+			val aW = 96
+			val aX = width - 12 - bW - 8 - aW
+			if (setter != null && event.x().toInt() in aX until (aX + aW)) {
 				setter(Hotkeys.NONE)
 				recording = null
 				SpotFilterConfig.save()
@@ -124,13 +122,15 @@ class HotkeyScreen(private val returnTo: Screen) : Screen(Component.literal("Spo
 			}
 			val cfg = SpotFilterConfig.instance
 			when (id) {
-				"Open Filter" -> cfg.modOpenFilter = event.key()
-				"Clear spots" -> cfg.modClearSpots = event.key()
-				"Toggle HUD" -> cfg.modToggleHud = event.key()
-				"Highlight up" -> cfg.modHighlightUp = event.key()
-				"Highlight down" -> cfg.modHighlightDown = event.key()
-				"Lock highlight" -> cfg.modLockHighlight = event.key()
-				"Clear highlights" -> cfg.modClearHighlights = event.key()
+				SpotFilterClient.openFilter.name -> cfg.modOpenFilter = event.key()
+				SpotFilterClient.clearSpots.name -> cfg.modClearSpots = event.key()
+				SpotFilterClient.toggleHud.name -> cfg.modToggleHud = event.key()
+				SpotFilterClient.highlightUp.name -> cfg.modHighlightUp = event.key()
+				SpotFilterClient.highlightDown.name -> cfg.modHighlightDown = event.key()
+				SpotFilterClient.lockHighlight.name -> cfg.modLockHighlight = event.key()
+				SpotFilterClient.clearHighlights.name -> cfg.modClearHighlights = event.key()
+				SpotFilterClient.toggleHighlight.name -> cfg.modToggleHighlight = event.key()
+				SpotFilterClient.toggleHighlightMode.name -> cfg.modToggleHighlightMode = event.key()
 			}
 			recording = null
 			SpotFilterConfig.save()
@@ -148,6 +148,9 @@ class HotkeyScreen(private val returnTo: Screen) : Screen(Component.literal("Spo
 	override fun extractRenderState(graphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, delta: Float) {
 		super.extractRenderState(graphics, mouseX, mouseY, delta)
 		graphics.text(font, title, 12, 12, 0xFFFFFFFF.toInt(), false)
+		for ((y, name) in labelRows) {
+			graphics.text(font, name, 12, y + 6, 0xFFFFFFFF.toInt(), false)
+		}
 		graphics.text(
 			font,
 			Component.literal("A is the modifier (record here). B is the main key (Controls)."),

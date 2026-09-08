@@ -6,5 +6,7 @@
 	"key.spotfilter.highlight_down": "高亮下一个点",
 	"key.spotfilter.lock_highlight": "锁定 / 解锁高亮",
 	"key.spotfilter.clear_highlights": "清除全部高亮",
+	"key.spotfilter.toggle_highlight": "高亮开 / 关",
+	"key.spotfilter.toggle_highlight_mode": "高亮模式 Glowing / Solo",
 	"key.category.spotfilter.main": "SpotFilter"
 }

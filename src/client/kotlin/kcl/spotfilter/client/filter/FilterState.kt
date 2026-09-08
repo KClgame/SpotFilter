@@ -444,6 +444,14 @@ object FilterState {
 }
 
 object AutoPin {
+	fun matchingRule(spot: FishingSpot): AutoPinRule? {
+		if (spot.stock == StockLevel.DEPLETED) return null
+		val profile = FilterState.profileFor(spot)
+		return profile.autoPinRules.firstOrNull {
+			it.enabled && it.matches(spot, spot.kind == SpotKind.GROTTO)
+		}
+	}
+
 	fun apply(spot: FishingSpot) {
 		if (spot.stock == StockLevel.DEPLETED) {
 			if (kcl.spotfilter.client.config.SpotFilterConfig.instance.kickDepleted && spot.pinned) {
@@ -454,9 +462,7 @@ object AutoPin {
 		}
 		if (spot.autoPinDecided) return
 		spot.autoPinDecided = true
-		val profile = FilterState.profileFor(spot)
-		val grotto = spot.kind == SpotKind.GROTTO
-		val rule = profile.autoPinRules.firstOrNull { it.enabled && it.matches(spot, grotto) } ?: return
+		val rule = matchingRule(spot) ?: return
 		spot.pinColorOverride = rule.customRgb()
 		spot.autoPinned = true
 		SpotPool.assignGroup(spot, kcl.spotfilter.client.config.RulePacks.groupingName(rule))
@@ -469,5 +475,27 @@ object AutoPin {
 
 	fun applyAll() {
 		SpotPool.all().forEach { apply(it) }
+	}
+
+	fun refreshAll() {
+		SpotPool.all().forEach { refreshGrouping(it) }
+	}
+
+	fun refreshGrouping(spot: FishingSpot) {
+		if (spot.stock == StockLevel.DEPLETED) {
+			if (kcl.spotfilter.client.config.SpotFilterConfig.instance.kickDepleted && spot.pinned) {
+				SpotPool.setPinned(spot, false)
+			}
+			return
+		}
+		val rule = matchingRule(spot)
+		if (rule != null) {
+			spot.pinColorOverride = rule.customRgb()
+			SpotPool.assignGroup(spot, kcl.spotfilter.client.config.RulePacks.groupingName(rule))
+		} else if (spot.autoPinned) {
+			spot.pinColorOverride = null
+			SpotPool.assignGroup(spot, null)
+			if (spot.pinned) SpotPool.setPinned(spot, false)
+		}
 	}
 }
