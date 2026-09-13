@@ -49,6 +49,7 @@ object GlowMarkers {
 		HighlightState.prune()
 		val keep = HashSet<Int>()
 		for (spot in HighlightState.litSpots()) {
+			if (!kcl.spotfilter.client.data.FishingWorld.isVisible(spot)) continue
 			if (spot.key.dimension != level.dimension().identifier()) continue
 			keep.add(spot.id)
 			spawnOrUpdate(spot)

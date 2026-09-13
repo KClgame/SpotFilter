@@ -1,6 +1,6 @@
 # SpotFilter
 
-**v1.9.0** · Minecraft **26.2** · Fabric · 纯客户端
+**v1.9.2** · Minecraft **26.2** · Fabric · 纯客户端
 
 MCC Island 钓鱼点扫描、筛选、坐标 HUD 与世界透视引导。走近标题含 `Fishing Spot` 的 Text Display 即可收录（**Event Fishing Spot** 会忽略）。
 
@@ -53,7 +53,7 @@ Client-only Fabric mod that scans MCC Island fishing-spot labels, filters and so
 ## 安装
 
 1. 安装 Fabric Loader（26.2）与上述依赖。
-2. 从 [Releases](https://github.com/KClgame/SpotFilter/releases) 下载 `spotfilter-1.9.0.jar`，放入 `.minecraft/mods/`。
+2. 从 [Releases](https://github.com/KClgame/SpotFilter/releases) 下载 `spotfilter-1.9.2.jar`，放入 `.minecraft/mods/`。
 3. 启动游戏。控件里应出现 **SpotFilter** 分类。
 
 ---
@@ -368,7 +368,7 @@ MCC Island 约钓鱼 6 级才下发加成。Mod 只能解析客户端已经收�
 1.4.5 起按 10/20/30/200 解析。请确认 jar 为 **1.5.0**。
 
 **点池自己空了？**  
-Normal 在整点+1 分钟或一波多点同时变时清空；Grotto 只在聊天出现 `Your Grotto has become unstable` 时清空。筛选和 Auto Pin 规则保留。**P** 仍清空全部。
+Normal 在整点 currents 或一波多点同时变时清空，并停几秒再扫，避免旧标签被立刻扫回去。Grotto 只在聊天出现 `Your Grotto has become unstable` 时清空。筛选和 Auto Pin 规则保留。**P** 仍清空全部。
 
 **服务端要装吗？**  
 不用。纯客户端。
@@ -381,7 +381,7 @@ Normal 在整点+1 分钟或一波多点同时变时清空；Grotto 只在聊天
 ./gradlew build
 ```
 
-产物：`build/libs/spotfilter-1.9.0.jar`
+产物：`build/libs/spotfilter-1.9.2.jar`
 
 需要 JDK 25。变更记录见 [CHANGELOG.md](CHANGELOG.md)。
 

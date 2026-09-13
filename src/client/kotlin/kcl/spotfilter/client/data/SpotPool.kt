@@ -9,14 +9,16 @@ import net.minecraft.client.Minecraft
 object SpotPool {
 	private const val DEPLETE_RANGE = 48.0
 	private val depleteRangeSq = DEPLETE_RANGE * DEPLETE_RANGE
-	private const val WAVE_WINDOW_MS = 2000L
+	private const val WAVE_WINDOW_MS = 10_000L
 	private const val WAVE_THRESHOLD = 3
+	private const val RESCAN_HOLD_MS = 5_000L
 
 	private val spots = LinkedHashMap<SpotKey, FishingSpot>()
 	private var nextId = 1
 	private var lastNormalRefreshHour: Int? = null
 	private var waveStartMs = 0L
 	private var waveChanges = 0
+	private var suppressNormalUntilMs = 0L
 
 	fun all(): Collection<FishingSpot> = spots.values
 
@@ -43,6 +45,9 @@ object SpotPool {
 	}
 
 	fun upsert(incoming: FishingSpot) {
+		if (incoming.kind == SpotKind.NORMAL && System.currentTimeMillis() < suppressNormalUntilMs) {
+			return
+		}
 		if (incoming.kind == SpotKind.NORMAL) {
 			replaceNormalColumn(incoming)
 		}
@@ -70,7 +75,7 @@ object SpotPool {
 			existing.perks = incoming.perks
 			existing.lastSeenGameTime = incoming.lastSeenGameTime
 			existing.kind = incoming.kind
-			if (incoming.place != null) {
+			if (incoming.place != null && existing.place != incoming.place) {
 				existing.place = incoming.place
 			}
 			existing.stability = incoming.stability
@@ -145,41 +150,23 @@ object SpotPool {
 		if (previous == hour) return
 		lastNormalRefreshHour = hour
 		if (previous != null) {
-			clearKind(SpotKind.NORMAL)
-			notifyRefresh("SpotFilter: island spots refreshed")
+			beginNormalRefresh()
 		}
 	}
 
-	fun retagAfterPlaceChange(prev: FishingPlace?, next: FishingPlace?) {
+	fun retagAfterPlaceChange(_prev: FishingPlace?, next: FishingPlace?) {
 		if (next == null) return
-		val now = Minecraft.getInstance().level?.gameTime ?: 0L
 		for (spot in spots.values) {
-			if (spot.kind != next.kind) continue
-			val tagged = spot.place
-			val inconsistent = tagged != null && tagged.kind != spot.kind
-			val recent = now - spot.lastSeenGameTime <= 200L
-			val fromPrev = tagged == prev
-			val untagged = tagged == null
-			if (inconsistent || (recent && (fromPrev || untagged))) {
+			val tagged = spot.place ?: continue
+			if (tagged.kind != spot.kind && next.kind == spot.kind) {
 				spot.place = next
 			}
 		}
 	}
 
-	fun finishNormalScan(seen: Set<SpotKey>) {
+	fun finishNormalScan() {
 		if (waveChanges < WAVE_THRESHOLD) return
-		val stale = spots.filter { (_, spot) ->
-			spot.kind == SpotKind.NORMAL &&
-				spot.key !in seen &&
-				FishingWorld.isVisible(spot)
-		}.keys.toList()
-		if (stale.isEmpty()) {
-			waveChanges = 0
-			return
-		}
-		stale.forEach { remove(it) }
-		waveChanges = 0
-		notifyRefresh("SpotFilter: island spots refreshed")
+		beginNormalRefresh()
 	}
 
 	fun refreshGrottoFromChat() {
@@ -193,10 +180,18 @@ object SpotPool {
 				spot.key.dimension == incoming.key.dimension &&
 				spot.x == incoming.x &&
 				spot.z == incoming.z &&
-				spot.y != incoming.y
+				spot.y != incoming.y &&
+				(spot.place == null || incoming.place == null || spot.place == incoming.place)
 		}.keys.toList()
 		if (stale.isNotEmpty()) noteNormalWave()
 		stale.forEach { remove(it) }
+	}
+
+	private fun beginNormalRefresh() {
+		clearKind(SpotKind.NORMAL)
+		suppressNormalUntilMs = System.currentTimeMillis() + RESCAN_HOLD_MS
+		waveChanges = 0
+		notifyRefresh("SpotFilter: island spots refreshed")
 	}
 
 	private fun noteNormalWave() {

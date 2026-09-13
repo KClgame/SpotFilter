@@ -29,16 +29,15 @@ object SpotScanner {
 		for (entity in level.getEntities(net.minecraft.world.entity.EntityTypes.TEXT_DISPLAY, box) { true }) {
 			if (PinnedSpotMarker.isOurs(entity)) continue
 			val parsed = SpotParser.parse(level, entity, TextDisplays.readText(entity), now) ?: continue
-			val here = FishingWorld.current
-			if (here != null && here.kind == parsed.kind) {
-				parsed.place = here
-			}
+			val here = FishingWorld.current ?: continue
+			if (here.kind != parsed.kind) continue
+			parsed.place = here
 			seen.add(parsed.key)
 			SpotPool.upsert(parsed)
 		}
 
 		SpotPool.dropMissingNearPlayer(seen, now)
-		SpotPool.finishNormalScan(seen)
+		SpotPool.finishNormalScan()
 		PinnedSpotMarker.tick()
 		kcl.spotfilter.client.world.GlowMarkers.tick()
 	}

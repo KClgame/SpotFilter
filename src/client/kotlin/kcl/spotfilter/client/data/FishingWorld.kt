@@ -43,7 +43,9 @@ enum class FishingPlace(
 				?: cleaned
 			return entries.firstOrNull { named.equals(it.displayName, ignoreCase = true) }
 				?: entries.firstOrNull { named.equals(it.shortId, ignoreCase = true) }
-				?: entries.firstOrNull { named.contains(it.displayName, ignoreCase = true) }
+				?: entries
+					.filter { it.displayName.length >= 8 && named.contains(it.displayName, ignoreCase = true) }
+					.maxByOrNull { it.displayName.length }
 		}
 	}
 }
@@ -55,16 +57,19 @@ object FishingWorld {
 	private var lastOnFishing = false
 
 	fun isVisible(spot: FishingSpot): Boolean {
-		val place = spot.place ?: return true
-		val here = current
-		return here != null && place == here
+		val here = current ?: return false
+		val place = spot.place ?: return false
+		return place == here
 	}
 
 	fun onFishing(): Boolean = autoEnabled()
 
 	fun overlayOn(): Boolean = onFishing() && kindEnabled(FilterState.kind)
 
-	fun scanOn(): Boolean = onFishing() && (kindEnabled(SpotKind.NORMAL) || kindEnabled(SpotKind.GROTTO))
+	fun scanOn(): Boolean =
+		onFishing() &&
+			current != null &&
+			(kindEnabled(SpotKind.NORMAL) || kindEnabled(SpotKind.GROTTO))
 
 	fun kindEnabled(kind: SpotKind = FilterState.kind): Boolean {
 		val cfg = SpotFilterConfig.instance

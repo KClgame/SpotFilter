@@ -2,6 +2,14 @@
 
 SpotFilter 版本记录。最新在上。发布包见 [GitHub Releases](https://github.com/KClgame/SpotFilter/releases)。
 
+## 1.9.2 — 2026-09-09
+
+- Island spots stay on the island they were scanned on. Switching I1 → I8 no longer shows I1 pins; HUD, guides, and glowing icons only list the current scoreboard island.
+
+## 1.9.1 — 2026-09-09
+
+- Hourly currents no longer leave stale island spots. After a clock-hour (or mass-change) wipe, Normal spots are not re-scanned for 5 seconds so old labels can despawn.
+
 ## 1.9.0 — 2026-09-08
 
 - Glowing highlight is an `item_display` icon 5 blocks above the spot (replaces the invisible pig). Icons stay upright and yaw toward the player; type and pair sum pick the item.
