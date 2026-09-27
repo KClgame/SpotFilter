@@ -11,6 +11,11 @@ Client-only Fabric mod that scans MCC Island fishing-spot labels, filters and so
 - 发布：https://github.com/KClgame/SpotFilter/releases
 - 源码：https://github.com/KClgame/SpotFilter
 
+| 分支 | Minecraft |
+| --- | --- |
+| [`master`](https://github.com/KClgame/SpotFilter/tree/master) / [`mc-26.2`](https://github.com/KClgame/SpotFilter/tree/mc-26.2) | 26.2 |
+| [`mc-26.1.2`](https://github.com/KClgame/SpotFilter/tree/mc-26.1.2) | 26.1.2 |
+
 ---
 
 ## 目录
