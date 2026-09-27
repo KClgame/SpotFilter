@@ -1,6 +1,6 @@
 # SpotFilter
 
-**v1.9.2** · Minecraft **26.2** · Fabric · 纯客户端
+**v1.9.2** · Minecraft **26.1.2** · Fabric · 纯客户端
 
 MCC Island 钓鱼点扫描、筛选、坐标 HUD 与世界透视引导。走近标题含 `Fishing Spot` 的 Text Display 即可收录（**Event Fishing Spot** 会忽略）。
 
@@ -10,11 +10,6 @@ Client-only Fabric mod that scans MCC Island fishing-spot labels, filters and so
 
 - 发布：https://github.com/KClgame/SpotFilter/releases
 - 源码：https://github.com/KClgame/SpotFilter
-
-| 分支 | Minecraft |
-| --- | --- |
-| [`master`](https://github.com/KClgame/SpotFilter/tree/master) / [`mc-26.2`](https://github.com/KClgame/SpotFilter/tree/mc-26.2) | 26.2 |
-| [`mc-26.1.2`](https://github.com/KClgame/SpotFilter/tree/mc-26.1.2) | 26.1.2 |
 
 ---
 
@@ -45,10 +40,10 @@ Client-only Fabric mod that scans MCC Island fishing-spot labels, filters and so
 
 | 组件 | 版本 |
 | --- | --- |
-| Minecraft | 26.2 |
+| Minecraft | 26.1.2 |
 | Java | 25+ |
 | Fabric Loader | 0.19.3+ |
-| [Fabric API](https://modrinth.com/mod/fabric-api) | 0.158.0+26.2（或同游戏版本） |
+| [Fabric API](https://modrinth.com/mod/fabric-api) | 0.155.2+26.1.2（或同游戏版本） |
 | [Fabric Language Kotlin](https://modrinth.com/mod/fabric-language-kotlin) | 1.13.13+kotlin.2.4.10 |
 
 服务端无需安装。建议同时启用 **MCCI 材质包**，词条 icon 才能按官方字体显示。
@@ -57,8 +52,8 @@ Client-only Fabric mod that scans MCC Island fishing-spot labels, filters and so
 
 ## 安装
 
-1. 安装 Fabric Loader（26.2）与上述依赖。
-2. 从 [Releases](https://github.com/KClgame/SpotFilter/releases) 下载 `spotfilter-1.9.2.jar`，放入 `.minecraft/mods/`。
+1. 安装 Fabric Loader（26.1.2）与上述依赖。
+2. 从 [Releases](https://github.com/KClgame/SpotFilter/releases) 下载 `spotfilter-1.9.2-mc26.1.2.jar`，放入 `.minecraft/mods/`。
 3. 启动游戏。控件里应出现 **SpotFilter** 分类。
 
 ---

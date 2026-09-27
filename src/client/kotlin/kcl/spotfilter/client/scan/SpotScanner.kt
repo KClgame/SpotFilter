@@ -26,7 +26,7 @@ object SpotScanner {
 		val box = AABB(player.position(), player.position()).inflate(range.coerceAtLeast(48.0))
 		val seen = HashSet<SpotKey>()
 
-		for (entity in level.getEntities(net.minecraft.world.entity.EntityTypes.TEXT_DISPLAY, box) { true }) {
+		for (entity in level.getEntities(net.minecraft.world.entity.EntityType.TEXT_DISPLAY, box) { true }) {
 			if (PinnedSpotMarker.isOurs(entity)) continue
 			val parsed = SpotParser.parse(level, entity, TextDisplays.readText(entity), now) ?: continue
 			val here = FishingWorld.current ?: continue

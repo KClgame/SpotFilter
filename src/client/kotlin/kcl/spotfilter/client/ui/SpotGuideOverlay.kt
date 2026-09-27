@@ -25,10 +25,10 @@ object SpotGuideOverlay {
 		if (!kcl.spotfilter.client.data.FishingWorld.overlayOn()) return
 		val level = client.level ?: return
 		if (client.player == null) return
-		if (client.gui.hud.isHidden()) return
-		if (client.gui.screen() != null) return
+		if (client.options.hideGui) return
+		if (client.screen != null) return
 
-		val camera = client.gameRenderer.mainCamera()
+		val camera = client.gameRenderer.getMainCamera()
 		val camPos = camera.position()
 		val forward = camera.forwardVector()
 		val width = graphics.guiWidth()

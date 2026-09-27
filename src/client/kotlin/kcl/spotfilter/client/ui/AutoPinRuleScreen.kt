@@ -64,19 +64,19 @@ class AutoPinRuleScreen(
 		repeat(3) { index ->
 			addRenderableWidget(
 				Button.builder(Component.literal("F${index + 1}: ${rule.slots[index].compactLabel()}")) { _ ->
-					minecraft.gui.setScreen(FilterSlotScreen(this, rule.slots[index], "Auto Pin F${index + 1}"))
+					minecraft.setScreen(FilterSlotScreen(this, rule.slots[index], "Auto Pin F${index + 1}"))
 				}.bounds(8 + index * (slotWidth + 4), 120, slotWidth, 20).build()
 			)
 		}
 
 		addRenderableWidget(
 			Button.builder(Component.literal(rule.stock.compactLabel())) { _ ->
-				minecraft.gui.setScreen(StockFilterScreen(this, rule.stock, applyAutoPin = true))
+				minecraft.setScreen(StockFilterScreen(this, rule.stock, applyAutoPin = true))
 			}.bounds(8, 146, (width - 20) / 2, 20).build()
 		)
 		addRenderableWidget(
 			Button.builder(Component.literal(rule.pair.compactLabel())) { _ ->
-				minecraft.gui.setScreen(PairFilterScreen(this, rule.pair, applyAutoPin = true))
+				minecraft.setScreen(PairFilterScreen(this, rule.pair, applyAutoPin = true))
 			}.bounds(16 + (width - 20) / 2, 146, (width - 20) / 2, 20).build()
 		)
 
@@ -84,7 +84,7 @@ class AutoPinRuleScreen(
 		if (grotto) {
 			addRenderableWidget(
 				Button.builder(Component.literal(rule.stability.compactLabel())) { _ ->
-					minecraft.gui.setScreen(StabilityFilterScreen(this, rule.stability, applyAutoPin = true))
+					minecraft.setScreen(StabilityFilterScreen(this, rule.stability, applyAutoPin = true))
 				}.bounds(8, 172, width - 16, 20).build()
 			)
 			colorY = 212
@@ -162,6 +162,6 @@ class AutoPinRuleScreen(
 		rule.customColorHex = colorBox.value
 		SpotFilterConfig.save()
 		AutoPin.applyAll()
-		minecraft.gui.setScreen(returnTo)
+		minecraft.setScreen(returnTo)
 	}
 }

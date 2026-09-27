@@ -84,39 +84,39 @@ object SpotFilterClient : ClientModInitializer {
 
 		ClientTickEvents.END_CLIENT_TICK.register { client ->
 			if (openFilterPending) {
-				val screen = client.gui.screen()
+				val screen = client.screen
 				if (screen !is net.minecraft.client.gui.screens.ChatScreen) {
 					openFilterPending = false
 					if (screen !is FilterScreen) {
-						client.gui.setScreen(FilterScreen())
+						client.setScreen(FilterScreen())
 					}
 				}
 			}
 			val cfg = SpotFilterConfig.instance
 			if (Hotkeys.consume(openFilter, cfg.modOpenFilter)) {
-				val screen = client.gui.screen()
+				val screen = client.screen
 				if (!screen.typingInBox()) {
 					if (screen is FilterScreen) {
-						client.gui.setScreen(null)
+						client.setScreen(null)
 					} else if (screen == null) {
-						client.gui.setScreen(FilterScreen())
+						client.setScreen(FilterScreen())
 					}
 				}
 			}
 			if (Hotkeys.consume(clearSpots, cfg.modClearSpots)) {
-				if (!client.gui.screen().typingInBox()) {
+				if (!client.screen.typingInBox()) {
 					SpotPool.clearSpots()
 				}
 			}
 			if (Hotkeys.consume(toggleHud, cfg.modToggleHud)) {
-				if (client.gui.screen() !is kcl.spotfilter.client.ui.PerkPickerScreen &&
-					!client.gui.screen().typingInBox()
+				if (client.screen !is kcl.spotfilter.client.ui.PerkPickerScreen &&
+					!client.screen.typingInBox()
 				) {
 					cfg.hudVisible = !cfg.hudVisible
 					SpotFilterConfig.save()
 				}
 			}
-			if (client.gui.screen() == null) {
+			if (client.screen == null) {
 				if (Hotkeys.consume(highlightUp, cfg.modHighlightUp)) {
 					HighlightState.move(-1)
 				}

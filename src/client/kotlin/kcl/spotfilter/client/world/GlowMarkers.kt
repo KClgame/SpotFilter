@@ -10,7 +10,7 @@ import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.util.Brightness
 import net.minecraft.world.entity.Display
 import net.minecraft.world.entity.Entity
-import net.minecraft.world.entity.EntityTypes
+import net.minecraft.world.entity.EntityType
 import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.ItemStack
 import org.joml.Vector3f
@@ -89,7 +89,7 @@ object GlowMarkers {
 			entities.remove(spot.id)
 		}
 		try {
-			val display = Display.ItemDisplay(EntityTypes.ITEM_DISPLAY, level)
+			val display = Display.ItemDisplay(EntityType.ITEM_DISPLAY, level)
 			display.setId(nextSafeClientId())
 			display.addTag(TAG)
 			style(display, rgb, stack)

@@ -47,7 +47,7 @@ class ConfigPacksScreen(
 			)
 			addRenderableWidget(
 				Button.builder(Component.literal(packLabel(index, pack))) { _ ->
-					minecraft.gui.setScreen(AutoPinListScreen(this, pack))
+					minecraft.setScreen(AutoPinListScreen(this, pack))
 				}.bounds(48, row, (x0 - 52).coerceAtLeast(80), 20).build()
 			)
 			fun action(i: Int, label: String, click: () -> Unit) {
@@ -67,7 +67,7 @@ class ConfigPacksScreen(
 				rebuildWidgets()
 			}
 			action(2, "Edit") {
-				minecraft.gui.setScreen(AutoPinListScreen(this, pack))
+				minecraft.setScreen(AutoPinListScreen(this, pack))
 			}
 			action(3, "Export") {
 				RulePacks.exportPack(pack)
@@ -158,6 +158,6 @@ class ConfigPacksScreen(
 	override fun onClose() {
 		SpotFilterConfig.save()
 		RulePacks.syncToFilterState()
-		minecraft.gui.setScreen(returnTo)
+		minecraft.setScreen(returnTo)
 	}
 }

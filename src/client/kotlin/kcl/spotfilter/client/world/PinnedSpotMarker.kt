@@ -5,7 +5,7 @@ import net.minecraft.client.Minecraft
 import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.world.entity.Display
 import net.minecraft.world.entity.Entity
-import net.minecraft.world.entity.EntityTypes
+import net.minecraft.world.entity.EntityType
 import net.minecraft.world.phys.AABB
 
 object PinnedSpotMarker {
@@ -56,7 +56,7 @@ object PinnedSpotMarker {
 		val level = client.level ?: return
 		val player = client.player ?: return
 		val box = AABB(player.position(), player.position()).inflate(MAX_DIST)
-		for (entity in level.getEntities(EntityTypes.TEXT_DISPLAY, box) { isOurs(it) }) {
+		for (entity in level.getEntities(EntityType.TEXT_DISPLAY, box) { isOurs(it) }) {
 			discard(entity)
 		}
 	}

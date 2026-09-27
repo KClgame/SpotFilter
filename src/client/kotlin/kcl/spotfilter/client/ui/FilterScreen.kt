@@ -31,7 +31,7 @@ class FilterScreen(private val parent: Screen? = null) : Screen(Component.litera
 	override fun isPauseScreen(): Boolean = false
 
 	override fun onClose() {
-		minecraft.gui.setScreen(parent)
+		minecraft.setScreen(parent)
 	}
 
 	override fun init() {
@@ -134,7 +134,7 @@ class FilterScreen(private val parent: Screen? = null) : Screen(Component.litera
 					"Highlight up/down and lock highlight are listed here too."
 				)
 			) { _ ->
-				minecraft.gui.setScreen(HotkeyScreen(this))
+				minecraft.setScreen(HotkeyScreen(this))
 			},
 			TopBtn(
 				Component.literal("Clear"),
@@ -164,7 +164,7 @@ class FilterScreen(private val parent: Screen? = null) : Screen(Component.litera
 			val (x, w) = slotCols[index]
 			addRenderableWidget(
 				Button.builder(slotLabel(index)) { _ ->
-					minecraft.gui.setScreen(FilterSlotScreen(this, FilterState.slots[index], "Filter F${index + 1}"))
+					minecraft.setScreen(FilterSlotScreen(this, FilterState.slots[index], "Filter F${index + 1}"))
 				}.tooltip(
 					tip(
 						"Perk filter slot F${index + 1}.",
@@ -179,7 +179,7 @@ class FilterScreen(private val parent: Screen? = null) : Screen(Component.litera
 			val cols = equalCols(3)
 			addRenderableWidget(
 				Button.builder(Component.literal(FilterState.stock.compactLabel())) { _ ->
-					minecraft.gui.setScreen(StockFilterScreen(this, FilterState.stock))
+					minecraft.setScreen(StockFilterScreen(this, FilterState.stock))
 				}.tooltip(
 					tip(
 						"Stock filter for the current mode.",
@@ -190,7 +190,7 @@ class FilterScreen(private val parent: Screen? = null) : Screen(Component.litera
 			)
 			addRenderableWidget(
 				Button.builder(Component.literal(FilterState.stability.compactLabel())) { _ ->
-					minecraft.gui.setScreen(StabilityFilterScreen(this, FilterState.stability))
+					minecraft.setScreen(StabilityFilterScreen(this, FilterState.stability))
 				}.tooltip(
 					tip(
 						"Grotto Stability Cost filter.",
@@ -201,7 +201,7 @@ class FilterScreen(private val parent: Screen? = null) : Screen(Component.litera
 			)
 			addRenderableWidget(
 				Button.builder(Component.literal("Auto Pin (${FilterState.autoPinRules.count { it.enabled }})")) { _ ->
-					minecraft.gui.setScreen(ConfigPacksScreen(this))
+					minecraft.setScreen(ConfigPacksScreen(this))
 				}.tooltip(
 					tip(
 						"Auto Pin config packs. Check several to run in parallel.",
@@ -214,7 +214,7 @@ class FilterScreen(private val parent: Screen? = null) : Screen(Component.litera
 			val cols = equalCols(2)
 			addRenderableWidget(
 				Button.builder(Component.literal(FilterState.stock.compactLabel())) { _ ->
-					minecraft.gui.setScreen(StockFilterScreen(this, FilterState.stock))
+					minecraft.setScreen(StockFilterScreen(this, FilterState.stock))
 				}.tooltip(
 					tip(
 						"Stock filter for the current mode.",
@@ -225,7 +225,7 @@ class FilterScreen(private val parent: Screen? = null) : Screen(Component.litera
 			)
 			addRenderableWidget(
 				Button.builder(Component.literal("Auto Pin (${FilterState.autoPinRules.count { it.enabled }})")) { _ ->
-					minecraft.gui.setScreen(ConfigPacksScreen(this))
+					minecraft.setScreen(ConfigPacksScreen(this))
 				}.tooltip(
 					tip(
 						"Auto Pin config packs. Check several to run in parallel.",
@@ -237,7 +237,7 @@ class FilterScreen(private val parent: Screen? = null) : Screen(Component.litera
 		}
 		addRenderableWidget(
 			Button.builder(Component.literal(FilterState.pair.compactLabel())) { _ ->
-				minecraft.gui.setScreen(PairFilterScreen(this, FilterState.pair))
+				minecraft.setScreen(PairFilterScreen(this, FilterState.pair))
 			}.tooltip(
 				tip(
 					"Filter by perk1 + perk2 sum for this spot type.",

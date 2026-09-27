@@ -55,7 +55,7 @@ object SpotHud {
 		if (client.level == null || client.player == null) return
 		val cfg = SpotFilterConfig.instance
 		if (!kcl.spotfilter.client.data.FishingWorld.overlayOn()) return
-		if (!cfg.hudVisible && client.gui.screen() !is FilterScreen) return
+		if (!cfg.hudVisible && client.screen !is FilterScreen) return
 		val metrics = metrics()
 		val pose = graphics.pose()
 		pose.pushMatrix()

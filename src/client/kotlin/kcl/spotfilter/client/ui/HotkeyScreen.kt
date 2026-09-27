@@ -45,7 +45,7 @@ class HotkeyScreen(private val returnTo: Screen) : Screen(Component.literal("Spo
 		addRenderableWidget(
 			Button.builder(CommonComponents.GUI_DONE) { _ ->
 				SpotFilterConfig.save()
-				minecraft.gui.setScreen(returnTo)
+				minecraft.setScreen(returnTo)
 			}.bounds(width / 2 - 50, height - 28, 100, 20).build()
 		)
 	}
@@ -139,7 +139,7 @@ class HotkeyScreen(private val returnTo: Screen) : Screen(Component.literal("Spo
 		}
 		if (event.key() == GLFW.GLFW_KEY_ESCAPE) {
 			SpotFilterConfig.save()
-			minecraft.gui.setScreen(returnTo)
+			minecraft.setScreen(returnTo)
 			return true
 		}
 		return super.keyPressed(event)
@@ -163,6 +163,6 @@ class HotkeyScreen(private val returnTo: Screen) : Screen(Component.literal("Spo
 
 	override fun onClose() {
 		SpotFilterConfig.save()
-		minecraft.gui.setScreen(returnTo)
+		minecraft.setScreen(returnTo)
 	}
 }

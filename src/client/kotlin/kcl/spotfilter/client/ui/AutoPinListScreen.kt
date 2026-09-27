@@ -46,7 +46,7 @@ class AutoPinListScreen(
 			)
 			addRenderableWidget(
 				Button.builder(Component.literal("#${index + 1}  ${rule.name}")) { _ ->
-					minecraft.gui.setScreen(AutoPinRuleScreen(this, rule))
+					minecraft.setScreen(AutoPinRuleScreen(this, rule))
 				}.bounds(52, y, (x0 - 56).coerceAtLeast(80), 20).build()
 			)
 			fun action(i: Int, label: String, click: () -> Unit) {
@@ -78,7 +78,7 @@ class AutoPinListScreen(
 				rule.name = "Rule ${rules.size + 1}"
 				rules.add(rule)
 				persist()
-				minecraft.gui.setScreen(AutoPinRuleScreen(this, rule))
+				minecraft.setScreen(AutoPinRuleScreen(this, rule))
 			}.bounds(8, y.coerceAtMost(height - 56), 120, 20).build()
 		)
 		addRenderableWidget(
@@ -133,6 +133,6 @@ class AutoPinListScreen(
 
 	override fun onClose() {
 		persist()
-		minecraft.gui.setScreen(returnTo)
+		minecraft.setScreen(returnTo)
 	}
 }

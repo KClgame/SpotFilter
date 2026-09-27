@@ -145,6 +145,6 @@ class PerkPickerScreen(
 	}
 
 	override fun onClose() {
-		minecraft.gui.setScreen(FilterSlotScreen(returnTo, slot, heading))
+		minecraft.setScreen(FilterSlotScreen(returnTo, slot, heading))
 	}
 }

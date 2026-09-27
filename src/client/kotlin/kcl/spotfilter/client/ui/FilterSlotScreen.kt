@@ -21,7 +21,7 @@ class FilterSlotScreen(
 		val perk = slot.perk
 		addRenderableWidget(
 			Button.builder(Component.literal("Perk: ${perk?.displayName ?: "None"}")) { _ ->
-				minecraft.gui.setScreen(PerkPickerScreen(slot, heading, returnTo))
+				minecraft.setScreen(PerkPickerScreen(slot, heading, returnTo))
 			}.bounds(width / 2 - 120, 40, 240, 20).build()
 		)
 
@@ -113,6 +113,6 @@ class FilterSlotScreen(
 
 	override fun onClose() {
 		SpotFilterConfig.save()
-		minecraft.gui.setScreen(returnTo)
+		minecraft.setScreen(returnTo)
 	}
 }

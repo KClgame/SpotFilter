@@ -105,6 +105,6 @@ class StabilityFilterScreen(
 
 	override fun onClose() {
 		persist()
-		minecraft.gui.setScreen(returnTo)
+		minecraft.setScreen(returnTo)
 	}
 }
