@@ -53,11 +53,14 @@ object SpotLines {
 		val perks = compactPerks(spot)
 		for ((i, perk) in perks.withIndex()) {
 			val valueColor = perk.valueRgb ?: white
-			parts += LinePart(
-				text = Component.literal(perk.type.valueLabel(perk.value))
-					.withStyle(Style.EMPTY.withColor(valueColor)),
-				gapAfter = 1
-			)
+			val label = perk.type.valueLabel(perk.value)
+			if (label.isNotEmpty()) {
+				parts += LinePart(
+					text = Component.literal(label)
+						.withStyle(Style.EMPTY.withColor(valueColor)),
+					gapAfter = 1
+				)
+			}
 			parts += LinePart(
 				icon = perk.type.textureId,
 				gapAfter = if (i == perks.lastIndex) 6 else 5

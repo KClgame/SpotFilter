@@ -31,7 +31,8 @@ class RulePack(
 object RulePacks {
 	const val DEFAULT_ID = "default"
 	const val BLANK_ID = "blank"
-	val TYPE_IDS = listOf("fish", "pearl", "treasure", "spirit", "xp_wayfinder")
+	val TYPE_IDS = listOf("fish", "pearl", "treasure", "spirit", "xp_wayfinder", "ticket")
+	private val LEGACY_TYPE_IDS = setOf("fish", "pearl", "treasure", "spirit", "xp_wayfinder")
 	private val builtins = TYPE_IDS + BLANK_ID
 
 	private val root = FabricLoader.getInstance().configDir.resolve("spotfilter")
@@ -60,6 +61,7 @@ object RulePacks {
 	) {
 		Files.createDirectories(root)
 		seedDefaultsOnce()
+		seedTicketPack()
 		migrateLegacyRules()
 		val normalSet = resolveEnabled(enabledNormal ?: enabled)
 		val grottoSet = resolveEnabled(enabledGrotto ?: enabled)
@@ -101,6 +103,7 @@ object RulePacks {
 		}
 		builtins.forEach { id -> if (seen.add(id)) preferred.add(id) }
 		loaded.keys.forEach { id -> if (seen.add(id.lowercase())) preferred.add(id.lowercase()) }
+		placeTicketBeforeBlank(preferred)
 		for (id in preferred) {
 			val entry = loaded.entries.firstOrNull { it.key.equals(id, ignoreCase = true) } ?: continue
 			loaded.remove(entry.key)
@@ -224,7 +227,22 @@ object RulePacks {
 		if (set == setOf(DEFAULT_ID) || set == setOf(DEFAULT_ID, BLANK_ID)) {
 			return TYPE_IDS.toSet()
 		}
+		if (set == LEGACY_TYPE_IDS) return TYPE_IDS.toSet()
 		return set
+	}
+
+	private fun placeTicketBeforeBlank(preferred: ArrayList<String>) {
+		val ticketAt = preferred.indexOf("ticket")
+		val blankAt = preferred.indexOf("blank")
+		if (ticketAt < 0 || blankAt < 0 || ticketAt < blankAt) return
+		preferred.removeAt(ticketAt)
+		preferred.add(blankAt, "ticket")
+	}
+
+	private fun seedTicketPack() {
+		Files.createDirectories(packsDir)
+		writeIfMissing(normalPath("ticket"), "ticket.txt", emptyPackText("ticket", SpotKind.NORMAL))
+		writeIfMissing(grottoPath("ticket"), "ticket_grotto.txt", emptyPackText("ticket", SpotKind.GROTTO))
 	}
 
 	private fun seedDefaultsOnce() {

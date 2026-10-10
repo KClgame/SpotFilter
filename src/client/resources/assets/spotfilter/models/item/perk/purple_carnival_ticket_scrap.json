@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "spotfilter:item/perk/purple_carnival_ticket_scrap"
+  }
+}

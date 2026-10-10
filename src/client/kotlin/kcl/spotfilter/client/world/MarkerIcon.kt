@@ -20,6 +20,7 @@ object MarkerIcon {
 	private val SPIRIT_FAMILIES = arrayOf("strong", "wise", "glimmering", "greedy", "lucky")
 
 	fun stackFor(spot: FishingSpot): ItemStack {
+		if (spot.perks.any { it.type.isTicket }) return perkStack(spot)
 		val family = spot.familyGroup()
 		val pair = spot.pairSum()
 		if (pair == 60) {

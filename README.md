@@ -1,8 +1,8 @@
 # SpotFilter
 
-**v1.9.2** · Minecraft **26.1.2** · Fabric · 纯客户端
+**v1.9.3** · Minecraft **26.1.2** · Fabric · 纯客户端
 
-MCC Island 钓鱼点扫描、筛选、坐标 HUD 与世界透视引导。走近标题含 `Fishing Spot` 的 Text Display 即可收录（**Event Fishing Spot** 会忽略）。
+MCC Island 钓鱼点扫描、筛选、坐标 HUD 与世界透视引导。走近标题含 `Fishing Spot` 的 Text Display 即可收录（含 Carnival Ticket 的 **Event Fishing Spot**）。
 
 Client-only Fabric mod that scans MCC Island fishing-spot labels, filters and sorts them, pins coordinates to a HUD, and draws see-through world guides.
 
@@ -53,7 +53,7 @@ Client-only Fabric mod that scans MCC Island fishing-spot labels, filters and so
 ## 安装
 
 1. 安装 Fabric Loader（26.1.2）与上述依赖。
-2. 从 [Releases](https://github.com/KClgame/SpotFilter/releases) 下载 `spotfilter-1.9.2-mc26.1.2.jar`，放入 `.minecraft/mods/`。
+2. 从 [Releases](https://github.com/KClgame/SpotFilter/releases) 下载 `spotfilter-1.9.3-mc26.1.2.jar`，放入 `.minecraft/mods/`。
 3. 启动游戏。控件里应出现 **SpotFilter** 分类。
 
 ---
@@ -232,7 +232,7 @@ Compact 模式下 Grotto 的名字和 `#n` 用上面的点色（有 Auto Pin 色
 | `config/spotfilter/packs/<name>_grotto.txt` | Grotto 规则 |
 | `config/spotfilter/export/` | Export as file 的输出 |
 
-内置 **fish / pearl / treasure / spirit / xp_wayfinder** 和 **blank**（空白）只在**第一次加载模组**（还没有 `packs/` 目录）时写出。之后不再检测或补文件，默认包可以删。Auto Pin 界面可切换 Normal / Grotto，只显示当前模式的规则条数。点只在**第一次被扫描到**时按规则决定是否 Pin；之后不会反复钉上，可手动取消 Pin。可 Create 新包，Load file 从路径导入，Export 写出两份 txt。旧的 `config/spotfilter/rules.txt` 若存在会导入为 `legacy` 包（默认不勾选）。
+内置 **fish / pearl / treasure / spirit / xp_wayfinder / ticket** 和 **blank**（空白）只在**第一次加载模组**（还没有 `packs/` 目录）时写出。已有安装若缺少 `ticket` 包会补一份。之后不再检测或补其它默认包，可以删。Auto Pin 界面可切换 Normal / Grotto，只显示当前模式的规则条数。点只在**第一次被扫描到**时按规则决定是否 Pin；之后不会反复钉上，可手动取消 Pin。可 Create 新包，Load file 从路径导入，Export 写出两份 txt。旧的 `config/spotfilter/rules.txt` 若存在会导入为 `legacy` 包（默认不勾选）。
 
 - 勾选上的包 **并行**：规则合并进 Auto Pin
 - 不同包里 **规则 `name=` 或 `nick=` 相同** 视为同一分组编号（`大鱼 #1` `#2`…）
@@ -281,7 +281,7 @@ Fish Chance 的 HUD icon 与 Wayfinder Data 相同（游戏内 MCCI 字体也接
 
 ## 扫描与生命周期
 
-- 每 tick 扫描渲染距离内的 `text_display`，标题含 `Fishing Spot` 则入池；含 `Event Fishing Spot` 的忽略。
+- 每 tick 扫描渲染距离内的 `text_display`，标题含 `Fishing Spot` 则入池。**Event Fishing Spot** 保留 Stock，加成词条为五色 Carnival Ticket Scrap 之一，按颜色 Auto Pin（`ticket` 包：White / Red / Blue / Purple / Green Ticket）。
 - 记分板标题 `MCCI: <岛名>` 识别当前岛：Normal **I1–I9**（Verdant Woods … Ashen Wastes），Grotto 按气候 **Temperate / Tropical / Barren**（Sunken Swamp / Mirrored Oasis / Volcanic Springs）。切岛或进出 Grotto **只隐藏**另一岛的 HUD / 引导 / 列表，点池保留；切回来仍在。只有 **P** / Clear 会清空。
 - 世界 id 含 `fishing` 或已识别钓鱼岛时自动 Enabled；离开后自动 Disabled。Filter 里手点 Enabled 或 `/sf on|off` 优先，直到世界 id 变化。
 - 同一取整坐标更新 Stock/词条，不换号、不重复音效。
@@ -381,7 +381,7 @@ Normal 在整点 currents 或一波多点同时变时清空，并停几秒再扫
 ./gradlew build
 ```
 
-产物：`build/libs/spotfilter-1.9.2.jar`
+产物：`build/libs/spotfilter-1.9.3.jar`
 
 需要 JDK 25。变更记录见 [CHANGELOG.md](CHANGELOG.md)。
 

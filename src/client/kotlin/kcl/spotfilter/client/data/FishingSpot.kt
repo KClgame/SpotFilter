@@ -90,6 +90,7 @@ data class FishingSpot(
 				else -> 4
 			}
 		}
+		perks.firstOrNull { it.type.isTicket }?.type?.ticketGroup?.let { return it }
 		val candidates = perks.mapNotNull { perk ->
 			val index = perk.type.groupingIndex ?: return@mapNotNull null
 			perk to index
@@ -107,12 +108,21 @@ data class FishingSpot(
 		1 -> "pearl"
 		2 -> "treasure"
 		3 -> "spirit"
+		4 -> "White Ticket"
+		5 -> "Red Ticket"
+		6 -> "Blue Ticket"
+		7 -> "Purple Ticket"
+		8 -> "Green Ticket"
 		else -> "fishing"
 	}
 
 	fun customName(): String? = nickname?.trim()?.takeIf { it.isNotEmpty() }
 
-	fun groupLabel(): String = customName() ?: "${spotTypeLabel()} spot"
+	fun groupLabel(): String {
+		customName()?.let { return it }
+		if (familyGroup() in 4..8) return spotTypeLabel()
+		return "${spotTypeLabel()} spot"
+	}
 
 	fun groupBucket(): Int = if (customName() != null) 0 else 1 + familyGroup()
 
