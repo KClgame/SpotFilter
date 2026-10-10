@@ -89,10 +89,10 @@ class SpotFilterConfig {
 	var normalEnabled: Boolean? = null
 	var grottoEnabled: Boolean? = null
 	var spotKind: String = SpotKind.NORMAL.name
-	var enabledPacks: MutableList<String> = arrayListOf("fish", "pearl", "treasure", "spirit", "xp_wayfinder")
+	var enabledPacks: MutableList<String> = arrayListOf("fish", "pearl", "treasure", "spirit", "xp_wayfinder", "ticket")
 	var enabledPacksNormal: MutableList<String>? = null
 	var enabledPacksGrotto: MutableList<String>? = null
-	var packOrder: MutableList<String> = arrayListOf("fish", "pearl", "treasure", "spirit", "xp_wayfinder", "blank")
+	var packOrder: MutableList<String> = arrayListOf("fish", "pearl", "treasure", "spirit", "xp_wayfinder", "ticket", "blank")
 	var modOpenFilter: Int = 0
 	var modClearSpots: Int = 0
 	var modToggleHud: Int = 0

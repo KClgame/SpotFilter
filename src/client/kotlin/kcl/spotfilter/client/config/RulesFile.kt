@@ -417,7 +417,12 @@ object RulesFile {
 		"fishchance" to PerkType.FISH_CHANCE,
 		"pearlchance" to PerkType.PEARL_CHANCE,
 		"treasurechance" to PerkType.TREASURE_CHANCE,
-		"spiritchance" to PerkType.SPIRIT_CHANCE
+		"spiritchance" to PerkType.SPIRIT_CHANCE,
+		"whiteticket" to PerkType.WHITE_CARNIVAL_TICKET_SCRAP,
+		"redticket" to PerkType.RED_CARNIVAL_TICKET_SCRAP,
+		"blueticket" to PerkType.BLUE_CARNIVAL_TICKET_SCRAP,
+		"purpleticket" to PerkType.PURPLE_CARNIVAL_TICKET_SCRAP,
+		"greenticket" to PerkType.GREEN_CARNIVAL_TICKET_SCRAP
 	)
 
 	private val HEADER = """

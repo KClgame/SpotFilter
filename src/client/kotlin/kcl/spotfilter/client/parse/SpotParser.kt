@@ -39,6 +39,10 @@ object SpotParser {
 		"""\+?\s*100\s*%\s*(Fish|Pearl|Treasure|Spirit)\s+Chance""",
 		RegexOption.IGNORE_CASE
 	)
+	private val TICKET_SCRAP = Regex(
+		"""\[?\s*(White|Red|Blue|Purple|Green)\s+Carnival\s+Ticket\s+Scrap\s*]?""",
+		RegexOption.IGNORE_CASE
+	)
 	private val STABILITY_LABEL = Regex("""Stability\s+Cost""", RegexOption.IGNORE_CASE)
 	private val STABILITY_RANGE = Regex("""\(\s*\d+\s*\)\s*-\s*\(\s*\d+\s*\)\s*%""")
 	private val STABILITY_RANGE_LOOSE = Regex("""\d+\s*-\s*\d+\s*%""")
@@ -65,10 +69,8 @@ object SpotParser {
 		}?.rgb
 	}
 
-	fun isFishingSpot(text: String): Boolean {
-		if (text.contains("Event Fishing Spot", ignoreCase = true)) return false
-		return text.contains("Fishing Spot", ignoreCase = true)
-	}
+	fun isFishingSpot(text: String): Boolean =
+		text.contains("Fishing Spot", ignoreCase = true)
 
 	fun parse(
 		level: Level,
@@ -199,6 +201,18 @@ object SpotParser {
 			}
 			found.removeAll { it.type == type }
 			found.add(colored(type, 100, styled))
+		}
+		TICKET_SCRAP.findAll(text).forEach { match ->
+			val type = when (match.groupValues[1].lowercase()) {
+				"white" -> PerkType.WHITE_CARNIVAL_TICKET_SCRAP
+				"red" -> PerkType.RED_CARNIVAL_TICKET_SCRAP
+				"blue" -> PerkType.BLUE_CARNIVAL_TICKET_SCRAP
+				"purple" -> PerkType.PURPLE_CARNIVAL_TICKET_SCRAP
+				"green" -> PerkType.GREEN_CARNIVAL_TICKET_SCRAP
+				else -> return@forEach
+			}
+			found.removeAll { it.type.isTicket }
+			found.add(colored(type, 1, styled))
 		}
 		return found.distinctBy { it.type }
 	}

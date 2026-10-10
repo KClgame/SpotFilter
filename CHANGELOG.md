@@ -2,6 +2,11 @@
 
 SpotFilter 版本记录。最新在上。发布包见 [GitHub Releases](https://github.com/KClgame/SpotFilter/releases)。
 
+## 1.9.3 — 2026-10-10
+
+- Event Fishing Spot is scanned: Stock stays, perk lines are one of five Carnival Ticket Scraps (White / Red / Blue / Purple / Green).
+- Auto Pin pack `ticket`: rules named White Ticket / Red Ticket / Blue Ticket / Purple Ticket / Green Ticket, each with a matching color and ticket icon.
+
 ## 1.9.2 — 2026-09-09
 
 - Island spots stay on the island they were scanned on. Switching I1 → I8 no longer shows I1 pins; HUD, guides, and glowing icons only list the current scoreboard island.
