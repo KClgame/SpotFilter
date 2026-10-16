@@ -2,6 +2,11 @@
 
 SpotFilter 版本记录。最新在上。发布包见 [GitHub Releases](https://github.com/KClgame/SpotFilter/releases)。
 
+## 1.9.4 — 2026-10-10
+
+- Grotto fish spots keep four perk lines (100% Fish Chance + Wise Hook + Strong Hook + Fish Magnet).
+- Spots more than 300 blocks from the player are hidden from HUD, Filter, world guides, and glowing. They stay in the pool and show again when you walk closer.
+
 ## 1.9.3 — 2026-10-10
 
 - Event Fishing Spot is scanned: Stock stays, perk lines are one of five Carnival Ticket Scraps (White / Red / Blue / Purple / Green).

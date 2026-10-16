@@ -51,6 +51,9 @@ enum class FishingPlace(
 }
 
 object FishingWorld {
+	const val VISIBLE_RANGE = 300.0
+	private val visibleRangeSq = VISIBLE_RANGE * VISIBLE_RANGE
+
 	var current: FishingPlace? = null
 		private set
 	private var lastWorldKey: String? = null
@@ -59,7 +62,16 @@ object FishingWorld {
 	fun isVisible(spot: FishingSpot): Boolean {
 		val here = current ?: return false
 		val place = spot.place ?: return false
-		return place == here
+		if (place != here) return false
+		return inPlayerRange(spot)
+	}
+
+	fun inPlayerRange(spot: FishingSpot): Boolean {
+		val player = Minecraft.getInstance().player ?: return false
+		val dx = (spot.x + 0.5) - player.x
+		val dy = spot.y - player.y
+		val dz = (spot.z + 0.5) - player.z
+		return dx * dx + dy * dy + dz * dz <= visibleRangeSq
 	}
 
 	fun onFishing(): Boolean = autoEnabled()

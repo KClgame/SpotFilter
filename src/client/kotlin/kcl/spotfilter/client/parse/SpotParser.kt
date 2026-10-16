@@ -84,13 +84,7 @@ object SpotParser {
 		val pos = entity.blockPosition()
 		val allPerks = parsePerks(text, styled)
 		val grotto = parseGrotto(text, styled)
-		val perks = if (grotto != null) {
-			val chance = allPerks.filter { it.type.isGrottoChance }.take(1)
-			val bonus = allPerks.filter { !it.type.isGrottoChance }
-			(chance + bonus).take(3)
-		} else {
-			allPerks.filter { !it.type.isGrottoChance || it.value != 100 }.take(3)
-		}
+		val perks = selectPerks(allPerks, grotto != null)
 		val stock = STOCK.find(text)?.groupValues?.get(1)?.let { StockLevel.fromLabel(it) }
 		return FishingSpot(
 			key = SpotKey(level.dimension().identifier(), pos.x, pos.y, pos.z),
@@ -149,8 +143,19 @@ object SpotParser {
 		return null
 	}
 
+	private fun selectPerks(all: List<ParsedPerk>, grotto: Boolean): List<ParsedPerk> {
+		if (!grotto) {
+			return all.filter { !it.type.isGrottoChance || it.value != 100 }.take(3)
+		}
+		val chance = all.filter { it.type.isGrottoChance }.take(1)
+		val bonus = all.filter { !it.type.isGrottoChance }
+		// Grotto fish spots can show Chance + Wise Hook + Strong Hook + Fish Magnet.
+		val bonusCap = if (chance.any { it.type == PerkType.FISH_CHANCE }) 3 else 2
+		return chance + bonus.take(bonusCap)
+	}
+
 	fun parsePerks(text: String, styled: List<StyledSpan> = emptyList()): List<ParsedPerk> {
-		val found = ArrayList<ParsedPerk>(3)
+		val found = ArrayList<ParsedPerk>(4)
 		HOOK.findAll(text).forEach { match ->
 			val value = match.groupValues[1].toInt()
 			val type = when (match.groupValues[2].lowercase()) {

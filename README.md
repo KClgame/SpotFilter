@@ -1,6 +1,6 @@
 # SpotFilter
 
-**v1.9.3** · Minecraft **26.2** · Fabric · 纯客户端
+**v1.9.4** · Minecraft **26.2** · Fabric · 纯客户端
 
 MCC Island 钓鱼点扫描、筛选、坐标 HUD 与世界透视引导。走近标题含 `Fishing Spot` 的 Text Display 即可收录（含 Carnival Ticket 的 **Event Fishing Spot**）。
 
@@ -58,7 +58,7 @@ Client-only Fabric mod that scans MCC Island fishing-spot labels, filters and so
 ## 安装
 
 1. 安装 Fabric Loader（26.2）与上述依赖。
-2. 从 [Releases](https://github.com/KClgame/SpotFilter/releases) 下载 `spotfilter-1.9.3.jar`，放入 `.minecraft/mods/`。
+2. 从 [Releases](https://github.com/KClgame/SpotFilter/releases) 下载 `spotfilter-1.9.4.jar`，放入 `.minecraft/mods/`。
 3. 启动游戏。控件里应出现 **SpotFilter** 分类。
 
 ---
@@ -287,7 +287,7 @@ Fish Chance 的 HUD icon 与 Wayfinder Data 相同（游戏内 MCCI 字体也接
 ## 扫描与生命周期
 
 - 每 tick 扫描渲染距离内的 `text_display`，标题含 `Fishing Spot` 则入池。**Event Fishing Spot** 保留 Stock，加成词条为五色 Carnival Ticket Scrap 之一，按颜色 Auto Pin（`ticket` 包：White / Red / Blue / Purple / Green Ticket）。
-- 记分板标题 `MCCI: <岛名>` 识别当前岛：Normal **I1–I9**（Verdant Woods … Ashen Wastes），Grotto 按气候 **Temperate / Tropical / Barren**（Sunken Swamp / Mirrored Oasis / Volcanic Springs）。切岛或进出 Grotto **只隐藏**另一岛的 HUD / 引导 / 列表，点池保留；切回来仍在。只有 **P** / Clear 会清空。
+- 记分板标题 `MCCI: <岛名>` 识别当前岛：Normal **I1–I9**（Verdant Woods … Ashen Wastes），Grotto 按气候 **Temperate / Tropical / Barren**（Sunken Swamp / Mirrored Oasis / Volcanic Springs）。切岛或进出 Grotto **只隐藏**另一岛的 HUD / 引导 / 列表，点池保留；切回来仍在。只有 **P** / Clear 会清空。距玩家超过 **300 格** 的点完全不显示（HUD、Filter 列表、世界引导、发光），走进范围后重新出现。
 - 世界 id 含 `fishing` 或已识别钓鱼岛时自动 Enabled；离开后自动 Disabled。Filter 里手点 Enabled 或 `/sf on|off` 优先，直到世界 id 变化。
 - 同一取整坐标更新 Stock/词条，不换号、不重复音效。
 - 新点播放一次经验球音效（Enabled 时）。
@@ -298,7 +298,7 @@ Fish Chance 的 HUD icon 与 Wayfinder Data 相同（游戏内 MCCI 字体也接
   - 本机本地时间 **整点后 1 分钟**（1:01、2:01…）
   - 或约 2 秒内至少 3 个 Normal 点内容变化 / 新出现（同一 xz 不同 y 会替换旧记录，避免双开）
 - **Grotto 刷新**：聊天出现 `Your Grotto has become unstable` 时只清空 Grotto 点。
-- 一个点最多解析 3 条加成。Grotto 会保留 1 条 100% Chance + 最多 2 条其他加成。
+- 岛上点最多解析 3 条加成。Grotto 一般是 1 条 100% Chance + 最多 2 条其他加成；**鱼点**可到 4 条（Fish Chance + Wise Hook + Strong Hook + Fish Magnet）。
 - 主 Icon：Chance/Data > Hook/Magnet，再比数值；Strong 与 Wise 同为 +30% 时优先 Strong。Grotto 见上文「最高级额外加成」。
 
 钓鱼点池 **不** 写入磁盘。重进游戏 / 整点 / **P** 后需重新扫描。
@@ -386,7 +386,7 @@ Normal 在整点 currents 或一波多点同时变时清空，并停几秒再扫
 ./gradlew build
 ```
 
-产物：`build/libs/spotfilter-1.9.3.jar`
+产物：`build/libs/spotfilter-1.9.4.jar`
 
 需要 JDK 25。变更记录见 [CHANGELOG.md](CHANGELOG.md)。
 
