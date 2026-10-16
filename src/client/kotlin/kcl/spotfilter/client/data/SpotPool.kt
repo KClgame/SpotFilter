@@ -40,8 +40,10 @@ object SpotPool {
 
 	fun byRank(rank: Int, kind: SpotKind = FilterState.kind): FishingSpot? {
 		FilterState.refreshRanks()
-		return FilterState.sortSpots(spots.values.filter { it.kind == kind }, kind)
-			.firstOrNull { it.rank == rank }
+		return FilterState.sortSpots(
+			spots.values.filter { it.kind == kind && FishingWorld.isVisible(it) },
+			kind
+		).firstOrNull { it.rank == rank }
 	}
 
 	fun upsert(incoming: FishingSpot) {

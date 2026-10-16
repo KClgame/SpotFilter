@@ -36,7 +36,7 @@ object SpotLines {
 	fun lineH(font: Font): Int = maxOf(font.lineHeight, COMPACT_ICON)
 
 	fun compactPerks(spot: FishingSpot) =
-		spot.perks.filter { !it.type.isGrottoChance }.ifEmpty { spot.perks }.take(3)
+		spot.perks.filter { !it.type.isGrottoChance }.ifEmpty { spot.perks }.take(4)
 
 	fun compactParts(spot: FishingSpot, highlight: Boolean = false): List<LinePart> {
 		val parts = ArrayList<LinePart>(12)

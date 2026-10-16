@@ -9,6 +9,7 @@ import com.mojang.brigadier.suggestion.SuggestionsBuilder
 import kcl.spotfilter.client.SpotFilterClient
 import kcl.spotfilter.client.config.RulePacks
 import kcl.spotfilter.client.config.SpotFilterConfig
+import kcl.spotfilter.client.data.FishingWorld
 import kcl.spotfilter.client.data.SpotKind
 import kcl.spotfilter.client.data.SpotPool
 import kcl.spotfilter.client.filter.AutoPin
@@ -338,7 +339,7 @@ object SpotCommands {
 	private fun suggestIds(builder: SuggestionsBuilder, pinned: Boolean): CompletableFuture<Suggestions> {
 		FilterState.refreshRanks()
 		SpotPool.all()
-			.filter { it.kind == FilterState.kind && it.pinned == pinned }
+			.filter { it.kind == FilterState.kind && it.pinned == pinned && FishingWorld.isVisible(it) }
 			.forEach { builder.suggest(it.rankNumber().toString()) }
 		return builder.buildFuture()
 	}
