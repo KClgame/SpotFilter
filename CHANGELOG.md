@@ -2,6 +2,10 @@
 
 SpotFilter 版本记录。最新在上。发布包见 [GitHub Releases](https://github.com/KClgame/SpotFilter/releases)。
 
+## 1.9.5 — 2026-10-10
+
+- Elusive Chance spots parse `Elusive Fish Chance` as well as `Elusive Chance`.
+
 ## 1.9.4 — 2026-10-10
 
 - Grotto fish spots keep four perk lines (100% Fish Chance + Wise Hook + Strong Hook + Fish Magnet).

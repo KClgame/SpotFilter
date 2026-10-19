@@ -30,7 +30,10 @@ object SpotParser {
 		"""\+?\s*(\d+)\s*%\s*Fish\s+Magnet""",
 		RegexOption.IGNORE_CASE
 	)
-	private val ELUSIVE = Regex("""\+?\s*5\s*%\s*Elusive\s+Chance""", RegexOption.IGNORE_CASE)
+	private val ELUSIVE = Regex(
+		"""(?:\+?\s*(\d+)\s*%\s*)?Elusive(?:\s+Fish)?\s+Chance""",
+		RegexOption.IGNORE_CASE
+	)
 	private val WAYFINDER = Regex("""\+?\s*10\s+Wayfinder\s+Data""", RegexOption.IGNORE_CASE)
 	private val PEARL_CHANCE = Regex("""\+?\s*5\s*%\s*Pearl\s+Chance""", RegexOption.IGNORE_CASE)
 	private val TREASURE_CHANCE = Regex("""\+?\s*1\s*%\s*Treasure\s+Chance""", RegexOption.IGNORE_CASE)
@@ -145,7 +148,10 @@ object SpotParser {
 
 	private fun selectPerks(all: List<ParsedPerk>, grotto: Boolean): List<ParsedPerk> {
 		if (!grotto) {
-			return all.filter { !it.type.isGrottoChance || it.value != 100 }.take(3)
+			val body = all.filter { !it.type.isGrottoChance || it.value != 100 }
+			val specials = body.filter { it.type.kind == PerkKind.SPECIAL }
+			val rest = body.filter { it.type.kind != PerkKind.SPECIAL }
+			return (specials + rest).take(3)
 		}
 		val chance = all.filter { it.type.isGrottoChance }.take(1)
 		val bonus = all.filter { !it.type.isGrottoChance }
@@ -191,7 +197,10 @@ object SpotParser {
 				}
 			}
 		}
-		if (ELUSIVE.containsMatchIn(text)) found.add(colored(PerkType.ELUSIVE_CHANCE, 5, styled))
+		ELUSIVE.find(text)?.let { match ->
+			val value = match.groupValues[1].toIntOrNull() ?: 5
+			found.add(colored(PerkType.ELUSIVE_CHANCE, value, styled))
+		}
 		if (WAYFINDER.containsMatchIn(text)) found.add(colored(PerkType.WAYFINDER_DATA, 10, styled))
 		if (PEARL_CHANCE.containsMatchIn(text)) found.add(colored(PerkType.PEARL_CHANCE, 5, styled))
 		if (TREASURE_CHANCE.containsMatchIn(text)) found.add(colored(PerkType.TREASURE_CHANCE, 1, styled))

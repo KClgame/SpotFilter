@@ -1,6 +1,6 @@
 # SpotFilter
 
-**v1.9.4** · Minecraft **26.1.2** · Fabric · 纯客户端
+**v1.9.5** · Minecraft **26.1.2** · Fabric · 纯客户端
 
 MCC Island 钓鱼点扫描、筛选、坐标 HUD 与世界透视引导。走近标题含 `Fishing Spot` 的 Text Display 即可收录（含 Carnival Ticket 的 **Event Fishing Spot**）。
 
@@ -53,7 +53,7 @@ Client-only Fabric mod that scans MCC Island fishing-spot labels, filters and so
 ## 安装
 
 1. 安装 Fabric Loader（26.1.2）与上述依赖。
-2. 从 [Releases](https://github.com/KClgame/SpotFilter/releases) 下载 `spotfilter-1.9.4-mc26.1.2.jar`，放入 `.minecraft/mods/`。
+2. 从 [Releases](https://github.com/KClgame/SpotFilter/releases) 下载 `spotfilter-1.9.5-mc26.1.2.jar`，放入 `.minecraft/mods/`。
 3. 启动游戏。控件里应出现 **SpotFilter** 分类。
 
 ---
@@ -309,7 +309,7 @@ Strong · Wise · Glimmering · Greedy · Lucky
 XP · Fish · Pearl · Treasure · Spirit
 
 **固定**  
-`+5% Elusive Chance` · `+10 Wayfinder Data` · `+5% Pearl Chance` · `+1% Treasure Chance` · `+2% Spirit Chance`
+`+5% Elusive Chance` / `+5% Elusive Fish Chance` · `+10 Wayfinder Data` · `+5% Pearl Chance` · `+1% Treasure Chance` · `+2% Spirit Chance`
 
 Grotto 另有：`+100% Fish Chance` · `+100% Pearl Chance` · `+100% Treasure Chance` · `+100% Spirit Chance`
 
@@ -381,7 +381,7 @@ Normal 在整点 currents 或一波多点同时变时清空，并停几秒再扫
 ./gradlew build
 ```
 
-产物：`build/libs/spotfilter-1.9.4.jar`
+产物：`build/libs/spotfilter-1.9.5.jar`
 
 需要 JDK 25。变更记录见 [CHANGELOG.md](CHANGELOG.md)。
 

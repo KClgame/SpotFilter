@@ -413,6 +413,8 @@ object RulesFile {
 		"treasuremagnet" to PerkType.TREASURE_MAGNET,
 		"spiritmagnet" to PerkType.SPIRIT_MAGNET,
 		"elusive" to PerkType.ELUSIVE_CHANCE,
+		"elusivefish" to PerkType.ELUSIVE_CHANCE,
+		"elusivefishchance" to PerkType.ELUSIVE_CHANCE,
 		"wayfinder" to PerkType.WAYFINDER_DATA,
 		"fishchance" to PerkType.FISH_CHANCE,
 		"pearlchance" to PerkType.PEARL_CHANCE,
