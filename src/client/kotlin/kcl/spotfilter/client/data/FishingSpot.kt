@@ -51,6 +51,40 @@ enum class StabilityCost(val label: String, val rank: Int, val rgb: Int) {
 	}
 }
 
+/** Grotto fish Stability Cost bands. Magnet 200 and Elusive 10 use different (lo)-(hi)% tables. */
+object GrottoFishCost {
+	fun resolve(perks: List<ParsedPerk>, lo: Int?, hi: Int?): StabilityCost? {
+		if (lo == null || hi == null) return null
+		val key = lo to hi
+		val typed = tableFor(perks)
+		if (typed != null) return typed[key]
+		return PURE[key] ?: MAGNET_200[key] ?: ELUSIVE_10[key]
+	}
+
+	private fun tableFor(perks: List<ParsedPerk>): Map<Pair<Int, Int>, StabilityCost>? = when {
+		perks.any { it.type == PerkType.FISH_MAGNET && it.value == 200 } -> MAGNET_200
+		perks.any { it.type == PerkType.ELUSIVE_CHANCE && it.value == 10 } -> ELUSIVE_10
+		perks.any { it.type == PerkType.FISH_CHANCE } -> PURE
+		else -> null
+	}
+
+	private val PURE = mapOf(
+		(0 to 2) to StabilityCost.LOW,
+		(0 to 3) to StabilityCost.MEDIUM,
+		(1 to 3) to StabilityCost.HIGH
+	)
+	private val MAGNET_200 = mapOf(
+		(1 to 4) to StabilityCost.LOW,
+		(2 to 5) to StabilityCost.MEDIUM,
+		(3 to 7) to StabilityCost.HIGH
+	)
+	private val ELUSIVE_10 = mapOf(
+		(1 to 5) to StabilityCost.LOW,
+		(2 to 7) to StabilityCost.MEDIUM,
+		(3 to 9) to StabilityCost.HIGH
+	)
+}
+
 data class FishingSpot(
 	val key: SpotKey,
 	var id: Int = 0,

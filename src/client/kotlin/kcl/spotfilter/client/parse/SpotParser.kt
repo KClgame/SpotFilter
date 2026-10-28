@@ -1,6 +1,7 @@
 package kcl.spotfilter.client.parse
 
 import kcl.spotfilter.client.data.FishingSpot
+import kcl.spotfilter.client.data.GrottoFishCost
 import kcl.spotfilter.client.data.SpotKey
 import kcl.spotfilter.client.data.SpotKind
 import kcl.spotfilter.client.data.StabilityCost
@@ -47,8 +48,8 @@ object SpotParser {
 		RegexOption.IGNORE_CASE
 	)
 	private val STABILITY_LABEL = Regex("""Stability\s+Cost""", RegexOption.IGNORE_CASE)
-	private val STABILITY_RANGE = Regex("""\(\s*\d+\s*\)\s*-\s*\(\s*\d+\s*\)\s*%""")
-	private val STABILITY_RANGE_LOOSE = Regex("""\d+\s*-\s*\d+\s*%""")
+	private val STABILITY_RANGE = Regex("""\(\s*(\d+)\s*\)\s*-\s*\(\s*(\d+)\s*\)\s*%""")
+	private val STABILITY_RANGE_LOOSE = Regex("""(\d+)\s*-\s*(\d+)\s*%""")
 
 	data class StyledSpan(val text: String, val rgb: Int?)
 
@@ -100,16 +101,20 @@ object SpotParser {
 			perks = perks,
 			lastSeenGameTime = now,
 			kind = if (grotto != null) SpotKind.GROTTO else SpotKind.NORMAL,
-			stability = grotto?.cost,
+			stability = grotto?.let { parsed ->
+				GrottoFishCost.resolve(allPerks, parsed.lo, parsed.hi) ?: parsed.rgbCost
+			},
 			stabilityRgb = grotto?.rgb,
 			stabilityRange = grotto?.range
 		)
 	}
 
 	private data class GrottoParse(
-		val cost: StabilityCost?,
+		val rgbCost: StabilityCost?,
 		val rgb: Int?,
-		val range: String?
+		val range: String?,
+		val lo: Int?,
+		val hi: Int?
 	)
 
 	private fun parseGrotto(text: String, styled: List<StyledSpan>): GrottoParse? {
@@ -117,6 +122,8 @@ object SpotParser {
 		val tail = text.substring(label.range.first)
 		val rangeMatch = STABILITY_RANGE.find(tail) ?: STABILITY_RANGE_LOOSE.find(tail)
 		val range = rangeMatch?.value
+		val lo = rangeMatch?.groupValues?.get(1)?.toIntOrNull()
+		val hi = rangeMatch?.groupValues?.get(2)?.toIntOrNull()
 		val colorStart: Int
 		val colorEnd: Int
 		if (rangeMatch != null) {
@@ -128,9 +135,11 @@ object SpotParser {
 		}
 		val rgb = colorOverlapping(styled, colorStart, colorEnd)
 		return GrottoParse(
-			cost = rgb?.let { StabilityCost.fromRgb(it) },
+			rgbCost = rgb?.let { StabilityCost.fromRgb(it) },
 			rgb = rgb,
-			range = range
+			range = range,
+			lo = lo,
+			hi = hi
 		)
 	}
 
