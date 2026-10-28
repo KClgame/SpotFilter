@@ -1,6 +1,6 @@
 # SpotFilter
 
-**v1.9.5** · Minecraft **26.2** · Fabric · 纯客户端
+**v1.9.6** · Minecraft **26.2** · Fabric · 纯客户端
 
 MCC Island 钓鱼点扫描、筛选、坐标 HUD 与世界透视引导。走近标题含 `Fishing Spot` 的 Text Display 即可收录（含 Carnival Ticket 的 **Event Fishing Spot**）。
 
@@ -58,7 +58,7 @@ Client-only Fabric mod that scans MCC Island fishing-spot labels, filters and so
 ## 安装
 
 1. 安装 Fabric Loader（26.2）与上述依赖。
-2. 从 [Releases](https://github.com/KClgame/SpotFilter/releases) 下载 `spotfilter-1.9.5.jar`，放入 `.minecraft/mods/`。
+2. 从 [Releases](https://github.com/KClgame/SpotFilter/releases) 下载 `spotfilter-1.9.6.jar`，放入 `.minecraft/mods/`。
 3. 启动游戏。控件里应出现 **SpotFilter** 分类。
 
 ---
@@ -128,7 +128,15 @@ Client-only Fabric mod that scans MCC Island fishing-spot labels, filters and so
 
 标签含 **Stability Cost** 的点视为 Grotto，其余为 Normal。
 
-Stability Cost 读取 Cost 后面整块 `(数字)-(数字)%` 的颜色：
+Grotto **鱼点**的 Stability Cost 按 `(lo)-(hi)%` 区间分档，三种鱼点各用一张表（同色也可能对应不同档）：
+
+| 种类 | Low | Medium | High |
+| --- | --- | --- | --- |
+| 普通鱼点 | 0–2 | 0–3 | 1–3 |
+| `+200% Fish Magnet` | 1–4 | 2–5 | 3–7 |
+| `+10% Elusive Fish Chance` | 1–5 | 2–7 | 3–9 |
+
+珍珠 / 宝藏 / 魂等其它 Grotto 点仍读 Cost 后面 `(数字)-(数字)%` 的颜色：
 
 | 档位 | 颜色 | 含义 | 排序 |
 | --- | --- | --- | --- |
@@ -386,7 +394,7 @@ Normal 在整点 currents 或一波多点同时变时清空，并停几秒再扫
 ./gradlew build
 ```
 
-产物：`build/libs/spotfilter-1.9.5.jar`
+产物：`build/libs/spotfilter-1.9.6.jar`
 
 需要 JDK 25。变更记录见 [CHANGELOG.md](CHANGELOG.md)。
 

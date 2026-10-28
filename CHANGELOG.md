@@ -2,6 +2,10 @@
 
 SpotFilter 版本记录。最新在上。发布包见 [GitHub Releases](https://github.com/KClgame/SpotFilter/releases)。
 
+## 1.9.6 — 2026-10-28
+
+- Grotto fish Stability Cost uses per-type `(lo)-(hi)%` tables: pure fish, `+200% Fish Magnet`, and `+10% Elusive Fish Chance`. Pearl / treasure / spirit still use Cost color.
+
 ## 1.9.5 — 2026-10-10
 
 - Elusive Chance spots parse `Elusive Fish Chance` as well as `Elusive Chance`.
