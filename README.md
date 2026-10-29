@@ -1,6 +1,6 @@
 # SpotFilter
 
-**v1.9.6** · Minecraft **26.1.2** · Fabric · 纯客户端
+**v1.9.7** · Minecraft **26.1.2** · Fabric · 纯客户端
 
 MCC Island 钓鱼点扫描、筛选、坐标 HUD 与世界透视引导。走近标题含 `Fishing Spot` 的 Text Display 即可收录（含 Carnival Ticket 的 **Event Fishing Spot**）。
 
@@ -53,7 +53,7 @@ Client-only Fabric mod that scans MCC Island fishing-spot labels, filters and so
 ## 安装
 
 1. 安装 Fabric Loader（26.1.2）与上述依赖。
-2. 从 [Releases](https://github.com/KClgame/SpotFilter/releases) 下载 `spotfilter-1.9.6-mc26.1.2.jar`，放入 `.minecraft/mods/`。
+2. 从 [Releases](https://github.com/KClgame/SpotFilter/releases) 下载 `spotfilter-1.9.7-mc26.1.2.jar`，放入 `.minecraft/mods/`。
 3. 启动游戏。控件里应出现 **SpotFilter** 分类。
 
 ---
@@ -240,7 +240,7 @@ Compact 模式下 Grotto 的名字和 `#n` 用上面的点色（有 Auto Pin 色
 | `config/spotfilter/packs/<name>_grotto.txt` | Grotto 规则 |
 | `config/spotfilter/export/` | Export as file 的输出 |
 
-内置 **fish / pearl / treasure / spirit / xp_wayfinder / ticket** 和 **blank**（空白）只在**第一次加载模组**（还没有 `packs/` 目录）时写出。已有安装若缺少 `ticket` 包会补一份。之后不再检测或补其它默认包，可以删。Auto Pin 界面可切换 Normal / Grotto，只显示当前模式的规则条数。点只在**第一次被扫描到**时按规则决定是否 Pin；之后不会反复钉上，可手动取消 Pin。可 Create 新包，Load file 从路径导入，Export 写出两份 txt。旧的 `config/spotfilter/rules.txt` 若存在会导入为 `legacy` 包（默认不勾选）。
+内置 **fish / pearl / treasure / spirit / xp_wayfinder / ticket** 和 **blank**（空白）只在**第一次加载模组**（还没有 `packs/` 目录）时写出。已有安装若缺少 `ticket` 包会补一份。未改过的旧版 `fish_grotto.txt`（仍含 `200 fish magnet`、没有磁铁/稀有分档）会在加载时换成三种鱼点的 Low/Medium/High 规则。其它包不再自动补，可以删。Auto Pin 界面可切换 Normal / Grotto，只显示当前模式的规则条数。点只在**第一次被扫描到**时按规则决定是否 Pin；之后不会反复钉上，可手动取消 Pin。可 Create 新包，Load file 从路径导入，Export 写出两份 txt。旧的 `config/spotfilter/rules.txt` 若存在会导入为 `legacy` 包（默认不勾选）。
 
 - 勾选上的包 **并行**：规则合并进 Auto Pin
 - 不同包里 **规则 `name=` 或 `nick=` 相同** 视为同一分组编号（`大鱼 #1` `#2`…）
@@ -389,7 +389,7 @@ Normal 在整点 currents 或一波多点同时变时清空，并停几秒再扫
 ./gradlew build
 ```
 
-产物：`build/libs/spotfilter-1.9.6.jar`
+产物：`build/libs/spotfilter-1.9.7.jar`
 
 需要 JDK 25。变更记录见 [CHANGELOG.md](CHANGELOG.md)。
 

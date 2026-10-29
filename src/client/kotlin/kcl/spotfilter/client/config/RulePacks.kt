@@ -62,6 +62,7 @@ object RulePacks {
 		Files.createDirectories(root)
 		seedDefaultsOnce()
 		seedTicketPack()
+		refreshFishGrottoPack()
 		migrateLegacyRules()
 		val normalSet = resolveEnabled(enabledNormal ?: enabled)
 		val grottoSet = resolveEnabled(enabledGrotto ?: enabled)
@@ -243,6 +244,27 @@ object RulePacks {
 		Files.createDirectories(packsDir)
 		writeIfMissing(normalPath("ticket"), "ticket.txt", emptyPackText("ticket", SpotKind.NORMAL))
 		writeIfMissing(grottoPath("ticket"), "ticket_grotto.txt", emptyPackText("ticket", SpotKind.GROTTO))
+	}
+
+	private fun refreshFishGrottoPack() {
+		Files.createDirectories(packsDir)
+		val path = grottoPath("fish")
+		val latest = readBuiltinResource("fish_grotto.txt") ?: return
+		if (!Files.exists(path)) {
+			Files.writeString(path, latest, StandardCharsets.UTF_8)
+			return
+		}
+		if (isStaleFishGrotto(Files.readString(path, StandardCharsets.UTF_8))) {
+			Files.writeString(path, latest, StandardCharsets.UTF_8)
+		}
+	}
+
+	private fun isStaleFishGrotto(text: String): Boolean {
+		val n = text.replace("\r\n", "\n")
+		return n.contains("name=200 fish magnet") &&
+			n.contains("name=medium cost 鱼点") &&
+			!n.contains("name=low cost magnet 鱼点") &&
+			!n.contains("name=low cost elusive 鱼点")
 	}
 
 	private fun seedDefaultsOnce() {
