@@ -267,6 +267,20 @@ class AutoPinRule {
 	}
 
 	fun customRgb(): Int? = parseHexColor(customColorHex)
+
+	/** XP Magnet / Wayfinder Data only — generic, below the spot's own family rules. */
+	fun isGenericXpWayfinder(): Boolean {
+		if (pair.enabled) return false
+		val perks = slots.filter { it.isActive }.mapNotNull { it.perk }
+		if (perks.isEmpty()) return false
+		return perks.all { it == PerkType.XP_MAGNET || it == PerkType.WAYFINDER_DATA }
+	}
+
+	fun genericPinRgb(): Int? {
+		if (!isGenericXpWayfinder()) return null
+		val perk = slots.firstOrNull { it.isActive }?.perk ?: return null
+		return perk.family.rgb
+	}
 }
 
 class FilterProfile {
@@ -447,9 +461,10 @@ object AutoPin {
 	fun matchingRule(spot: FishingSpot): AutoPinRule? {
 		if (spot.stock == StockLevel.DEPLETED) return null
 		val profile = FilterState.profileFor(spot)
-		return profile.autoPinRules.firstOrNull {
+		val hits = profile.autoPinRules.filter {
 			it.enabled && it.matches(spot, spot.kind == SpotKind.GROTTO)
 		}
+		return hits.firstOrNull { !it.isGenericXpWayfinder() } ?: hits.firstOrNull()
 	}
 
 	fun apply(spot: FishingSpot) {
@@ -463,7 +478,7 @@ object AutoPin {
 		if (spot.autoPinDecided) return
 		spot.autoPinDecided = true
 		val rule = matchingRule(spot) ?: return
-		spot.pinColorOverride = rule.customRgb()
+		spot.pinColorOverride = rule.customRgb() ?: rule.genericPinRgb()
 		spot.autoPinned = true
 		SpotPool.assignGroup(spot, kcl.spotfilter.client.config.RulePacks.groupingName(rule))
 		if (!spot.pinned) {
@@ -490,7 +505,7 @@ object AutoPin {
 		}
 		val rule = matchingRule(spot)
 		if (rule != null) {
-			spot.pinColorOverride = rule.customRgb()
+			spot.pinColorOverride = rule.customRgb() ?: rule.genericPinRgb()
 			SpotPool.assignGroup(spot, kcl.spotfilter.client.config.RulePacks.groupingName(rule))
 		} else if (spot.autoPinned) {
 			spot.pinColorOverride = null

@@ -261,6 +261,7 @@ object RulePacks {
 
 	private fun isStaleFishGrotto(text: String): Boolean {
 		val n = text.replace("\r\n", "\n")
+		if (n.contains("磁铁鱼")) return true
 		return n.contains("name=200 fish magnet") &&
 			n.contains("name=medium cost 鱼点") &&
 			!n.contains("name=low cost magnet 鱼点") &&

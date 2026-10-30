@@ -2,6 +2,12 @@
 
 SpotFilter 版本记录。最新在上。发布包见 [GitHub Releases](https://github.com/KClgame/SpotFilter/releases)。
 
+## 1.9.8 — 2026-10-28
+
+- Grotto pearl / spirit / treasure Stability Cost use `(lo)-(hi)%` tables (pearl 1–5 / 2–7 / 3–9, spirit 2–5 / 3–7 / 5–10, treasure 5–9 / 7–13 / 10–20).
+- Red/blue name color is for fish spots. Pearl / treasure / spirit keep their own family color unless Auto Pin matches only XP Magnet or Wayfinder Data. Own-family Auto Pin beats those generic rules.
+- Grotto `+200% Fish Magnet` nicknames are 低价/中价/高价好多鱼.
+
 ## 1.9.7 — 2026-10-28
 
 - Default Grotto fish Auto Pin splits Low/Medium/High by type: pure fish, `+200% Fish Magnet`, and `+10% Elusive Fish Chance`. Medium cost now requires Medium. High stays off. Unmodified `fish_grotto.txt` is refreshed on load.
