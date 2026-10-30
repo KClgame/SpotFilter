@@ -153,8 +153,9 @@ data class ParsedPerk(
 object PerkPriority {
 	fun primary(perks: List<ParsedPerk>): ParsedPerk? {
 		if (perks.isEmpty()) return null
-		val special = perks.filter { it.type.kind == PerkKind.SPECIAL }
-		val pool = special.ifEmpty { perks }
+		val colored = perks.filter { !it.type.skipsSpotColor }.ifEmpty { perks }
+		val special = colored.filter { it.type.kind == PerkKind.SPECIAL }
+		val pool = special.ifEmpty { colored }
 		return pool.maxWithOrNull(
 			compareBy<ParsedPerk> { it.value }
 				.thenBy { if (it.type.family == PerkFamily.STRONG) 1 else 0 }

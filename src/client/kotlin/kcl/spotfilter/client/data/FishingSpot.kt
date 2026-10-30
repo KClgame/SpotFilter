@@ -1,6 +1,8 @@
 package kcl.spotfilter.client.data
 
 import kcl.spotfilter.client.parse.ParsedPerk
+import kcl.spotfilter.client.parse.PerkFamily
+import kcl.spotfilter.client.parse.PerkKind
 import kcl.spotfilter.client.parse.PerkPriority
 import kcl.spotfilter.client.parse.PerkType
 import net.minecraft.resources.Identifier
@@ -51,7 +53,7 @@ enum class StabilityCost(val label: String, val rank: Int, val rgb: Int) {
 	}
 }
 
-/** Grotto fish Stability Cost bands. Magnet 200 and Elusive 10 use different (lo)-(hi)% tables. */
+/** Grotto Stability Cost bands from `(lo)-(hi)%`. Fish subtypes and pearl/treasure/spirit each have a table. */
 object GrottoFishCost {
 	fun resolve(perks: List<ParsedPerk>, lo: Int?, hi: Int?): StabilityCost? {
 		if (lo == null || hi == null) return null
@@ -59,13 +61,20 @@ object GrottoFishCost {
 		val typed = tableFor(perks)
 		if (typed != null) return typed[key]
 		return PURE[key] ?: MAGNET_200[key] ?: ELUSIVE_10[key]
+			?: PEARL[key] ?: SPIRIT[key] ?: TREASURE[key]
 	}
 
-	private fun tableFor(perks: List<ParsedPerk>): Map<Pair<Int, Int>, StabilityCost>? = when {
-		perks.any { it.type == PerkType.FISH_MAGNET && it.value == 200 } -> MAGNET_200
-		perks.any { it.type == PerkType.ELUSIVE_CHANCE && it.value == 10 } -> ELUSIVE_10
-		perks.any { it.type == PerkType.FISH_CHANCE } -> PURE
-		else -> null
+	private fun tableFor(perks: List<ParsedPerk>): Map<Pair<Int, Int>, StabilityCost>? {
+		val fish = perks.any { it.type == PerkType.FISH_CHANCE }
+		return when {
+			fish && perks.any { it.type == PerkType.FISH_MAGNET && it.value == 200 } -> MAGNET_200
+			fish && perks.any { it.type == PerkType.ELUSIVE_CHANCE && it.value == 10 } -> ELUSIVE_10
+			fish -> PURE
+			perks.any { it.type == PerkType.PEARL_CHANCE } -> PEARL
+			perks.any { it.type == PerkType.TREASURE_CHANCE } -> TREASURE
+			perks.any { it.type == PerkType.SPIRIT_CHANCE } -> SPIRIT
+			else -> null
+		}
 	}
 
 	private val PURE = mapOf(
@@ -82,6 +91,21 @@ object GrottoFishCost {
 		(1 to 5) to StabilityCost.LOW,
 		(2 to 7) to StabilityCost.MEDIUM,
 		(3 to 9) to StabilityCost.HIGH
+	)
+	private val PEARL = mapOf(
+		(1 to 5) to StabilityCost.LOW,
+		(2 to 7) to StabilityCost.MEDIUM,
+		(3 to 9) to StabilityCost.HIGH
+	)
+	private val SPIRIT = mapOf(
+		(2 to 5) to StabilityCost.LOW,
+		(3 to 7) to StabilityCost.MEDIUM,
+		(5 to 10) to StabilityCost.HIGH
+	)
+	private val TREASURE = mapOf(
+		(5 to 9) to StabilityCost.LOW,
+		(7 to 13) to StabilityCost.MEDIUM,
+		(10 to 20) to StabilityCost.HIGH
 	)
 }
 
@@ -132,7 +156,7 @@ data class FishingSpot(
 		if (candidates.isEmpty()) return 4
 		return candidates.maxWith(
 			compareBy<Pair<ParsedPerk, Int>> { it.first.value }
-				.thenBy { if (it.first.type.kind == kcl.spotfilter.client.parse.PerkKind.MAGNET) 1 else 0 }
+				.thenBy { if (it.first.type.kind == PerkKind.MAGNET) 1 else 0 }
 				.thenBy { -it.second }
 		).second
 	}
@@ -168,8 +192,8 @@ data class FishingSpot(
 		val maxVal = bonuses.maxOfOrNull { it.value } ?: 0
 		val familyBonuses = bonuses.filter { it.type.groupingIndex == group }
 		val familyMax = familyBonuses.maxOfOrNull { it.value } ?: 0
-		val magnet = if (familyBonuses.any { it.type.kind == kcl.spotfilter.client.parse.PerkKind.MAGNET }) 2 else 0
-		val hook = if (familyBonuses.any { it.type.kind == kcl.spotfilter.client.parse.PerkKind.HOOK }) 1 else 0
+		val magnet = if (familyBonuses.any { it.type.kind == PerkKind.MAGNET }) 2 else 0
+		val hook = if (familyBonuses.any { it.type.kind == PerkKind.HOOK }) 1 else 0
 		return maxVal * 1000 + familyMax * 20 + magnet + hook + bonuses.size
 	}
 
@@ -212,14 +236,29 @@ data class FishingSpot(
 		if (kind == SpotKind.GROTTO) {
 			return stabilityDisplayRgb()
 		}
+		val group = familyGroup()
+		if (group != 0) return familyGroupRgb(group)
 		val strong = perkValue(PerkType.STRONG_HOOK)
 		if (strong >= 0) {
 			val wise = perkValue(PerkType.WISE_HOOK).coerceAtLeast(0)
 			val fish = perkValue(PerkType.FISH_MAGNET).coerceAtLeast(0)
 			if (strong >= wise && strong >= fish) {
-				return kcl.spotfilter.client.parse.PerkFamily.STRONG.rgb
+				return PerkFamily.STRONG.rgb
 			}
 		}
-		return primaryPerk()?.type?.family?.rgb ?: 0xFFFFFF
+		return primaryPerk()?.type?.family?.rgb ?: PerkFamily.WISE.rgb
+	}
+
+	fun familyGroupRgb(group: Int = familyGroup()): Int = when (group) {
+		0 -> PerkFamily.WISE.rgb
+		1 -> PerkFamily.PEARL.rgb
+		2 -> PerkFamily.TREASURE.rgb
+		3 -> PerkFamily.SPIRIT.rgb
+		4 -> PerkFamily.TICKET_WHITE.rgb
+		5 -> PerkFamily.TICKET_RED.rgb
+		6 -> PerkFamily.TICKET_BLUE.rgb
+		7 -> PerkFamily.TICKET_PURPLE.rgb
+		8 -> PerkFamily.TICKET_GREEN.rgb
+		else -> 0xFFFFFF
 	}
 }

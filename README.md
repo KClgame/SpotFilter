@@ -1,6 +1,6 @@
 # SpotFilter
 
-**v1.9.7** · Minecraft **26.2** · Fabric · 纯客户端
+**v1.9.8** · Minecraft **26.2** · Fabric · 纯客户端
 
 MCC Island 钓鱼点扫描、筛选、坐标 HUD 与世界透视引导。走近标题含 `Fishing Spot` 的 Text Display 即可收录（含 Carnival Ticket 的 **Event Fishing Spot**）。
 
@@ -58,7 +58,7 @@ Client-only Fabric mod that scans MCC Island fishing-spot labels, filters and so
 ## 安装
 
 1. 安装 Fabric Loader（26.2）与上述依赖。
-2. 从 [Releases](https://github.com/KClgame/SpotFilter/releases) 下载 `spotfilter-1.9.7.jar`，放入 `.minecraft/mods/`。
+2. 从 [Releases](https://github.com/KClgame/SpotFilter/releases) 下载 `spotfilter-1.9.8.jar`，放入 `.minecraft/mods/`。
 3. 启动游戏。控件里应出现 **SpotFilter** 分类。
 
 ---
@@ -128,15 +128,18 @@ Client-only Fabric mod that scans MCC Island fishing-spot labels, filters and so
 
 标签含 **Stability Cost** 的点视为 Grotto，其余为 Normal。
 
-Grotto **鱼点**的 Stability Cost 按 `(lo)-(hi)%` 区间分档，三种鱼点各用一张表（同色也可能对应不同档）：
+Grotto Stability Cost 按 `(lo)-(hi)%` 区间分档（同色也可能对应不同档）：
 
 | 种类 | Low | Medium | High |
 | --- | --- | --- | --- |
 | 普通鱼点 | 0–2 | 0–3 | 1–3 |
 | `+200% Fish Magnet` | 1–4 | 2–5 | 3–7 |
 | `+10% Elusive Fish Chance` | 1–5 | 2–7 | 3–9 |
+| 珍珠点 | 1–5 | 2–7 | 3–9 |
+| 魂点 | 2–5 | 3–7 | 5–10 |
+| 宝藏点 | 5–9 | 7–13 | 10–20 |
 
-珍珠 / 宝藏 / 魂等其它 Grotto 点仍读 Cost 后面 `(数字)-(数字)%` 的颜色：
+区间对不上时仍读 Cost 后面 `(数字)-(数字)%` 的颜色：
 
 | 档位 | 颜色 | 含义 | 排序 |
 | --- | --- | --- | --- |
@@ -146,7 +149,7 @@ Grotto **鱼点**的 Stability Cost 按 `(lo)-(hi)%` 区间分档，三种鱼点
 
 Grotto 模式下主界面和 Auto Pin 会出现 **Cost** 筛选（Low / Medium / High）。
 
-每个 Grotto 点必定有且仅有一条 **+100%** 的 Fish / Pearl / Treasure / Spirit Chance，并按这条 Chance **分类**。HUD 主 Icon 取 **最高级额外加成**（数值高者优先，同值 Special > Magnet > Hook）；没有其他加成则用该 Chance 的 Icon。**XP Magnet、Wayfinder Data 不参与主 Icon 和点色。**
+每个 Grotto 点必定有且仅有一条 **+100%** 的 Fish / Pearl / Treasure / Spirit Chance，并按这条 Chance **分类**。HUD 主 Icon 取 **最高级额外加成**（数值高者优先，同值 Special > Magnet > Hook）；没有其他加成则用该 Chance 的 Icon。**XP Magnet、Wayfinder Data 不参与主 Icon。** 红/蓝点色只给 **fish** 类型；珍珠/宝藏/魂不因这两条通用词条变红蓝（除非 Auto Pin 只命中它们）。
 
 ---
 
@@ -219,7 +222,8 @@ Normal 与 Grotto **各有一套** Pair 设置。Grotto 仍按上面配对，100
 
 1. Auto Pin 规则里的 `#RRGGBB`（最高）
 2. **Grotto**：Stability Cost 色（每个 Grotto 点都有 Cost；Low `#65FEFE` / Medium `#55FE56` / High `#FEFE55`）。词条家族色低于 Cost，默认不用 perk 染引导。
-3. **Normal**：主词条家族色
+3. **Normal fish**：Strong / Wise 家族色（红 / 蓝），含 XP Magnet、Wayfinder Data、Elusive。
+4. **Normal pearl / treasure / spirit / ticket**：本家族色。XP Magnet、Wayfinder Data 不把它们染成红/蓝，除非 Auto Pin **只**命中这两条通用规则。本属性规则优先于通用规则。
 
 家族默认色：
 
@@ -394,7 +398,7 @@ Normal 在整点 currents 或一波多点同时变时清空，并停几秒再扫
 ./gradlew build
 ```
 
-产物：`build/libs/spotfilter-1.9.7.jar`
+产物：`build/libs/spotfilter-1.9.8.jar`
 
 需要 JDK 25。变更记录见 [CHANGELOG.md](CHANGELOG.md)。
 

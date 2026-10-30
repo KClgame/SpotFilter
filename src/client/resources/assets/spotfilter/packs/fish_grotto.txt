@@ -63,21 +63,21 @@ enabled=true
 f1=Wise Hook >= 30
 
 name=low cost magnet 鱼点
-nick=低价磁铁鱼
+nick=低价好多鱼
 mode=AND
 enabled=true
 f1=Fish Magnet = 200
 cost== Low
 
 name=medium cost magnet 鱼点
-nick=中价磁铁鱼
+nick=中价好多鱼
 mode=AND
 enabled=true
 f1=Fish Magnet = 200
 cost== Medium
 
 name=high cost magnet 鱼点
-nick=高价磁铁鱼
+nick=高价好多鱼
 mode=AND
 enabled=false
 f1=Fish Magnet = 200
